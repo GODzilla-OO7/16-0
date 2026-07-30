@@ -10,7 +10,10 @@ import MatchSimulator from './components/MatchSimulator.jsx'
 import Results from './components/Results.jsx'
 import ProfileModal from './components/ProfileModal.jsx'
 import CricketOval from './components/CricketOval.jsx'
+import AuthModal from './components/AuthModal.jsx'
+import UserProfile from './components/UserProfile.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
+import { useAuth, saveGameResult } from './hooks/useAuth.js'
 
 // Batting order sort — mirrors TeamSheet's defaultSort
 const BATTING_ORDER_WEIGHT = {
@@ -23,6 +26,8 @@ function sortByBattingOrder(arr) {
 }
 
 export default function App() {
+  const { user, signOut } = useAuth()
+
   const [mode, setMode]             = useState(null)
   const [phase, setPhase]           = useState('menu')
   const [settings, setSettings]     = useState(null)
@@ -33,6 +38,8 @@ export default function App() {
   const [summary, setSummary]       = useState(null)
   const [matchResults, setMatchResults] = useState([])
   const [showProfile, setShowProfile]   = useState(false)
+  const [showAuth, setShowAuth]         = useState(false)
+  const [showUserProfile, setShowUserProfile] = useState(false)
   const [newAwards,   setNewAwards]     = useState([])
   const [previewManager,   setPreviewManager]   = useState(null) // coach landed (spin preview for TeamStrengthPanel)
   const [confirmedManager, setConfirmedManager] = useState(null) // coach confirmed by user click
@@ -79,7 +86,7 @@ export default function App() {
     setMatchResults(results)
     setPhase('results')
 
-    // Record season + check awards
+    // Record season locally + check awards
     const { newlyEarned } = recordSeason({
       mode,
       wins:         sum.wins,
@@ -94,7 +101,20 @@ export default function App() {
     })
     if (newlyEarned.length > 0) {
       setNewAwards(newlyEarned)
-      // Profile stays closed — user opens it manually via the 🏅 button
+    }
+
+    // Save to Supabase if signed in
+    if (user) {
+      saveGameResult(user.id, {
+        mode,
+        wins:         sum.wins,
+        losses:       sum.losses,
+        total:        sum.total,
+        stageReached: sum.stageReached,
+        iplOutcome:   sum.iplOutcome,
+        iplPosition:  sum.iplPosition,
+        perfect:      sum.perfect,
+      })
     }
   }
 
@@ -115,38 +135,72 @@ export default function App() {
     setPreviewManager(null); setConfirmedManager(null)
   }
 
+  const btnBase = {
+    width: 44, height: 44, borderRadius: '50%',
+    background: '#12121a', border: '1px solid #2a2a3a',
+    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+    transition: 'border-color 0.2s, color 0.2s',
+  }
+
   const profileBtn = (
-    <button
-      onClick={() => { setNewAwards([]); setShowProfile(true) }}
-      title="Profile & Awards"
-      style={{
-        position: 'fixed', bottom: '1.25rem', right: '1.25rem', zIndex: 800,
-        width: 44, height: 44, borderRadius: '50%',
-        background: '#12121a', border: '1px solid #2a2a3a',
-        color: '#64748b', fontSize: '1.1rem', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-        transition: 'border-color 0.2s, color 0.2s',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = '#22c55e'; e.currentTarget.style.color = '#22c55e' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = '#64748b' }}
-    >
-      🏅
-    </button>
+    <div style={{ position: 'fixed', bottom: '1.25rem', right: '1.25rem', zIndex: 800, display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
+      {/* Account button */}
+      <button
+        onClick={() => user ? setShowUserProfile(true) : setShowAuth(true)}
+        title={user ? 'Your account' : 'Sign in'}
+        style={{
+          ...btnBase,
+          color: user ? '#22c55e' : '#64748b',
+          borderColor: user ? '#22c55e44' : '#2a2a3a',
+          fontSize: user ? '0.75rem' : '1.1rem',
+          fontWeight: 900,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#22c55e'; e.currentTarget.style.color = '#22c55e' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = user ? '#22c55e44' : '#2a2a3a'; e.currentTarget.style.color = user ? '#22c55e' : '#64748b' }}
+      >
+        {user ? (user.email?.[0]?.toUpperCase() ?? '👤') : '👤'}
+      </button>
+
+      {/* Medals button */}
+      <button
+        onClick={() => { setNewAwards([]); setShowProfile(true) }}
+        title="Medals & Awards"
+        style={{ ...btnBase, color: newAwards.length > 0 ? '#f59e0b' : '#64748b', fontSize: '1.1rem' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#22c55e'; e.currentTarget.style.color = '#22c55e' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = newAwards.length > 0 ? '#f59e0b' : '#64748b' }}
+      >
+        🏅
+      </button>
+    </div>
+  )
+
+  const globalOverlays = (
+    <>
+      {globalOverlays}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} onSuccess={() => setShowAuth(false)} />}
+      {showUserProfile && user && (
+        <UserProfile
+          user={user}
+          onClose={() => setShowUserProfile(false)}
+          onSignOut={() => { signOut(); setShowUserProfile(false) }}
+        />
+      )}
+    </>
   )
 
   if (phase === 'menu')     return (
     <>
       <ModeSelect onSelect={handleModeSelect} />
       {profileBtn}
-      {showProfile && <ProfileModal newlyEarned={newAwards} onClose={() => setShowProfile(false)} />}
+      {globalOverlays}
     </>
   )
   if (phase === 'settings') return (
     <>
       <DraftSettings mode={mode} onStart={handleSettingsStart} onBack={() => setPhase('menu')} />
       {profileBtn}
-      {showProfile && <ProfileModal newlyEarned={newAwards} onClose={() => setShowProfile(false)} />}
+      {globalOverlays}
     </>
   )
 
@@ -155,7 +209,7 @@ export default function App() {
     <>
       <ManagerSelect mode={mode} team={team} onSelect={handleManagerSelect} onBack={() => setPhase('draft')} />
       {profileBtn}
-      {showProfile && <ProfileModal newlyEarned={newAwards} onClose={() => setShowProfile(false)} />}
+      {globalOverlays}
     </>
   )
 
@@ -268,7 +322,7 @@ export default function App() {
           </div>
         </div>
       {profileBtn}
-      {showProfile && <ProfileModal newlyEarned={newAwards} onClose={() => setShowProfile(false)} />}
+      {globalOverlays}
       </div>
     )
   }
@@ -277,7 +331,7 @@ export default function App() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <MatchSimulator team={team} mode={mode} manager={manager} ratingType={settings?.ratingType} onDone={handleSimDone} />
       {profileBtn}
-      {showProfile && <ProfileModal newlyEarned={newAwards} onClose={() => setShowProfile(false)} />}
+      {globalOverlays}
     </div>
   )
 
@@ -285,7 +339,7 @@ export default function App() {
     <>
       <Results team={team} mode={mode} manager={manager} summary={summary} matchResults={matchResults} onPlayAgain={handlePlayAgain} />
       {profileBtn}
-      {showProfile && <ProfileModal newlyEarned={newAwards} onClose={() => setShowProfile(false)} />}
+      {globalOverlays}
     </>
   )
 
