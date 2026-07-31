@@ -13,6 +13,7 @@ import CricketOval from './components/CricketOval.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import SquadComposer from './components/SquadComposer.jsx'
+import DailyChallenge from './components/DailyChallenge.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
 import { useAuth, saveGameResult } from './hooks/useAuth.js'
 
@@ -41,6 +42,7 @@ export default function App() {
   const [showProfile, setShowProfile]   = useState(false)
   const [showAuth, setShowAuth]         = useState(false)
   const [showUserProfile, setShowUserProfile] = useState(false)
+  const [showDailyChallenge, setShowDailyChallenge] = useState(false)
   const [newAwards,   setNewAwards]     = useState([])
   const [previewManager,   setPreviewManager]   = useState(null) // coach landed (spin preview for TeamStrengthPanel)
   const [confirmedManager, setConfirmedManager] = useState(null) // coach confirmed by user click
@@ -171,6 +173,17 @@ export default function App() {
         {user ? (user.email?.[0]?.toUpperCase() ?? '👤') : '👤'}
       </button>
 
+      {/* Daily challenge button */}
+      <button
+        onClick={() => setShowDailyChallenge(true)}
+        title="Daily Challenge"
+        style={{ ...btnBase, color: '#f59e0b', fontSize: '1.1rem' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#f59e0b' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = '#f59e0b' }}
+      >
+        🗓️
+      </button>
+
       {/* Medals button */}
       <button
         onClick={() => { setNewAwards([]); setShowProfile(true) }}
@@ -192,6 +205,20 @@ export default function App() {
           user={user}
           onClose={() => setShowUserProfile(false)}
           onSignOut={() => { signOut(); setShowUserProfile(false) }}
+        />
+      )}
+      {showDailyChallenge && (
+        <DailyChallenge
+          user={user}
+          onClose={() => setShowDailyChallenge(false)}
+          onPlay={(challenge) => {
+            setShowDailyChallenge(false)
+            // Start a normal IPL game — the challenge constraint will be enforced in WheelSpin
+            setMode('ipl')
+            setPhase('settings')
+            // Store challenge for constraint checking after results
+            window.__activeChallenge = challenge
+          }}
         />
       )}
     </>
