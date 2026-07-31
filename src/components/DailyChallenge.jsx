@@ -99,7 +99,7 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
       const { data: ch } = await sb
         .from('daily_challenges')
         .select('*')
-        .eq('challenge_date', today)
+        .eq('date', today)
         .maybeSingle()
 
       if (!ch) { setError('No challenge today — check back soon!'); setLoading(false); return }
@@ -166,10 +166,10 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
                 Today's Restriction
               </div>
               <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.3rem' }}>
-                {challenge.challenge_label}
+                {challenge.constraint_label}
               </div>
               <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                {challenge.challenge_config?.desc ?? ''}
+                {challenge.constraint_desc}
               </div>
 
               {/* Scoring */}
