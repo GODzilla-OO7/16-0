@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { getSupabase } from '../lib/supabase'
 
 export default function AuthModal({ onClose, onSuccess }) {
   const [mode, setMode]       = useState('signin')   // 'signin' | 'signup'
@@ -14,12 +14,15 @@ export default function AuthModal({ onClose, onSuccess }) {
     setLoading(true)
     setError(null)
 
+    const sb = await getSupabase()
+    if (!sb) { setError('Auth not available. Please try again.'); setLoading(false); return }
+
     if (mode === 'signup') {
-      const { error } = await supabase.auth.signUp({ email, password })
+      const { error } = await sb.auth.signUp({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
       setSent(true)
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { error } = await sb.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
       onSuccess?.()
       onClose()

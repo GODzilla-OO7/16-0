@@ -1,31 +1,39 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { getSupabase } from '../lib/supabase'
 
 export function useAuth() {
   const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
+    let sub = null
+    getSupabase().then(sb => {
+      if (!sb) { setLoading(false); return }
+      sb.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null)
+        setLoading(false)
+      })
+      const { data } = sb.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null)
+      })
+      sub = data?.subscription
     })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => subscription.unsubscribe()
+    return () => sub?.unsubscribe()
   }, [])
 
-  const signOut = () => supabase.auth.signOut()
+  const signOut = async () => {
+    const sb = await getSupabase()
+    sb?.auth.signOut()
+  }
 
   return { user, loading, signOut }
 }
 
-// Save a completed game to Supabase (call after each game if user is logged in)
 export async function saveGameResult(userId, { mode, wins, losses, total, stageReached, iplOutcome, iplPosition, perfect }) {
-  const { error } = await supabase.from('game_results').insert({
+  const sb = await getSupabase()
+  if (!sb) return
+
+  await sb.from('game_results').insert({
     user_id:       userId,
     mode,
     wins,
@@ -36,36 +44,25 @@ export async function saveGameResult(userId, { mode, wins, losses, total, stageR
     ipl_position:  iplPosition  ?? null,
     perfect:       perfect      ?? false,
   })
-  if (error) console.error('Save result error:', error)
 
-  // Update profile aggregates
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('total_games, total_wins, total_losses, best_streak')
-    .eq('id', userId)
-    .single()
-
+  const { data: profile } = await sb.from('profiles').select('total_games,total_wins,total_losses,best_streak').eq('id', userId).single()
   if (profile) {
-    const newStreak = wins >= losses ? (profile.best_streak || 0) : profile.best_streak
-    await supabase.from('profiles').update({
+    await sb.from('profiles').update({
       total_games:  (profile.total_games  || 0) + 1,
       total_wins:   (profile.total_wins   || 0) + wins,
       total_losses: (profile.total_losses || 0) + losses,
-      best_streak:  Math.max(newStreak, wins),
+      best_streak:  Math.max(profile.best_streak || 0, wins),
       updated_at:   new Date().toISOString(),
     }).eq('id', userId)
   }
 }
 
-// Fetch full profile + recent results
 export async function fetchProfile(userId) {
+  const sb = await getSupabase()
+  if (!sb) return { profile: null, results: [] }
   const [{ data: profile }, { data: results }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', userId).single(),
-    supabase.from('game_results')
-      .select('*')
-      .eq('user_id', userId)
-      .order('played_at', { ascending: false })
-      .limit(20),
+    sb.from('profiles').select('*').eq('id', userId).single(),
+    sb.from('game_results').select('*').eq('user_id', userId).order('played_at', { ascending: false }).limit(20),
   ])
   return { profile, results: results ?? [] }
 }

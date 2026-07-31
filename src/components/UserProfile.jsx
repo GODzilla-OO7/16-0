@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchProfile } from '../hooks/useAuth'
-import { supabase } from '../lib/supabase'
+import { getSupabase } from '../lib/supabase'
 
 const MODE_LABEL = { ipl: '🏏 IPL', 'odi-wc': '🌍 ODI WC', 't20-wc': '⚡ T20 WC' }
 
@@ -79,7 +79,8 @@ export default function UserProfile({ user, onClose, onSignOut }) {
   }, [user])
 
   async function saveName() {
-    await supabase.from('profiles').update({ display_name: nameInput }).eq('id', user.id)
+    const sb = await getSupabase()
+    await sb?.from('profiles').update({ display_name: nameInput }).eq('id', user.id)
     setProfile(p => ({ ...p, display_name: nameInput }))
     setEditingName(false)
   }
