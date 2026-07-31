@@ -177,7 +177,6 @@ export default function App() {
 
   const globalOverlays = (
     <>
-      {globalOverlays}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} onSuccess={() => setShowAuth(false)} />}
       {showUserProfile && user && (
         <UserProfile
