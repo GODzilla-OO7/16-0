@@ -3,6 +3,7 @@ import { getSupabase } from '../lib/supabase'
 
 // ─── Constraint checker ────────────────────────────────────────────────────
 
+// Pass challenge.challenge_type as the first argument
 export function checkConstraint(constraintType, team) {
   if (!team || team.length === 0) return { ok: true, reason: '' }
   switch (constraintType) {
@@ -98,7 +99,7 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
       const { data: ch } = await sb
         .from('daily_challenges')
         .select('*')
-        .eq('date', today)
+        .eq('challenge_date', today)
         .maybeSingle()
 
       if (!ch) { setError('No challenge today — check back soon!'); setLoading(false); return }
@@ -165,10 +166,10 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
                 Today's Restriction
               </div>
               <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.3rem' }}>
-                {challenge.constraint_label}
+                {challenge.challenge_label}
               </div>
               <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                {challenge.constraint_desc}
+                {challenge.challenge_config?.desc ?? ''}
               </div>
 
               {/* Scoring */}
