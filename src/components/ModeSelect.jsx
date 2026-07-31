@@ -9,17 +9,17 @@ const s = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem 1rem',
-    background: 'radial-gradient(ellipse at 50% 0%, #0f2a1a 0%, #0a0a0f 60%)',
+    background: 'radial-gradient(ellipse at 50% 0%, #0a1a3a 0%, #060818 60%)',
     position: 'relative',
     overflow: 'hidden',
   },
   badge: {
     display: 'inline-block',
     padding: '0.25rem 0.75rem',
-    background: 'rgba(34,197,94,0.15)',
-    border: '1px solid rgba(34,197,94,0.3)',
+    background: 'rgba(31,111,235,0.15)',
+    border: '1px solid rgba(31,111,235,0.3)',
     borderRadius: '999px',
-    color: '#22c55e',
+    color: '#1F6FEB',
     fontSize: '0.75rem',
     fontWeight: 600,
     letterSpacing: '0.08em',
@@ -90,7 +90,7 @@ const s = {
     fontWeight: 500,
   },
   statVal: {
-    color: '#22c55e',
+    color: '#1F6FEB',
     fontWeight: 700,
   },
   cta: {
@@ -126,7 +126,7 @@ const HOW_TO_PLAY = [
 ]
 
 export default function ModeSelect({ onSelect }) {
-  const modes = Object.entries(MODE_CONFIG)
+  const modes = Object.entries(MODE_CONFIG).filter(([key]) => key === 'ipl')
   const [showHTP, setShowHTP] = useState(false)
 
   return (
@@ -146,34 +146,34 @@ export default function ModeSelect({ onSelect }) {
         aria-hidden="true"
       >
         {/* Outer boundary oval */}
-        <ellipse cx="450" cy="310" rx="420" ry="285" fill="none" stroke="#22c55e" strokeWidth="2.5" />
+        <ellipse cx="450" cy="310" rx="420" ry="285" fill="none" stroke="#1F6FEB" strokeWidth="2.5" />
         {/* 30-yard inner circle */}
-        <ellipse cx="450" cy="310" rx="210" ry="175" fill="none" stroke="#22c55e" strokeWidth="1.5" strokeDasharray="8 6" />
+        <ellipse cx="450" cy="310" rx="210" ry="175" fill="none" stroke="#1F6FEB" strokeWidth="1.5" strokeDasharray="8 6" />
         {/* The pitch — narrow central rectangle */}
-        <rect x="432" y="165" width="36" height="290" rx="3" fill="none" stroke="#22c55e" strokeWidth="2" />
+        <rect x="432" y="165" width="36" height="290" rx="3" fill="none" stroke="#1F6FEB" strokeWidth="2" />
         {/* Bowling crease — top end */}
-        <line x1="414" y1="200" x2="486" y2="200" stroke="#22c55e" strokeWidth="1.5" />
+        <line x1="414" y1="200" x2="486" y2="200" stroke="#1F6FEB" strokeWidth="1.5" />
         {/* Bowling crease — bottom end */}
-        <line x1="414" y1="420" x2="486" y2="420" stroke="#22c55e" strokeWidth="1.5" />
+        <line x1="414" y1="420" x2="486" y2="420" stroke="#1F6FEB" strokeWidth="1.5" />
         {/* Popping crease — top */}
-        <line x1="412" y1="212" x2="488" y2="212" stroke="#22c55e" strokeWidth="1" />
+        <line x1="412" y1="212" x2="488" y2="212" stroke="#1F6FEB" strokeWidth="1" />
         {/* Popping crease — bottom */}
-        <line x1="412" y1="408" x2="488" y2="408" stroke="#22c55e" strokeWidth="1" />
+        <line x1="412" y1="408" x2="488" y2="408" stroke="#1F6FEB" strokeWidth="1" />
         {/* Stumps — top end (3 dots) */}
-        <circle cx="444" cy="197" r="2.5" fill="#22c55e" />
-        <circle cx="450" cy="197" r="2.5" fill="#22c55e" />
-        <circle cx="456" cy="197" r="2.5" fill="#22c55e" />
+        <circle cx="444" cy="197" r="2.5" fill="#1F6FEB" />
+        <circle cx="450" cy="197" r="2.5" fill="#1F6FEB" />
+        <circle cx="456" cy="197" r="2.5" fill="#1F6FEB" />
         {/* Stumps — bottom end */}
-        <circle cx="444" cy="423" r="2.5" fill="#22c55e" />
-        <circle cx="450" cy="423" r="2.5" fill="#22c55e" />
-        <circle cx="456" cy="423" r="2.5" fill="#22c55e" />
+        <circle cx="444" cy="423" r="2.5" fill="#1F6FEB" />
+        <circle cx="450" cy="423" r="2.5" fill="#1F6FEB" />
+        <circle cx="456" cy="423" r="2.5" fill="#1F6FEB" />
         {/* Centre dot */}
-        <circle cx="450" cy="310" r="3" fill="#22c55e" />
+        <circle cx="450" cy="310" r="3" fill="#1F6FEB" />
         {/* Long-on / long-off field marking lines — subtle radiating lines */}
-        <line x1="450" y1="25" x2="450" y2="165" stroke="#22c55e" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
-        <line x1="450" y1="455" x2="450" y2="595" stroke="#22c55e" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
-        <line x1="30" y1="310" x2="240" y2="310" stroke="#22c55e" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
-        <line x1="660" y1="310" x2="870" y2="310" stroke="#22c55e" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
+        <line x1="450" y1="25" x2="450" y2="165" stroke="#1F6FEB" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
+        <line x1="450" y1="455" x2="450" y2="595" stroke="#1F6FEB" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
+        <line x1="30" y1="310" x2="240" y2="310" stroke="#1F6FEB" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
+        <line x1="660" y1="310" x2="870" y2="310" stroke="#1F6FEB" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
       </svg>
 
       <div style={s.badge}>Unofficial Fan Game</div>
@@ -189,9 +189,9 @@ export default function ModeSelect({ onSelect }) {
             style={s.card()}
             onClick={() => onSelect(key)}
             onMouseEnter={e => {
-              e.currentTarget.style.borderColor = '#22c55e'
+              e.currentTarget.style.borderColor = '#1F6FEB'
               e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = '0 8px 30px rgba(34,197,94,0.15)'
+              e.currentTarget.style.boxShadow = '0 8px 30px rgba(31,111,235,0.15)'
             }}
             onMouseLeave={e => {
               e.currentTarget.style.borderColor = '#2a2a3a'
@@ -224,7 +224,7 @@ export default function ModeSelect({ onSelect }) {
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             transition: 'border-color 0.2s',
           }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = '#22c55e'}
+          onMouseEnter={e => e.currentTarget.style.borderColor = '#1F6FEB'}
           onMouseLeave={e => e.currentTarget.style.borderColor = '#2a2a3a'}
         >
           <span>❓ How to Play</span>

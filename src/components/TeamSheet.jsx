@@ -15,7 +15,7 @@ const roleLabel = {
   'pace-bowler': 'PACE', 'spin-bowler': 'SPIN',
 }
 const roleColor = {
-  'opener': '#22c55e', 'top-order': '#22c55e', 'middle-order': '#16a34a',
+  'opener': '#1F6FEB', 'top-order': '#1F6FEB', 'middle-order': '#0047CC',
   'wicket-keeper': '#f59e0b', 'all-rounder': '#3b82f6',
   'pace-bowler': '#ef4444', 'spin-bowler': '#a855f7',
 }
@@ -92,7 +92,7 @@ export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, co
               reorder ↕
             </span>
           )}
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: filled === total ? '#22c55e' : '#64748b' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: filled === total ? '#1F6FEB' : '#64748b' }}>
             {filled}/{total}
           </span>
         </div>
@@ -112,8 +112,8 @@ export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, co
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 padding: compact ? '0.375rem 0.5rem' : '0.5rem 0.625rem',
                 borderRadius: '0.5rem', marginBottom: '2px',
-                background: isHighlit ? '#16a34a18' : '#1a1a26',
-                border: `1px solid ${isHighlit ? '#22c55e44' : 'transparent'}`,
+                background: isHighlit ? '#0047CC18' : '#1a1a26',
+                border: `1px solid ${isHighlit ? '#1F6FEB44' : 'transparent'}`,
                 transition: 'all 0.25s',
                 animation: 'fade-in-up 0.3s ease both',
               }}
@@ -156,10 +156,10 @@ export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, co
                     title="Move up"
                     style={{
                       width: 18, height: 18,
-                      background: canUp ? '#22c55e22' : 'transparent',
-                      border: `1px solid ${canUp ? '#22c55e44' : '#1a1a26'}`,
+                      background: canUp ? '#1F6FEB22' : 'transparent',
+                      border: `1px solid ${canUp ? '#1F6FEB44' : '#1a1a26'}`,
                       borderRadius: '3px', fontSize: '0.55rem', fontWeight: 900,
-                      color: canUp ? '#22c55e' : '#2a2a3a',
+                      color: canUp ? '#1F6FEB' : '#2a2a3a',
                       cursor: canUp ? 'pointer' : 'default',
                       lineHeight: 1, padding: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -171,10 +171,10 @@ export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, co
                     title="Move down"
                     style={{
                       width: 18, height: 18,
-                      background: canDown ? '#22c55e22' : 'transparent',
-                      border: `1px solid ${canDown ? '#22c55e44' : '#1a1a26'}`,
+                      background: canDown ? '#1F6FEB22' : 'transparent',
+                      border: `1px solid ${canDown ? '#1F6FEB44' : '#1a1a26'}`,
                       borderRadius: '3px', fontSize: '0.55rem', fontWeight: 900,
-                      color: canDown ? '#22c55e' : '#2a2a3a',
+                      color: canDown ? '#1F6FEB' : '#2a2a3a',
                       cursor: canDown ? 'pointer' : 'default',
                       lineHeight: 1, padding: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -199,7 +199,7 @@ export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, co
                 padding: compact ? '0.375rem 0.5rem' : '0.5rem 0.75rem',
                 borderRadius: '0.5rem', marginBottom: '2px',
                 background: isActive ? '#0d2418' : 'transparent',
-                border: isActive ? '1px solid #22c55e44' : '1px solid transparent',
+                border: isActive ? '1px solid #1F6FEB44' : '1px solid transparent',
                 transition: 'background 0.2s',
               }}
             >
@@ -222,7 +222,7 @@ export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, co
             style={{
               width: '100%',
               padding: '0.875rem',
-              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+              background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
               color: '#0a0a0f',
               border: 'none',
               borderRadius: '0.625rem',

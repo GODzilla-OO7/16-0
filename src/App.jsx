@@ -12,6 +12,7 @@ import ProfileModal from './components/ProfileModal.jsx'
 import CricketOval from './components/CricketOval.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
+import SquadComposer from './components/SquadComposer.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
 import { useAuth, saveGameResult } from './hooks/useAuth.js'
 
@@ -43,13 +44,14 @@ export default function App() {
   const [newAwards,   setNewAwards]     = useState([])
   const [previewManager,   setPreviewManager]   = useState(null) // coach landed (spin preview for TeamStrengthPanel)
   const [confirmedManager, setConfirmedManager] = useState(null) // coach confirmed by user click
+  const [composition, setComposition] = useState(null) // squad role blueprint
 
   function handleModeSelect(m) {
     setMode(m)
     setPhase('settings')
   }
 
-  // Settings → go straight to draft (manager comes AFTER team is complete)
+  // Settings → squad composition → draft
   function handleSettingsStart(s) {
     setSettings(s)
     setTeam([])
@@ -57,6 +59,11 @@ export default function App() {
     setManager(null)
     setPreviewManager(null); setConfirmedManager(null)
     setRerollsLeft(s.rerolls ?? 3)
+    setPhase('compose')
+  }
+
+  function handleCompositionDone(comp) {
+    setComposition(comp)
     setPhase('draft')
   }
 
@@ -126,6 +133,7 @@ export default function App() {
     setSummary(null); setMatchResults([])
     setNewAwards([])
     setPreviewManager(null); setConfirmedManager(null)
+    setComposition(null)
   }
 
   function handleBackToSettings() {
@@ -133,6 +141,7 @@ export default function App() {
     setTeam([]); setDraftedIds(new Set())
     setManager(null)
     setPreviewManager(null); setConfirmedManager(null)
+    setComposition(null)
   }
 
   const btnBase = {
@@ -151,13 +160,13 @@ export default function App() {
         title={user ? 'Your account' : 'Sign in'}
         style={{
           ...btnBase,
-          color: user ? '#22c55e' : '#64748b',
-          borderColor: user ? '#22c55e44' : '#2a2a3a',
+          color: user ? '#1F6FEB' : '#64748b',
+          borderColor: user ? '#1F6FEB44' : '#2a2a3a',
           fontSize: user ? '0.75rem' : '1.1rem',
           fontWeight: 900,
         }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#22c55e'; e.currentTarget.style.color = '#22c55e' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = user ? '#22c55e44' : '#2a2a3a'; e.currentTarget.style.color = user ? '#22c55e' : '#64748b' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#1F6FEB'; e.currentTarget.style.color = '#1F6FEB' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = user ? '#1F6FEB44' : '#2a2a3a'; e.currentTarget.style.color = user ? '#1F6FEB' : '#64748b' }}
       >
         {user ? (user.email?.[0]?.toUpperCase() ?? '👤') : '👤'}
       </button>
@@ -167,7 +176,7 @@ export default function App() {
         onClick={() => { setNewAwards([]); setShowProfile(true) }}
         title="Medals & Awards"
         style={{ ...btnBase, color: newAwards.length > 0 ? '#f59e0b' : '#64748b', fontSize: '1.1rem' }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#22c55e'; e.currentTarget.style.color = '#22c55e' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#1F6FEB'; e.currentTarget.style.color = '#1F6FEB' }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = newAwards.length > 0 ? '#f59e0b' : '#64748b' }}
       >
         🏅
@@ -198,6 +207,13 @@ export default function App() {
   if (phase === 'settings') return (
     <>
       <DraftSettings mode={mode} onStart={handleSettingsStart} onBack={() => setPhase('menu')} />
+      {profileBtn}
+      {globalOverlays}
+    </>
+  )
+  if (phase === 'compose') return (
+    <>
+      <SquadComposer onDone={handleCompositionDone} onBack={() => setPhase('settings')} />
       {profileBtn}
       {globalOverlays}
     </>
@@ -249,6 +265,7 @@ export default function App() {
                 <WheelSpin
                   mode={mode}
                   settings={settings}
+                  composition={composition}
                   slotIndex={slotsFilled}
                   totalSlots={totalSlots}
                   draftedIds={draftedIds}
@@ -260,7 +277,7 @@ export default function App() {
               ) : (
                 <div style={{ animation: 'fade-in-up 0.4s ease both' }}>
                   <div style={{ textAlign: 'center', padding: '1.5rem 1.5rem 0.75rem' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
                       XI Complete
                     </div>
                     <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.35rem' }}>
@@ -283,7 +300,7 @@ export default function App() {
                     <div style={{ padding: '1rem' }}>
                       <button
                         onClick={() => handleManagerSelect(confirmedManager)}
-                        style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: '1.05rem', fontWeight: 800, cursor: 'pointer' }}
+                        style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: '1.05rem', fontWeight: 800, cursor: 'pointer' }}
                       >
                         🏏 Start Season →
                       </button>

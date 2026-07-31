@@ -9,15 +9,15 @@ function AwardBadge({ award, earned }) {
       display: 'flex', alignItems: 'center', gap: '0.75rem',
       padding: '0.625rem 0.875rem',
       background: earned ? '#0d2418' : '#12121a',
-      border: `1px solid ${earned ? '#22c55e33' : '#2a2a3a'}`,
+      border: `1px solid ${earned ? '#1F6FEB33' : '#2a2a3a'}`,
       borderRadius: '0.75rem',
       opacity: earned ? 1 : 0.45,
       transition: 'all 0.2s',
     }}>
       <div style={{
         width: 38, height: 38, borderRadius: '50%',
-        background: earned ? '#22c55e18' : '#1a1a26',
-        border: `2px solid ${earned ? '#22c55e55' : '#2a2a3a'}`,
+        background: earned ? '#1F6FEB18' : '#1a1a26',
+        border: `2px solid ${earned ? '#1F6FEB55' : '#2a2a3a'}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: '1.2rem', flexShrink: 0,
         filter: earned ? 'none' : 'grayscale(1)',
@@ -33,7 +33,7 @@ function AwardBadge({ award, earned }) {
         </div>
       </div>
       {earned && (
-        <div style={{ fontSize: '0.6rem', color: '#22c55e', fontWeight: 800, flexShrink: 0 }}>✓</div>
+        <div style={{ fontSize: '0.6rem', color: '#1F6FEB', fontWeight: 800, flexShrink: 0 }}>✓</div>
       )}
     </div>
   )
@@ -95,7 +95,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
         {/* Header */}
         <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #2a2a3a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
-            <div style={{ fontSize: '0.65rem', color: '#22c55e', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>Cricket 16-0</div>
+            <div style={{ fontSize: '0.65rem', color: '#1F6FEB', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>Cricket 16-0</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#f1f5f9' }}>
               {profile.displayName ? `Hi, ${profile.displayName}` : 'Your Profile'}
             </div>
@@ -116,7 +116,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
             borderBottom: '1px solid #1e3a2e',
             flexShrink: 0,
           }}>
-            <div style={{ fontSize: '0.6rem', color: '#22c55e', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.6rem', color: '#1F6FEB', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
               🎉 New Award{newlyEarned.length > 1 ? 's' : ''} Unlocked!
             </div>
             {newlyEarned.map(a => (
@@ -136,7 +136,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
             { id: 'history', label: '📋 History' },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
-              flex: 1, padding: '0.4rem', background: tab === t.id ? '#22c55e' : 'transparent',
+              flex: 1, padding: '0.4rem', background: tab === t.id ? '#1F6FEB' : 'transparent',
               color: tab === t.id ? '#0a0a0f' : '#64748b', border: 'none', borderRadius: '0.4rem',
               fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer',
             }}>
@@ -155,10 +155,10 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
               <div style={{ marginBottom: '0.75rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#64748b', marginBottom: '0.35rem' }}>
                   <span>Collection progress</span>
-                  <span style={{ fontWeight: 700, color: '#22c55e' }}>{Math.round(earnedCount / totalCount * 100)}%</span>
+                  <span style={{ fontWeight: 700, color: '#1F6FEB' }}>{Math.round(earnedCount / totalCount * 100)}%</span>
                 </div>
                 <div style={{ height: 6, background: '#1a1a26', borderRadius: 3 }}>
-                  <div style={{ width: `${earnedCount / totalCount * 100}%`, height: '100%', background: 'linear-gradient(90deg,#22c55e,#16a34a)', borderRadius: 3, transition: 'width 0.5s ease' }} />
+                  <div style={{ width: `${earnedCount / totalCount * 100}%`, height: '100%', background: 'linear-gradient(90deg,#1F6FEB,#0047CC)', borderRadius: 3, transition: 'width 0.5s ease' }} />
                 </div>
               </div>
               {AWARDS.map(award => (
@@ -217,7 +217,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
               <button
                 onClick={handleSave}
                 style={{
-                  padding: '0.75rem', background: 'linear-gradient(135deg,#22c55e,#16a34a)',
+                  padding: '0.75rem', background: 'linear-gradient(135deg,#1F6FEB,#0047CC)',
                   color: '#0a0a0f', border: 'none', borderRadius: '0.625rem',
                   fontSize: '0.875rem', fontWeight: 800, cursor: 'pointer',
                 }}

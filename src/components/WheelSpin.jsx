@@ -19,7 +19,7 @@ function roleCategory(role) {
 }
 
 const CAT_COLOR = {
-  'BATTER':  '#22c55e',
+  'BATTER':  '#1F6FEB',
   'WK':      '#f59e0b',
   'ALL-RDR': '#3b82f6',
   'PACE':    '#ef4444',
@@ -47,16 +47,51 @@ const isOverseas = (p) => p.nationality !== 'India'
 
 // ─── Position enforcement ─────────────────────────────────────────────────
 
-function getPositionNeeds(team) {
-  const hasWK    = team.some(p => p.role === 'wicket-keeper')
-  const openers  = team.filter(p => p.role === 'opener').length
-  const bowlers  = team.filter(p => ['pace-bowler','spin-bowler'].includes(p.role)).length
+// With composition: returns which roles are over-quota (should be locked out)
+// and which roles are strictly needed right now (must-pick)
+function getPositionNeeds(team, composition) {
   const remaining = 11 - team.length
   const needs = []
-  if (!hasWK)      needs.push({ role: 'wicket-keeper', label: 'WK',    must: remaining <= 1 })
-  if (openers < 2) needs.push({ role: 'opener',        label: 'Opener', must: remaining <= (2 - openers) })
-  if (bowlers < 3) needs.push({ role: 'bowler',        label: 'Bowler', must: remaining <= (3 - bowlers) })
+
+  if (composition) {
+    // Count how many of each role are already drafted
+    const filled = {}
+    for (const p of team) filled[p.role] = (filled[p.role] || 0) + 1
+    // Find roles that still have quota and haven't been filled
+    for (const [role, quota] of Object.entries(composition)) {
+      const have = filled[role] || 0
+      const still = quota - have
+      if (still > 0) {
+        // Is it a must-pick? Yes if remaining slots === total still needed across all roles
+        const totalStillNeeded = Object.entries(composition)
+          .reduce((s, [r, q]) => s + Math.max(0, q - (filled[r] || 0)), 0)
+        needs.push({ role, label: roleName(role), must: remaining <= totalStillNeeded && still >= remaining })
+      }
+    }
+  } else {
+    // Fallback: original hard-coded rules
+    const hasWK   = team.some(p => p.role === 'wicket-keeper')
+    const openers = team.filter(p => p.role === 'opener').length
+    const bowlers = team.filter(p => ['pace-bowler','spin-bowler'].includes(p.role)).length
+    if (!hasWK)      needs.push({ role: 'wicket-keeper', label: 'WK',    must: remaining <= 1 })
+    if (openers < 2) needs.push({ role: 'opener',        label: 'Opener', must: remaining <= (2 - openers) })
+    if (bowlers < 3) needs.push({ role: 'bowler',        label: 'Bowler', must: remaining <= (3 - bowlers) })
+  }
   return needs
+}
+
+// Is a player's role already full per the composition?
+function isRoleFull(player, team, composition) {
+  if (!composition) return false
+  const quota = composition[player.role] || 0
+  const have  = team.filter(p => p.role === player.role).length
+  return have >= quota
+}
+
+function roleName(role) {
+  const m = { 'opener': 'Opener', 'top-order': 'Top Order', 'middle-order': 'Mid Order',
+    'wicket-keeper': 'WK', 'all-rounder': 'All-Rdr', 'pace-bowler': 'Pace', 'spin-bowler': 'Spin' }
+  return m[role] || role
 }
 
 function isBowler(p) { return ['pace-bowler','spin-bowler'].includes(p.role) }
@@ -74,7 +109,7 @@ function extractYear(season) {
 // ─── Main ─────────────────────────────────────────────────────────────────
 
 export default function WheelSpin({
-  mode, settings, slotIndex, totalSlots,
+  mode, settings, composition, slotIndex, totalSlots,
   draftedIds, team, rerollsLeft, onReroll, onResult,
 }) {
   const [phase, setPhase]             = useState('idle')
@@ -85,7 +120,7 @@ export default function WheelSpin({
   const entries    = settings.filteredEntries
   const hardMode   = settings.hardMode
   const ratingType = settings.ratingType || 'season'
-  const needs      = getPositionNeeds(team)
+  const needs      = getPositionNeeds(team, composition)
   const mustPick   = needs.find(n => n.must) || null
 
   // IPL overseas rule
@@ -158,11 +193,11 @@ export default function WheelSpin({
   if (mustPick) {
     // Show ALL players: eligible (matching mustPick) on top, ineligible faded below
     // Each group independently sorted by overall desc
-    const eligible   = sortByOvr(rawPlayers.filter(p => satisfiesNeed(p, mustPick)))
-    const ineligible = sortByOvr(rawPlayers.filter(p => !satisfiesNeed(p, mustPick)))
+    const eligible   = sortByOvr(rawPlayers.filter(p => satisfiesNeed(p, mustPick) && !isRoleFull(p, team, composition)))
+    const ineligible = sortByOvr(rawPlayers.filter(p => !satisfiesNeed(p, mustPick) || isRoleFull(p, team, composition)))
     // Safety: if no eligible players exist in this squad, fall back to showing all
     if (eligible.length === 0) {
-      squadPlayers = sortByOvr(rawPlayers).map(p => ({ ...p, _eligible: true }))
+      squadPlayers = sortByOvr(rawPlayers).map(p => ({ ...p, _eligible: !isRoleFull(p, team, composition) }))
     } else {
       squadPlayers = [
         ...eligible.map(p => ({ ...p, _eligible: true })),
@@ -170,7 +205,11 @@ export default function WheelSpin({
       ]
     }
   } else {
-    squadPlayers = sortByOvr(rawPlayers).map(p => ({ ...p, _eligible: true }))
+    // No mustPick but still respect composition quotas
+    squadPlayers = sortByOvr(rawPlayers).map(p => ({
+      ...p,
+      _eligible: !isRoleFull(p, team, composition),
+    }))
   }
 
   const allDrafted = landedEntry && rawPlayers.length === 0
@@ -267,7 +306,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
         disabled={isSpinning}
         style={{
           padding: '0.875rem 2.75rem',
-          background: isSpinning ? 'transparent' : 'linear-gradient(135deg, #22c55e, #16a34a)',
+          background: isSpinning ? 'transparent' : 'linear-gradient(135deg, #1F6FEB, #0047CC)',
           color: isSpinning ? '#64748b' : '#0a0a0f',
           border: isSpinning ? '1px solid #2a2a3a' : 'none',
           borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800,
@@ -391,7 +430,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
   const cat     = roleCategory(player.role)
   const catClr  = CAT_COLOR[cat]
   const ratings = displayRating(player, ratingType)
-  const highlight = isMustPick ? '#f59e0b' : isNeeded ? '#22c55e' : null
+  const highlight = isMustPick ? '#f59e0b' : isNeeded ? '#1F6FEB' : null
   const blocked = isIneligible || isOverseasBlocked
 
   const opacity = blocked ? 0.32 : 1
@@ -428,7 +467,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
           {player.name}
           {isOverseas && <span style={{ fontSize: '0.7rem' }} title="Overseas player">✈️</span>}
           {isMustPick && !blocked && <span style={{ marginLeft: '0.2rem', fontSize: '0.58rem', color: '#f59e0b', fontWeight: 800 }}>NEEDED</span>}
-          {isNeeded && !isMustPick && !blocked && <span style={{ marginLeft: '0.2rem', fontSize: '0.58rem', color: '#22c55e', fontWeight: 800 }}>NEED</span>}
+          {isNeeded && !isMustPick && !blocked && <span style={{ marginLeft: '0.2rem', fontSize: '0.58rem', color: '#1F6FEB', fontWeight: 800 }}>NEED</span>}
         </div>
         <div style={{ fontSize: '0.67rem', color: '#64748b' }}>
           {player.nationality}
@@ -441,7 +480,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
         <div style={{ fontSize: '1rem', fontWeight: 900, color: '#2a2a3a', letterSpacing: '0.1em' }}>???</div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', flexShrink: 0 }}>
-          <MiniBar label="Bat"  value={ratings.batting} color="#22c55e" />
+          <MiniBar label="Bat"  value={ratings.batting} color="#1F6FEB" />
           <MiniBar label="Bowl" value={ratings.bowling} color="#3b82f6" />
           <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#f59e0b', minWidth: 26, textAlign: 'right' }}>
             {ratings.overall}

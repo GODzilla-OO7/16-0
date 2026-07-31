@@ -41,7 +41,7 @@ function ResultRow({ result }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
         <div style={{
           width: 8, height: 8, borderRadius: '50%',
-          background: isWin ? '#22c55e' : '#ef4444',
+          background: isWin ? '#1F6FEB' : '#ef4444',
           flexShrink: 0,
         }} />
         <div>
@@ -115,11 +115,11 @@ export default function UserProfile({ user, onClose, onSignOut }) {
             <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
               <div style={{
                 width: 72, height: 72, borderRadius: '50%',
-                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '1.75rem', fontWeight: 900, color: '#0a0a0f',
                 margin: '0 auto 0.875rem',
-                boxShadow: '0 0 24px #22c55e44',
+                boxShadow: '0 0 24px #1F6FEB44',
               }}>
                 {initial}
               </div>
@@ -130,9 +130,9 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                     value={nameInput}
                     onChange={e => setNameInput(e.target.value)}
                     autoFocus
-                    style={{ padding: '0.4rem 0.75rem', background: '#0a0a0f', border: '1px solid #22c55e', borderRadius: '0.4rem', color: '#f1f5f9', fontSize: '1rem', fontWeight: 700, textAlign: 'center' }}
+                    style={{ padding: '0.4rem 0.75rem', background: '#0a0a0f', border: '1px solid #1F6FEB', borderRadius: '0.4rem', color: '#f1f5f9', fontSize: '1rem', fontWeight: 700, textAlign: 'center' }}
                   />
-                  <button onClick={saveName} style={{ background: '#22c55e', border: 'none', borderRadius: '0.4rem', color: '#0a0a0f', fontWeight: 800, padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✓</button>
+                  <button onClick={saveName} style={{ background: '#1F6FEB', border: 'none', borderRadius: '0.4rem', color: '#0a0a0f', fontWeight: 800, padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✓</button>
                   <button onClick={() => setEditingName(false)} style={{ background: '#1a1a26', border: '1px solid #2a2a3a', borderRadius: '0.4rem', color: '#64748b', padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✕</button>
                 </div>
               ) : (
@@ -160,7 +160,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
               <div style={{ fontSize: '0.65rem', color: '#475569', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.625rem' }}>Career Stats</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                 <StatCard label="Games" value={profile?.total_games ?? 0} />
-                <StatCard label="Wins" value={profile?.total_wins ?? 0} color="#22c55e" />
+                <StatCard label="Wins" value={profile?.total_wins ?? 0} color="#1F6FEB" />
                 <StatCard label="Win %" value={`${winPct}%`} color={winPct >= 60 ? '#f59e0b' : '#f1f5f9'} />
                 <StatCard label="Best Streak" value={profile?.best_streak ?? 0} color="#3b82f6" sub="most wins in one season" />
                 <StatCard label="Perfect" value={profile?.perfect_seasons ?? 0} color="#f59e0b" sub="zero-loss seasons" />

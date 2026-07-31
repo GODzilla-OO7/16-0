@@ -8,13 +8,13 @@ function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 +
 function getPredictedRank(str, mode) {
   if (mode === 'ipl') {
     if (str >= 85) return { pos: '1st–2nd',  label: 'Champions contender', color: '#f59e0b' }
-    if (str >= 80) return { pos: 'Top 4',    label: 'Playoff favourite',   color: '#22c55e' }
+    if (str >= 80) return { pos: 'Top 4',    label: 'Playoff favourite',   color: '#1F6FEB' }
     if (str >= 75) return { pos: '5th–6th',  label: 'On the bubble',       color: '#3b82f6' }
     if (str >= 68) return { pos: '7th–8th',  label: 'Mid-table side',      color: '#94a3b8' }
     return               { pos: 'Bottom 3',  label: 'Uphill battle',        color: '#ef4444' }
   }
   if (str >= 84) return { pos: 'Champions',     label: 'Tournament favourite', color: '#f59e0b' }
-  if (str >= 78) return { pos: 'Semi-final',    label: 'Deep run expected',    color: '#22c55e' }
+  if (str >= 78) return { pos: 'Semi-final',    label: 'Deep run expected',    color: '#1F6FEB' }
   if (str >= 70) return { pos: 'Quarter-final', label: 'Competitive side',     color: '#3b82f6' }
   return               { pos: 'Group stage',    label: 'Underdog story',        color: '#94a3b8' }
 }
@@ -138,7 +138,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
     <div style={{
       position: 'relative',
       background: '#12121a',
-      border: `2px solid ${phase === 'landed' ? '#22c55e66' : '#2a2a3a'}`,
+      border: `2px solid ${phase === 'landed' ? '#1F6FEB66' : '#2a2a3a'}`,
       borderRadius: inline ? '0.875rem' : '1.25rem',
       overflow: 'hidden',
       marginBottom: '1rem',
@@ -147,7 +147,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
       alignItems: 'center', justifyContent: 'center',
       padding: inline ? '1.1rem 1rem' : '1.75rem 1.5rem',
       transition: 'border-color 0.3s, box-shadow 0.3s',
-      boxShadow: phase === 'landed' ? '0 0 40px #22c55e18' : 'none',
+      boxShadow: phase === 'landed' ? '0 0 40px #1F6FEB18' : 'none',
     }}>
       {isSpinning && (
         <>
@@ -195,7 +195,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
       borderRadius: '0.75rem', padding: inline ? '0.875rem 1rem' : '1.1rem 1.25rem',
       marginBottom: '1rem', animation: 'fade-in 0.4s ease both',
     }}>
-      <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
+      <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
         📖 Season Outlook
       </div>
       <p style={{ fontSize: inline ? '0.75rem' : '0.82rem', color: '#94a3b8', lineHeight: 1.6, margin: '0 0 0.75rem', fontStyle: 'italic' }}>
@@ -219,7 +219,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
           Spinning…
         </div>
       ) : phase === 'confirmed' ? (
-        <div style={{ width: '100%', padding: '0.8rem', background: '#22c55e1a', border: '1px solid #22c55e44', borderRadius: '0.75rem', textAlign: 'center', color: '#22c55e', fontSize: '0.85rem', fontWeight: 800 }}>
+        <div style={{ width: '100%', padding: '0.8rem', background: '#1F6FEB1a', border: '1px solid #1F6FEB44', borderRadius: '0.75rem', textAlign: 'center', color: '#1F6FEB', fontSize: '0.85rem', fontWeight: 800 }}>
           ✓ Coach confirmed — click Start Season on the left
         </div>
       ) : phase === 'landed' ? (
@@ -228,14 +228,14 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
             if (inline) { setPhase('confirmed'); onSelect(landed) }
             else onSelect(landed)
           }}
-          style={{ width: '100%', padding: inline ? '0.8rem' : '0.9rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: inline ? '0.85rem' : '0.9rem', fontWeight: 800, cursor: 'pointer' }}
+          style={{ width: '100%', padding: inline ? '0.8rem' : '0.9rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: inline ? '0.85rem' : '0.9rem', fontWeight: 800, cursor: 'pointer' }}
         >
           ✓ Pick {landed?.name?.split(' ').pop()} as Coach
         </button>
       ) : (
         <button
           onClick={spin}
-          style={{ width: '100%', padding: inline ? '0.875rem' : '1rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: inline ? '0.9rem' : '1rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.04em' }}
+          style={{ width: '100%', padding: inline ? '0.875rem' : '1rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: inline ? '0.9rem' : '1rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.04em' }}
         >
           🎰 Spin for Coach
         </button>
@@ -255,7 +255,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
   if (inline) {
     return (
       <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '1rem', padding: '1rem', animation: 'fade-in 0.3s ease both' }}>
-        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', textAlign: 'center' }}>
+        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', textAlign: 'center' }}>
           🎽 Pick Your Coach
         </div>
         <div style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'center', marginBottom: '1rem', lineHeight: 1.5 }}>
@@ -276,7 +276,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
           ← Back
         </button>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
+          <div style={{ fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
             {cfg.icon} {cfg.label}
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.3rem' }}>

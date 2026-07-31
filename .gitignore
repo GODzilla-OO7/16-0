@@ -6,3 +6,4 @@ dist/
 *.timestamp-*.mjs
 .DS_Store
 Thumbs.db
+.vercel

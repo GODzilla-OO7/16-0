@@ -6,13 +6,13 @@ const isOverseas = (p) => p.nationality !== 'India'
 function getPredictedRank(str, mode) {
   if (mode === 'ipl') {
     if (str >= 85) return { pos: '1st–2nd',  label: 'Champions contender', color: '#f59e0b' }
-    if (str >= 80) return { pos: 'Top 4',    label: 'Playoff favourite',   color: '#22c55e' }
+    if (str >= 80) return { pos: 'Top 4',    label: 'Playoff favourite',   color: '#1F6FEB' }
     if (str >= 75) return { pos: '5th–6th',  label: 'On the bubble',       color: '#3b82f6' }
     if (str >= 68) return { pos: '7th–8th',  label: 'Mid-table side',      color: '#94a3b8' }
     return               { pos: 'Bottom 3',  label: 'Uphill battle',        color: '#ef4444' }
   }
   if (str >= 84) return { pos: 'Champions',    label: 'Tournament favourite', color: '#f59e0b' }
-  if (str >= 78) return { pos: 'Semi-final',   label: 'Deep run expected',   color: '#22c55e' }
+  if (str >= 78) return { pos: 'Semi-final',   label: 'Deep run expected',   color: '#1F6FEB' }
   if (str >= 70) return { pos: 'Quarter-final',label: 'Competitive side',    color: '#3b82f6' }
   return               { pos: 'Group stage',   label: 'Underdog story',      color: '#94a3b8' }
 }
@@ -175,7 +175,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
         <span style={{ fontSize: '0.65rem', color: '#2a2a3a' }}>{team.length}/11</span>
       </div>
 
-      <Bar label="Batting avg"  value={avgBat}  color="#22c55e" />
+      <Bar label="Batting avg"  value={avgBat}  color="#1F6FEB" />
       <Bar label="Bowling avg"  value={avgBowl} color="#3b82f6" />
       {/* Overall bar — shows penalty/bonus adjustments inline when active */}
       <div style={{ marginBottom: (hasPenalty || hasBonus) ? '0.25rem' : '0.6rem' }}>
@@ -190,7 +190,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
               <span style={{ color: '#ef4444', fontSize: '0.6rem', fontWeight: 800 }}>−{penaltyPts}</span>
             )}
             {hasBonus && (
-              <span style={{ color: '#22c55e', fontSize: '0.6rem', fontWeight: 800 }}>+{managerBonus}</span>
+              <span style={{ color: '#1F6FEB', fontSize: '0.6rem', fontWeight: 800 }}>+{managerBonus}</span>
             )}
           </span>
         </div>
@@ -202,7 +202,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
         <div style={{ fontSize: '0.6rem', fontWeight: 700, marginBottom: '0.4rem', lineHeight: 1.5 }}>
           {openerPenalty > 0 && <div style={{ color: '#f59e0b' }}>⬇️ −3: openers not in positions 1–3</div>}
           {batsmanPenalty > 0 && <div style={{ color: '#f59e0b' }}>⬇️ −2: pure batsman below a bowler</div>}
-          {hasBonus && <div style={{ color: '#22c55e' }}>⬆️ +{managerBonus}: coach bonus</div>}
+          {hasBonus && <div style={{ color: '#1F6FEB' }}>⬆️ +{managerBonus}: coach bonus</div>}
         </div>
       )}
 
@@ -211,7 +211,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
         <div style={{ marginTop: '0.6rem', padding: '0.4rem 0.65rem', background: '#1a1a26', borderRadius: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <span style={{ fontSize: '0.8rem' }}>{manager.icon}</span>
           <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600 }}>{manager.name}</span>
-          <span style={{ marginLeft: 'auto', fontSize: '0.62rem', color: '#22c55e', fontWeight: 700 }}>
+          <span style={{ marginLeft: 'auto', fontSize: '0.62rem', color: '#1F6FEB', fontWeight: 700 }}>
             +{manager.bonus?.strength ?? 0}
             {manager.wcWinnerFor?.includes(mode) && <span style={{ color: '#f59e0b', marginLeft: '0.2rem' }}>🏆</span>}
           </span>

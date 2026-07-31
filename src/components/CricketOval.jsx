@@ -16,9 +16,9 @@ function scaledOverall(player, ratingType) {
 }
 
 const roleColor = {
-  'opener':        '#22c55e',
-  'top-order':     '#22c55e',
-  'middle-order':  '#16a34a',
+  'opener':        '#1F6FEB',
+  'top-order':     '#1F6FEB',
+  'middle-order':  '#0047CC',
   'wicket-keeper': '#f59e0b',
   'all-rounder':   '#3b82f6',
   'pace-bowler':   '#ef4444',
@@ -72,11 +72,11 @@ function PlayerCard({ player, idx, isMispos, ratingType, onMoveUp, onMoveDown, i
 
   const arrowBtn = (enabled, label, onClick) => ({
     width: 22, height: 18,
-    background: enabled ? '#22c55e18' : 'transparent',
-    border: `1px solid ${enabled ? '#22c55e44' : 'transparent'}`,
+    background: enabled ? '#1F6FEB18' : 'transparent',
+    border: `1px solid ${enabled ? '#1F6FEB44' : 'transparent'}`,
     borderRadius: '3px',
     fontSize: '0.55rem', fontWeight: 900,
-    color: enabled ? '#22c55e' : '#2a2a3a',
+    color: enabled ? '#1F6FEB' : '#2a2a3a',
     cursor: enabled ? 'pointer' : 'default',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     lineHeight: 1, padding: 0,
@@ -205,7 +205,7 @@ export default function CricketOval({ team = [], ratingType = 'season', onReorde
         textAlign: 'center',
         borderBottom: '1px solid #1a2a1a',
       }}>
-        <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.2rem' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.2rem' }}>
           🏏 Your XI — Batting Lineup
         </div>
         {onReorder && (
@@ -236,11 +236,11 @@ export default function CricketOval({ team = [], ratingType = 'season', onReorde
 
         {/* Pitch divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', opacity: 0.5 }}>
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, #22c55e44)' }} />
-          <div style={{ fontSize: '0.55rem', color: '#22c55e', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, #1F6FEB44)' }} />
+          <div style={{ fontSize: '0.55rem', color: '#1F6FEB', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
             ┃ Pitch ┃
           </div>
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, #22c55e44)' }} />
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, #1F6FEB44)' }} />
         </div>
 
         {/* Bottom row: positions 7–11 */}

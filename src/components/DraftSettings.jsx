@@ -68,7 +68,7 @@ function DualRangeSlider({ min, max, low, high, onChange, formatLabel }) {
   const thumbStyle = {
     position: 'absolute', top: '50%',
     width: 22, height: 22, borderRadius: '50%',
-    background: '#22c55e', border: '3px solid #0a0a0f',
+    background: '#1F6FEB', border: '3px solid #0a0a0f',
     cursor: 'grab', zIndex: 3, boxSizing: 'border-box',
     transform: 'translate(-50%, -50%)',
   }
@@ -82,7 +82,7 @@ function DualRangeSlider({ min, max, low, high, onChange, formatLabel }) {
         onMouseDown={onTrackClick}
       >
         {/* Active fill */}
-        <div style={{ position: 'absolute', left: pct(low), width: `${((high - low) / (max - min) * 100).toFixed(2)}%`, top: 0, bottom: 0, background: '#22c55e', borderRadius: 3, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', left: pct(low), width: `${((high - low) / (max - min) * 100).toFixed(2)}%`, top: 0, bottom: 0, background: '#1F6FEB', borderRadius: 3, pointerEvents: 'none' }} />
 
         {/* Low thumb + floating label */}
         <div
@@ -93,7 +93,7 @@ function DualRangeSlider({ min, max, low, high, onChange, formatLabel }) {
           <div style={{
             position: 'absolute', bottom: '130%', left: '50%',
             transform: overlap ? 'translateX(-140%)' : 'translateX(-50%)',
-            background: '#22c55e', color: '#0a0a0f',
+            background: '#1F6FEB', color: '#0a0a0f',
             fontSize: '0.75rem', fontWeight: 900,
             padding: '2px 7px', borderRadius: '4px',
             whiteSpace: 'nowrap', pointerEvents: 'none',
@@ -112,7 +112,7 @@ function DualRangeSlider({ min, max, low, high, onChange, formatLabel }) {
           <div style={{
             position: 'absolute', bottom: '130%', left: '50%',
             transform: overlap ? 'translateX(40%)' : 'translateX(-50%)',
-            background: '#22c55e', color: '#0a0a0f',
+            background: '#1F6FEB', color: '#0a0a0f',
             fontSize: '0.75rem', fontWeight: 900,
             padding: '2px 7px', borderRadius: '4px',
             whiteSpace: 'nowrap', pointerEvents: 'none',
@@ -189,22 +189,22 @@ export default function DraftSettings({ mode, onStart, onBack }) {
     page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', background: 'var(--bg)' },
     card: { width: '100%', maxWidth: 560, background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '1.25rem', overflow: 'hidden' },
     cardHeader: { padding: '1.5rem 1.75rem', borderBottom: '1px solid #2a2a3a' },
-    modeTag: { fontSize: '0.72rem', color: '#22c55e', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
+    modeTag: { fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
     title: { fontSize: '1.4rem', fontWeight: 900, color: '#f1f5f9' },
     section: { padding: '1.1rem 1.75rem', borderBottom: '1px solid #2a2a3a' },
     label: { fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' },
     row: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap' },
-    pill: (active, color = '#22c55e') => ({
+    pill: (active, color = '#1F6FEB') => ({
       padding: '0.45rem 1rem', background: active ? color + '22' : '#1a1a26',
       color: active ? color : '#64748b', border: `1px solid ${active ? color + '66' : '#2a2a3a'}`,
       borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
     }),
     yearChip: (on) => ({
-      padding: '0.4rem 0.875rem', background: on ? '#22c55e22' : '#1a1a26',
-      color: on ? '#22c55e' : '#94a3b8', border: `1px solid ${on ? '#22c55e66' : '#3a3a4a'}`,
+      padding: '0.4rem 0.875rem', background: on ? '#1F6FEB22' : '#1a1a26',
+      color: on ? '#1F6FEB' : '#94a3b8', border: `1px solid ${on ? '#1F6FEB66' : '#3a3a4a'}`,
       borderRadius: '999px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
     }),
-    toggle: (on) => ({ width: 44, height: 24, borderRadius: '999px', background: on ? '#22c55e' : '#2a2a3a', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0, border: 'none' }),
+    toggle: (on) => ({ width: 44, height: 24, borderRadius: '999px', background: on ? '#1F6FEB' : '#2a2a3a', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0, border: 'none' }),
     toggleKnob: (on) => ({ position: 'absolute', top: 3, left: on ? 23 : 3, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }),
   }
 
@@ -285,7 +285,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
                     ))}
                   </div>
                   <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.6rem' }}>
-                    <button onClick={() => setCheckedYears(new Set(allYears))} style={{ fontSize: '0.72rem', color: '#22c55e', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Select All</button>
+                    <button onClick={() => setCheckedYears(new Set(allYears))} style={{ fontSize: '0.72rem', color: '#1F6FEB', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Select All</button>
                     <button onClick={() => setCheckedYears(new Set())} style={{ fontSize: '0.72rem', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Clear All</button>
                   </div>
                 </>
@@ -319,7 +319,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
           <button
             onClick={handleStart}
             disabled={mode !== 'ipl' && filteredCount === 0}
-            style={{ flex: 1, padding: '0.875rem', background: (mode !== 'ipl' && filteredCount === 0) ? '#1a1a26' : 'linear-gradient(135deg, #22c55e, #16a34a)', color: (mode !== 'ipl' && filteredCount === 0) ? '#64748b' : '#0a0a0f', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: (mode !== 'ipl' && filteredCount === 0) ? 'default' : 'pointer' }}
+            style={{ flex: 1, padding: '0.875rem', background: (mode !== 'ipl' && filteredCount === 0) ? '#1a1a26' : 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: (mode !== 'ipl' && filteredCount === 0) ? '#64748b' : '#0a0a0f', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: (mode !== 'ipl' && filteredCount === 0) ? 'default' : 'pointer' }}
           >
             {(mode !== 'ipl' && filteredCount === 0) ? 'Select editions first' : 'Start Draft →'}
           </button>
