@@ -121,10 +121,22 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
           setPendingEvent({
             event: match.event,
             opponent: match.opponent,
-            resume: () => {
+            resume: (success, choiceLabel) => {
               setPendingEvent(null)
-              setRevealed(prev => [...prev, match])
-              addStats(match, setLiveRuns, setLiveWkts)
+              const matchWithQTE = { ...match, eventResult: { success, choiceLabel } }
+              setRevealed(prev => [...prev, matchWithQTE])
+              addStats(matchWithQTE, setLiveRuns, setLiveWkts)
+              // Update live leaderboard with QTE outcome
+              if (success && match.event) {
+                const evt = match.event
+                if (evt.type === 'century') {
+                  setLiveRuns(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 100 }))
+                } else if (evt.type === 'half-century') {
+                  setLiveRuns(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 50 }))
+                } else if (evt.type === 'hat-trick') {
+                  setLiveWkts(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 3 }))
+                }
+              }
               i++
               scheduleNext()
             }
@@ -149,7 +161,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   }, [tournamentStarted])
 
   function startPlayoffs() {
-    const pd = simulateIPLPlayoffs(team, manager, iplPosition)
+    const pd = simulateIPLPlayoffs(team, manager, iplPosition, iplTable?.table ?? [])
     if (!pd?.results?.length) { setIplPhase('done'); return }
     setPlayoffData(pd)
     setIplPhase('playoffs')
@@ -717,8 +729,8 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
 // ─── Match card ───────────────────────────────────────────────────────────────
 
 function MatchCard({ result, isLatest, expanded, onToggle }) {
-  const { won, matchNum, stage, opponent, summary, myScore, oppScore, stats } = result
-  const hasHighlights = !!(stats?.topScorer || stats?.topBowler)
+  const { won, matchNum, stage, opponent, summary, myScore, oppScore, stats, event, eventResult } = result
+  const hasHighlights = !!(stats?.topScorer || stats?.topBowler || eventResult)
   const stageClr = stage === 'Final' ? '#f59e0b' : (stage?.includes('Qualifier') || stage === 'Eliminator' || stage?.includes('Semi')) ? '#a78bfa' : '#64748b'
 
   return (
@@ -741,7 +753,25 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
 
       {expanded && hasHighlights && (
         <div style={{ padding:'0.75rem 1rem 1rem', borderTop:`1px solid ${won ? '#0047CC22' : '#7f1d1d22'}`, display:'flex', flexDirection:'column', gap:'0.625rem', animation:'fade-in 0.15s ease both' }}>
-          {stats.topScorer && (
+          {eventResult && event && (
+            <div style={{ display:'flex', gap:'0.75rem', alignItems:'flex-start' }}>
+              <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background: eventResult.success ? '#f59e0b18' : '#ef444418', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem' }}>
+                {event.type === 'hat-trick' ? '🎳' : '🏏'}
+              </div>
+              <div>
+                <div style={{ fontSize:'0.58rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.07em' }}>
+                  {event.type === 'century' ? 'Century Moment' : event.type === 'half-century' ? 'Fifty Moment' : 'Hat-Trick Ball'}
+                </div>
+                <div style={{ fontSize:'0.9rem', fontWeight:800, color:'#f1f5f9' }}>{event.playerName}</div>
+                <div style={{ fontSize:'0.75rem', fontWeight:700, color: eventResult.success ? '#f59e0b' : '#ef4444' }}>
+                  {eventResult.success
+                    ? (event.type === 'hat-trick' ? 'Hat-trick! 🔥' : event.type === 'century' ? 'Hundred! 🏆' : 'Fifty! 🎉')
+                    : `Out for ${event.milestone ?? '—'} · played: ${eventResult.choiceLabel}`}
+                </div>
+              </div>
+            </div>
+          )}
+          {stats?.topScorer && (
             <div style={{ display:'flex', gap:'0.75rem', alignItems:'flex-start' }}>
               <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background:'#1F6FEB18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem' }}>🏏</div>
               <div>
@@ -751,7 +781,7 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
               </div>
             </div>
           )}
-          {stats.topBowler && (
+          {stats?.topBowler && (
             <div style={{ display:'flex', gap:'0.75rem', alignItems:'flex-start' }}>
               <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background:'#a855f718', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem' }}>🎯</div>
               <div>

@@ -8,6 +8,12 @@ const BALLS_FACING = [
   { label: 'Off Cutter',   desc: 'Slower through the air', risk: 'low',    batSucc: 0.70, bowlSucc: 0.35 },
 ]
 
+const BATTING_MOMENTS = [
+  { label: 'The Last Run',   desc: 'A single to midwicket — easy pickings' },
+  { label: 'Cover Drive',    desc: 'Full ball outside off — perfect for the drive' },
+  { label: 'Glance to Fine', desc: 'Pitched on the pads, room to clip away' },
+]
+
 const BATTING_CHOICES = [
   { label: 'Defend',   icon: '🛡️', desc: 'Play it safe — protect the wicket', successChance: 0.82 },
   { label: 'Drive',    icon: '🏏', desc: 'Push through the line for the milestone', successChance: 0.55 },
@@ -53,7 +59,9 @@ export default function MatchEvent({ event, opponent, onContinue }) {
   const isBatting = event.type !== 'hat-trick'
   const choices   = isBatting ? BATTING_CHOICES : BOWLING_CHOICES
 
-  const ballType  = BALLS_FACING[Math.floor(Math.random() * BALLS_FACING.length)]
+  const ballType  = isBatting
+    ? BATTING_MOMENTS[Math.floor(Math.random() * BATTING_MOMENTS.length)]
+    : BALLS_FACING[Math.floor(Math.random() * BALLS_FACING.length)]
 
   function pick(choice) {
     const roll = Math.random()
@@ -122,7 +130,7 @@ export default function MatchEvent({ event, opponent, onContinue }) {
               marginBottom: '1.5rem', textAlign: 'center',
             }}>
               <div style={{ fontSize: '0.65rem', color: '#475569', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.3rem' }}>
-                Next ball
+                {isBatting ? 'The opportunity' : 'Next ball'}
               </div>
               <div style={{ fontSize: '1rem', fontWeight: 800, color: '#f1f5f9' }}>
                 {ballType.label}
@@ -180,7 +188,7 @@ export default function MatchEvent({ event, opponent, onContinue }) {
               You played: <span style={{ color: '#f1f5f9', fontWeight: 700 }}>{chosen?.label}</span>
             </div>
             <button
-              onClick={onContinue}
+              onClick={() => onContinue(success, chosen?.label)}
               style={{
                 padding: '0.75rem 2rem',
                 background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',

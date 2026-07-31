@@ -28,7 +28,7 @@ const CAT_COLOR = {
 
 // ─── Auction budget ───────────────────────────────────────────────────────
 
-export const STARTING_BUDGET = 125  // ₹125 cr
+export const STARTING_BUDGET = 80  // ₹80 cr
 
 // Price in crores based on display overall rating (1–99).
 // Quadratic curve: unknowns ≈ ₹0.5cr, stars ≈ ₹20-30cr.
@@ -225,14 +225,14 @@ export default function WheelSpin({
 
     function tick() {
       i++
-      const isLast = i >= 30
+      const isLast = i >= 22
       const entry = isLast ? chosen : pool[i % pool.length]
       setCycleEntry(entry)
       if (isLast) {
         cycleRef.current = setTimeout(() => {
           setLandedEntry(chosen)
           setPhase('selecting')
-        }, 900)
+        }, 400)
       } else {
         if (i > 20) interval = Math.min(interval + 12, 220)
         cycleRef.current = setTimeout(tick, interval)

@@ -31,7 +31,7 @@ export function calcTeamStrength(team, manager, mode) {
   const fielding = team.reduce((s, p) => s + (p.fielding ?? 70), 0) / team.length
 
   const base = Math.round(0.45 * batting + 0.45 * bowling + 0.10 * fielding)
-  const bonus = manager?.bonus?.strength ?? 0
+  const bonus = (manager?.wcWinnerFor?.includes(mode) ? (manager?.bonus?.strength ?? 0) : 0)
 
   // Position mismatch penalty (simulation impact)
   // Rule 1: any opener not in positions 1-3 → flat -3
@@ -344,7 +344,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   const totalTarget = config.totalMatches
 
   // Pre-assign which match indices get events (avg ~10, max 2/match, total 6-14)
-  const eventCount    = 6 + Math.floor(Math.random() * 9)   // 6–14
+  const eventCount    = 5 + Math.floor(Math.random() * 3)   // 5–7
   const totalMatches  = config.totalMatches + 3             // approx upper bound inc. playoffs
   const eventIndices  = new Set()
   let attempts = 0
@@ -497,7 +497,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   const allNames = new Set([...Object.keys(runTotals), ...Object.keys(wicketTotals)])
   let potm = null, bestScore = -1
   allNames.forEach(name => {
-    const score = (runTotals[name] || 0) + (wicketTotals[name] || 0) * 25
+    const score = (runTotals[name] || 0) + (wicketTotals[name] || 0) * 15
     if (score > bestScore) { bestScore = score; potm = name }
   })
 
@@ -612,42 +612,63 @@ export function generateIPLTable(userWins) {
 
 // ─── IPL Playoffs ──────────────────────────────────────────────────────────
 
-export function simulateIPLPlayoffs(team, manager, position) {
+export function simulateIPLPlayoffs(team, manager, position, tableTeams = []) {
   const myStr = calcTeamStrength(team, manager, 'ipl')
   const results = []
   let matchNum = 15
 
+  // Use real team names from the IPL table when available
+  // tableTeams is sorted by position (index 0 = 1st place, etc.)
+  const tn = (idx, fallback) => tableTeams[idx]?.team ?? fallback
   const opp = (name, base) => ({ name, strength: clamp(Math.round(base + rng(-5, 8)), 55, 90) })
+
+  let finalOppName
 
   if (position <= 2) {
     // Qualifier 1: 1st vs 2nd
-    const q1 = simulateMatch(myStr, opp(position === 1 ? '2nd place side' : '1st place side', 68), 't20', matchNum++, team)
+    const q1OppIdx = position === 1 ? 1 : 0
+    const q1OppName = tn(q1OppIdx, position === 1 ? '2nd place side' : '1st place side')
+    const q1 = simulateMatch(myStr, opp(q1OppName, 68), 't20', matchNum++, team)
     q1.stage = 'Qualifier 1'
     results.push(q1)
 
-    if (!q1.won) {
-      // Second chance — Qualifier 2
-      const q2 = simulateMatch(myStr, opp('Eliminator winner', 65), 't20', matchNum++, team)
+    if (q1.won) {
+      // Q2 winner (from 3rd/4th) faces us in Final
+      const q2WinnerIdx = Math.random() < 0.5 ? 2 : 3
+      finalOppName = tn(q2WinnerIdx, '3rd place side')
+    } else {
+      // Qualifier 2: us vs Eliminator winner (3rd or 4th)
+      const elimWinnerIdx = Math.random() < 0.5 ? 2 : 3
+      const q2 = simulateMatch(myStr, opp(tn(elimWinnerIdx, 'Eliminator winner'), 65), 't20', matchNum++, team)
       q2.stage = 'Qualifier 2'
       results.push(q2)
       if (!q2.won) return { results, outcome: 'eliminated' }
+      // Final vs the team that beat us in Q1
+      finalOppName = q1OppName
     }
   } else {
     // Eliminator: 3rd vs 4th
-    const elim = simulateMatch(myStr, opp(position === 3 ? '4th place side' : '3rd place side', 63), 't20', matchNum++, team)
+    const elimOppIdx = position === 3 ? 3 : 2
+    const elimOppName = tn(elimOppIdx, position === 3 ? '4th place side' : '3rd place side')
+    const elim = simulateMatch(myStr, opp(elimOppName, 63), 't20', matchNum++, team)
     elim.stage = 'Eliminator'
     results.push(elim)
     if (!elim.won) return { results, outcome: 'eliminated' }
 
-    // Qualifier 2
-    const q2 = simulateMatch(myStr, opp('Q1 loser', 66), 't20', matchNum++, team)
+    // Qualifier 2: us vs Q1 loser (one of the top-2 teams)
+    const q1LoserIdx = Math.random() < 0.5 ? 0 : 1
+    const q2 = simulateMatch(myStr, opp(tn(q1LoserIdx, 'Q1 loser'), 66), 't20', matchNum++, team)
     q2.stage = 'Qualifier 2'
     results.push(q2)
     if (!q2.won) return { results, outcome: 'eliminated' }
+
+    // Final vs Q1 winner (the other top-2 team)
+    const q1WinnerIdx = q1LoserIdx === 0 ? 1 : 0
+    finalOppName = tn(q1WinnerIdx, '1st place side')
   }
 
   // Final
-  const final = simulateMatch(myStr, opp('IPL Final', 71), 't20', matchNum++, team)
+  const final = simulateMatch(myStr, opp(finalOppName, 71), 't20', matchNum++, team)
   final.stage = 'Final'
   results.push(final)
 
