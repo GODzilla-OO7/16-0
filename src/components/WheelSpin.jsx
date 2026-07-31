@@ -134,14 +134,40 @@ export default function WheelSpin({
     setPhase('spinning')
     setLandedEntry(null)
 
-    const shuffled = shuffle(entries)
+    // Only spin to squads that can actually give an eligible player right now.
+    // This prevents ever landing on a squad with no pace bowlers when pace is mandatory, etc.
+    const draftedNameSet = new Set(team.map(p => p.name))
+    const currentNeeds   = getPositionNeeds(team, composition)
+    const currentMust    = currentNeeds.find(n => n.must) || null
+
+    const spinnable = entries.filter(entry => {
+      const undrafted = entry.players.filter(
+        p => !draftedIds.has(p.id) && !draftedNameSet.has(p.name)
+      )
+      if (undrafted.length === 0) return false   // whole squad already drafted
+      if (currentMust) {
+        // Must-pick round: need at least one player matching the mandatory role
+        return undrafted.some(
+          p => satisfiesNeed(p, currentMust) && !isRoleFull(p, team, composition)
+        )
+      }
+      if (composition) {
+        // Composition active: need at least one player whose role slot isn't full
+        return undrafted.some(p => !isRoleFull(p, team, composition))
+      }
+      return true
+    })
+
+    // Fallback: if filtering leaves nothing (extremely rare), spin anything
+    const pool    = spinnable.length > 0 ? spinnable : entries
+    const shuffled = shuffle(pool)
     const chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
     let i = 0, interval = 60
 
     function tick() {
       i++
       const isLast = i >= 30
-      const entry = isLast ? chosen : shuffled[i % shuffled.length]
+      const entry = isLast ? chosen : pool[i % pool.length]
       setCycleEntry(entry)
       if (isLast) {
         cycleRef.current = setTimeout(() => {
