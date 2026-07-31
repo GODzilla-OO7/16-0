@@ -14,6 +14,7 @@ import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import SquadComposer from './components/SquadComposer.jsx'
 import DailyChallenge from './components/DailyChallenge.jsx'
+import { STARTING_BUDGET } from './components/WheelSpin.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
 import { useAuth, saveGameResult } from './hooks/useAuth.js'
 
@@ -47,6 +48,7 @@ export default function App() {
   const [previewManager,   setPreviewManager]   = useState(null) // coach landed (spin preview for TeamStrengthPanel)
   const [confirmedManager, setConfirmedManager] = useState(null) // coach confirmed by user click
   const [composition, setComposition] = useState(null) // squad role blueprint
+  const [budgetLeft, setBudgetLeft]   = useState(STARTING_BUDGET) // ₹125cr auction budget
 
   function handleModeSelect(m) {
     setMode(m)
@@ -61,6 +63,7 @@ export default function App() {
     setManager(null)
     setPreviewManager(null); setConfirmedManager(null)
     setRerollsLeft(s.rerolls ?? 3)
+    setBudgetLeft(STARTING_BUDGET)
     setPhase('compose')
   }
 
@@ -136,6 +139,7 @@ export default function App() {
     setNewAwards([])
     setPreviewManager(null); setConfirmedManager(null)
     setComposition(null)
+    setBudgetLeft(STARTING_BUDGET)
   }
 
   function handleBackToSettings() {
@@ -144,6 +148,7 @@ export default function App() {
     setManager(null)
     setPreviewManager(null); setConfirmedManager(null)
     setComposition(null)
+    setBudgetLeft(STARTING_BUDGET)
   }
 
   const btnBase = {
@@ -278,8 +283,16 @@ export default function App() {
             {settings?.hardMode && <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginLeft: '0.5rem' }}>🔒 HARD</span>}
             {settings?.ratingType === 'prime' && <span style={{ fontSize: '0.7rem', color: '#a855f7', marginLeft: '0.5rem' }}>⚡ PRIME</span>}
           </div>
-          <div style={{ fontSize: '0.85rem', color: slotsFilled === totalSlots ? 'var(--green)' : 'var(--text-muted)', fontWeight: 700 }}>
-            {slotsFilled}/{totalSlots}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{
+              fontSize: '0.8rem', fontWeight: 800,
+              color: budgetLeft < 20 ? '#ef4444' : budgetLeft < 40 ? '#f59e0b' : '#22c55e',
+            }}>
+              💰 ₹{budgetLeft}cr
+            </div>
+            <div style={{ fontSize: '0.85rem', color: slotsFilled === totalSlots ? 'var(--green)' : 'var(--text-muted)', fontWeight: 700 }}>
+              {slotsFilled}/{totalSlots}
+            </div>
           </div>
         </div>
 
@@ -300,6 +313,8 @@ export default function App() {
                   rerollsLeft={rerollsLeft}
                   onReroll={handleReroll}
                   onResult={handlePlayerPicked}
+                  budget={budgetLeft}
+                  onSpend={amt => setBudgetLeft(b => Math.max(0, b - amt))}
                 />
               ) : (
                 <div style={{ animation: 'fade-in-up 0.4s ease both' }}>

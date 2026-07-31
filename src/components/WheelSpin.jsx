@@ -26,6 +26,21 @@ const CAT_COLOR = {
   'SPIN':    '#a855f7',
 }
 
+// ─── Auction budget ───────────────────────────────────────────────────────
+
+export const STARTING_BUDGET = 125  // ₹125 cr
+
+// Price in crores based on display overall rating (1–99).
+// Quadratic curve: unknowns ≈ ₹0.5cr, stars ≈ ₹20-30cr.
+export function calcPrice(rating) {
+  const raw = 0.5 + Math.pow(Math.max(0, rating - 58) / 41, 2) * 29.5
+  return Math.round(Math.min(30, raw) * 2) / 2   // round to nearest 0.5
+}
+
+function fmtCr(cr) {
+  return cr >= 1 ? `₹${cr}cr` : `₹${Math.round(cr * 100)}L`
+}
+
 // ─── Rating scaling + prime ───────────────────────────────────────────────
 
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 3))) }
@@ -111,6 +126,7 @@ function extractYear(season) {
 export default function WheelSpin({
   mode, settings, composition, slotIndex, totalSlots,
   draftedIds, team, rerollsLeft, onReroll, onResult,
+  budget, onSpend,
 }) {
   const [phase, setPhase]             = useState('idle')
   const [landedEntry, setLandedEntry] = useState(null)
@@ -147,6 +163,8 @@ export default function WheelSpin({
     const overseasInTeamNow = isIPLMode ? team.filter(p => isOverseas(p)).length : 0
     const overseasFull    = isIPLMode && overseasInTeamNow >= 4
 
+    const budgetExhausted = budget != null && budget < 0.5
+
     function playerIsPickable(p) {
       // Already drafted?
       if (draftedIds.has(p.id) || draftedNameSet.has(p.name)) return false
@@ -156,6 +174,11 @@ export default function WheelSpin({
       if (currentMust && !satisfiesNeed(p, currentMust)) return false
       // Overseas blocked?
       if (overseasFull && isOverseas(p)) return false
+      // Over budget? (skip check if budget exhausted — must always be able to proceed)
+      if (!budgetExhausted && budget != null) {
+        const price = calcPrice(displayRating(p, ratingType).overall)
+        if (price > budget) return false
+      }
       return true
     }
 
@@ -163,21 +186,31 @@ export default function WheelSpin({
       entry.players.some(playerIsPickable)
     )
 
-    // Absolute fallback: if nothing passes (should never happen in practice),
-    // try without the mustPick constraint, then without overseas, then spin anything
+    // Tiered fallbacks: relax constraints one at a time so we always spin somewhere
     let pool = spinnable
     if (pool.length === 0) {
-      // Relax mustPick
+      // Relax mustPick (keep overseas + budget)
       pool = entries.filter(entry =>
         entry.players.some(p =>
           !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
           !isRoleFull(p, team, composition) &&
-          !(overseasFull && isOverseas(p))
+          !(overseasFull && isOverseas(p)) &&
+          (budgetExhausted || budget == null || calcPrice(displayRating(p, ratingType).overall) <= budget)
         )
       )
     }
     if (pool.length === 0) {
-      // Relax overseas too
+      // Relax overseas too (keep budget)
+      pool = entries.filter(entry =>
+        entry.players.some(p =>
+          !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
+          !isRoleFull(p, team, composition) &&
+          (budgetExhausted || budget == null || calcPrice(displayRating(p, ratingType).overall) <= budget)
+        )
+      )
+    }
+    if (pool.length === 0) {
+      // Relax budget too — player must just not be drafted
       pool = entries.filter(entry =>
         entry.players.some(p =>
           !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
@@ -185,7 +218,7 @@ export default function WheelSpin({
         )
       )
     }
-    if (pool.length === 0) pool = entries  // last resort: spin anything
+    if (pool.length === 0) pool = entries  // absolute last resort
     const shuffled = shuffle(pool)
     const chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
     let i = 0, interval = 60
@@ -224,6 +257,10 @@ export default function WheelSpin({
   }
 
   function pickPlayer(player) {
+    if (onSpend && budget != null) {
+      const price = calcPrice(displayRating(player, ratingType).overall)
+      onSpend(Math.min(price, budget))   // never go below 0
+    }
     onResult(player)
     setPhase('idle')
     setLandedEntry(null)
@@ -241,25 +278,29 @@ export default function WheelSpin({
     displayRating(b, ratingType).overall - displayRating(a, ratingType).overall
   )
 
+  const budgetExhaustedDisplay = budget != null && budget < 0.5
+
+  function withBudget(p) {
+    const price = budget != null ? calcPrice(displayRating(p, ratingType).overall) : null
+    const budgetBlocked = !budgetExhaustedDisplay && price != null && price > budget
+    return { ...p, _price: price, _budgetBlocked: budgetBlocked }
+  }
+
   let squadPlayers
   if (mustPick) {
-    // Show ALL players: eligible (matching mustPick) on top, ineligible faded below
-    // Each group independently sorted by overall desc
     const eligible   = sortByOvr(rawPlayers.filter(p => satisfiesNeed(p, mustPick) && !isRoleFull(p, team, composition)))
     const ineligible = sortByOvr(rawPlayers.filter(p => !satisfiesNeed(p, mustPick) || isRoleFull(p, team, composition)))
-    // No players satisfy the mandatory role — mark ALL ineligible so auto-reroll kicks in
     if (eligible.length === 0) {
-      squadPlayers = sortByOvr(rawPlayers).map(p => ({ ...p, _eligible: false }))
+      squadPlayers = sortByOvr(rawPlayers).map(p => ({ ...withBudget(p), _eligible: false }))
     } else {
       squadPlayers = [
-        ...eligible.map(p => ({ ...p, _eligible: true })),
-        ...ineligible.map(p => ({ ...p, _eligible: false })),
+        ...eligible.map(p => ({ ...withBudget(p), _eligible: true })),
+        ...ineligible.map(p => ({ ...withBudget(p), _eligible: false })),
       ]
     }
   } else {
-    // No mustPick but still respect composition quotas
     squadPlayers = sortByOvr(rawPlayers).map(p => ({
-      ...p,
+      ...withBudget(p),
       _eligible: !isRoleFull(p, team, composition),
     }))
   }
@@ -282,6 +323,18 @@ export default function WheelSpin({
     }
   }, [phase, landedEntry])  // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Budget exhausted auto-pick: find cheapest eligible player from squad and pick them
+  useEffect(() => {
+    if (phase !== 'selecting' || !budgetExhaustedDisplay || allDrafted) return
+    const cheapest = [...squadPlayers]
+      .filter(p => p._eligible && !p._budgetBlocked)
+      .sort((a, b) => (a._price ?? 0) - (b._price ?? 0))[0]
+    if (cheapest) {
+      const t = setTimeout(() => pickPlayer(cheapest), 800)
+      return () => clearTimeout(t)
+    }
+  }, [phase, landedEntry, budgetExhaustedDisplay])  // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div style={{ width: '100%' }}>
       {phase !== 'selecting' ? (
@@ -293,6 +346,7 @@ export default function WheelSpin({
           needs={needs}
           mustPick={mustPick}
           rerollsLeft={rerollsLeft}
+          budget={budget}
           onSpin={spin}
         />
       ) : (
@@ -301,6 +355,7 @@ export default function WheelSpin({
           players={squadPlayers}
           allDrafted={allDrafted}
           compositionUnlocked={isStuck && rerollsLeft === 0}
+          budgetExhausted={budgetExhaustedDisplay}
           hardMode={hardMode}
           ratingType={ratingType}
           needs={needs}
@@ -311,6 +366,7 @@ export default function WheelSpin({
           overseasInTeam={overseasInTeam}
           overseasLimitReached={overseasLimitReached}
           isIPLMode={isIPLMode}
+          budget={budget}
           onPick={pickPlayer}
           onSpinAgain={spinAgain}
         />
@@ -321,12 +377,30 @@ export default function WheelSpin({
 
 // ─── Spin phase ───────────────────────────────────────────────────────────
 
-function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, rerollsLeft, onSpin }) {
+function BudgetBar({ budget }) {
+  if (budget == null) return null
+  const pct = Math.max(0, Math.min(100, (budget / STARTING_BUDGET) * 100))
+  const color = budget < 20 ? '#ef4444' : budget < 40 ? '#f59e0b' : '#22c55e'
+  return (
+    <div style={{ width: '100%', maxWidth: 360 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.3rem' }}>
+        <span style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>💰 Budget</span>
+        <span style={{ fontSize: '0.95rem', fontWeight: 900, color, transition: 'color 0.3s' }}>{fmtCr(budget)}</span>
+      </div>
+      <div style={{ height: 6, background: '#1a1a26', borderRadius: 3 }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 3, transition: 'width 0.4s, background 0.3s' }} />
+      </div>
+    </div>
+  )
+}
+
+function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, rerollsLeft, budget, onSpin }) {
   const isSpinning = phase === 'spinning'
   const year = cycleEntry ? extractYear(cycleEntry.season) : null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', padding: '2rem 1rem', animation: 'fade-in 0.3s ease both' }}>
+      {budget != null && <BudgetBar budget={budget} />}
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700, marginBottom: '0.3rem' }}>
           Pick {slotIndex + 1} of {totalSlots}
@@ -391,7 +465,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
 
 // ─── Select phase ─────────────────────────────────────────────────────────
 
-function SelectPhase({ entry, players, allDrafted, compositionUnlocked, hardMode, ratingType, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, isIPLMode, onPick, onSpinAgain }) {
+function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetExhausted, hardMode, ratingType, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, isIPLMode, budget, onPick, onSpinAgain }) {
   const canReroll = rerollsLeft > 0
   const year = extractYear(entry.season)
 
@@ -422,6 +496,18 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, hardMode
         </div>
       </div>
 
+      {/* Budget bar */}
+      {budget != null && (
+        <div style={{ padding: '0.5rem 1.25rem', background: '#0d1229', borderBottom: '1px solid #1a2550' }}>
+          <BudgetBar budget={budget} />
+          {budgetExhausted && (
+            <div style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 700, marginTop: '0.3rem', textAlign: 'center' }}>
+              💸 Budget exhausted — auto-picking cheapest eligible player…
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Info bar */}
       <div style={{ padding: '0.45rem 1.25rem', background: '#12121a', borderBottom: '1px solid #1a1a26', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '0.7rem', color: compositionUnlocked ? '#ef4444' : mustPick ? '#f59e0b' : '#64748b' }}>
@@ -430,7 +516,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, hardMode
             : mustPick
             ? `⚠ Must pick a ${mustPick.label} — others shown below`
             : hardMode ? '🔒 Hard Mode'
-            : `${players.filter(p => p._eligible).length} eligible · ${ratingType === 'prime' ? '⚡ Prime' : '📅 Season'} ratings`
+            : `${players.filter(p => p._eligible && !p._budgetBlocked).length} affordable · ${ratingType === 'prime' ? '⚡ Prime' : '📅 Season'} ratings`
           }
           {isIPLMode && <span style={{ marginLeft: '0.5rem', color: '#64748b', fontSize: '0.62rem' }}>✈ {overseasInTeam}/4 overseas</span>}
         </span>
@@ -461,15 +547,19 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, hardMode
             const isIneligible  = !player._eligible
             const overseas      = isIPLMode && isOverseas(player)
             const overseasBlock = overseasLimitReached && overseas
+            const budgetBlock   = !!player._budgetBlocked
 
-            // Divider between eligible and ineligible sections
-            const showDivider = mustPick && i > 0 && !player._eligible && players[i-1]._eligible
+            // Divider between eligible+affordable and rest
+            const showDivider = i > 0 && (
+              (mustPick && !player._eligible && players[i-1]._eligible) ||
+              (!mustPick && budgetBlock && !players[i-1]._budgetBlocked && players[i-1]._eligible)
+            )
 
             return (
               <div key={player.id}>
                 {showDivider && (
                   <div style={{ padding: '0.3rem 1.25rem', background: '#0a0a0f', fontSize: '0.6rem', color: '#2a2a3a', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', borderTop: '1px solid #1a1a26', borderBottom: '1px solid #1a1a26' }}>
-                    Other players — ineligible this pick
+                    {mustPick && !player._eligible ? 'Other players — wrong role' : 'Over budget'}
                   </div>
                 )}
                 <PlayerRow
@@ -480,10 +570,11 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, hardMode
                   isLast={i === players.length - 1}
                   isNeeded={isNeeded}
                   isMustPick={isMustPick}
-                  isIneligible={isIneligible}
+                  isIneligible={isIneligible || budgetBlock}
                   isOverseas={overseas}
                   isOverseasBlocked={overseasBlock}
-                  onPick={isIneligible || overseasBlock ? null : () => onPick(player)}
+                  isBudgetBlocked={budgetBlock}
+                  onPick={isIneligible || overseasBlock || budgetBlock ? null : () => onPick(player)}
                 />
               </div>
             )
@@ -496,15 +587,15 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, hardMode
 
 // ─── Player row ───────────────────────────────────────────────────────────
 
-function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, isMustPick, isIneligible, isOverseas, isOverseasBlocked, onPick }) {
+function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, isMustPick, isIneligible, isOverseas, isOverseasBlocked, isBudgetBlocked, onPick }) {
   const [hovered, setHovered] = useState(false)
   const cat     = roleCategory(player.role)
   const catClr  = CAT_COLOR[cat]
   const ratings = displayRating(player, ratingType)
   const highlight = isMustPick ? '#f59e0b' : isNeeded ? '#1F6FEB' : null
-  const blocked = isIneligible || isOverseasBlocked
+  const blocked = isIneligible || isOverseasBlocked || isBudgetBlocked
 
-  const opacity = blocked ? 0.32 : 1
+  const opacity = blocked ? 0.38 : 1
 
   return (
     <div
@@ -543,10 +634,11 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
         <div style={{ fontSize: '0.67rem', color: '#64748b' }}>
           {player.nationality}
           {isOverseasBlocked && <span style={{ marginLeft: '0.4rem', color: '#ef444488', fontWeight: 700 }}>· Overseas limit reached</span>}
+          {isBudgetBlocked && <span style={{ marginLeft: '0.4rem', color: '#ef444488', fontWeight: 700 }}>· Over budget</span>}
         </div>
       </div>
 
-      {/* Ratings */}
+      {/* Ratings + Price */}
       {hardMode ? (
         <div style={{ fontSize: '1rem', fontWeight: 900, color: '#2a2a3a', letterSpacing: '0.1em' }}>???</div>
       ) : (
@@ -556,6 +648,18 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
           <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#f59e0b', minWidth: 26, textAlign: 'right' }}>
             {ratings.overall}
           </div>
+          {player._price != null && (
+            <div style={{
+              padding: '0.15rem 0.4rem', borderRadius: '0.3rem',
+              background: isBudgetBlocked ? '#ef444420' : '#22c55e18',
+              border: `1px solid ${isBudgetBlocked ? '#ef444455' : '#22c55e44'}`,
+              fontSize: '0.62rem', fontWeight: 800,
+              color: isBudgetBlocked ? '#ef4444' : '#22c55e',
+              whiteSpace: 'nowrap',
+            }}>
+              {fmtCr(player._price)}
+            </div>
+          )}
         </div>
       )}
 
