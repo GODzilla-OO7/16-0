@@ -134,32 +134,58 @@ export default function WheelSpin({
     setPhase('spinning')
     setLandedEntry(null)
 
-    // Only spin to squads that can actually give an eligible player right now.
-    // This prevents ever landing on a squad with no pace bowlers when pace is mandatory, etc.
-    const draftedNameSet = new Set(team.map(p => p.name))
-    const currentNeeds   = getPositionNeeds(team, composition)
-    const currentMust    = currentNeeds.find(n => n.must) || null
+    // ── Pre-filter entries so we NEVER land on an impossible squad ──────────
+    // A squad is valid if it has at least one player we can actually pick:
+    //   • not already drafted (by id or name)
+    //   • satisfies the current mandatory role (if any)
+    //   • role slot not yet full per composition
+    //   • not overseas-blocked (IPL: max 4 overseas)
 
-    const spinnable = entries.filter(entry => {
-      const undrafted = entry.players.filter(
-        p => !draftedIds.has(p.id) && !draftedNameSet.has(p.name)
-      )
-      if (undrafted.length === 0) return false   // whole squad already drafted
-      if (currentMust) {
-        // Must-pick round: need at least one player matching the mandatory role
-        return undrafted.some(
-          p => satisfiesNeed(p, currentMust) && !isRoleFull(p, team, composition)
-        )
-      }
-      if (composition) {
-        // Composition active: need at least one player whose role slot isn't full
-        return undrafted.some(p => !isRoleFull(p, team, composition))
-      }
+    const draftedNameSet  = new Set(team.map(p => p.name))
+    const currentNeeds    = getPositionNeeds(team, composition)
+    const currentMust     = currentNeeds.find(n => n.must) || null
+    const overseasInTeamNow = isIPLMode ? team.filter(p => isOverseas(p)).length : 0
+    const overseasFull    = isIPLMode && overseasInTeamNow >= 4
+
+    function playerIsPickable(p) {
+      // Already drafted?
+      if (draftedIds.has(p.id) || draftedNameSet.has(p.name)) return false
+      // Role quota full?
+      if (isRoleFull(p, team, composition)) return false
+      // Mandatory role not satisfied?
+      if (currentMust && !satisfiesNeed(p, currentMust)) return false
+      // Overseas blocked?
+      if (overseasFull && isOverseas(p)) return false
       return true
-    })
+    }
 
-    // Fallback: if filtering leaves nothing (extremely rare), spin anything
-    const pool    = spinnable.length > 0 ? spinnable : entries
+    const spinnable = entries.filter(entry =>
+      entry.players.some(playerIsPickable)
+    )
+
+    // Absolute fallback: if nothing passes (should never happen in practice),
+    // try without the mustPick constraint, then without overseas, then spin anything
+    let pool = spinnable
+    if (pool.length === 0) {
+      // Relax mustPick
+      pool = entries.filter(entry =>
+        entry.players.some(p =>
+          !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
+          !isRoleFull(p, team, composition) &&
+          !(overseasFull && isOverseas(p))
+        )
+      )
+    }
+    if (pool.length === 0) {
+      // Relax overseas too
+      pool = entries.filter(entry =>
+        entry.players.some(p =>
+          !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
+          !isRoleFull(p, team, composition)
+        )
+      )
+    }
+    if (pool.length === 0) pool = entries  // last resort: spin anything
     const shuffled = shuffle(pool)
     const chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
     let i = 0, interval = 60
