@@ -352,6 +352,7 @@ export default function App() {
                 onReorder={newOrder => setTeam(newOrder)}
                 ratingType={settings?.ratingType}
                 mode={mode}
+                composition={composition}
               />
             ) : (
               <ManagerSelect

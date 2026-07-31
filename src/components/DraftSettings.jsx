@@ -266,15 +266,28 @@ export default function DraftSettings({ mode, onStart, onBack }) {
                   { label: 'All Seasons', range: [minYear, maxYear] },
                   { label: 'Classic (2008–14)', range: [2008, 2014] },
                   { label: 'Modern (2015+)', range: [2015, maxYear] },
-                ].map(({ label, range }) => (
-                  <button
-                    key={label}
-                    onClick={() => setIplRange(range)}
-                    style={{ fontSize: '0.72rem', color: '#64748b', background: '#1a1a26', border: '1px solid #2a2a3a', borderRadius: '0.4rem', padding: '0.3rem 0.6rem', cursor: 'pointer', fontWeight: 600 }}
-                  >
-                    {label}
-                  </button>
-                ))}
+                ].map(({ label, range }) => {
+                  const isActive = iplRange[0] === range[0] && iplRange[1] === range[1]
+                  return (
+                    <button
+                      key={label}
+                      onClick={() => setIplRange(range)}
+                      style={{
+                        fontSize: '0.72rem',
+                        color: isActive ? '#1F6FEB' : '#64748b',
+                        background: isActive ? 'rgba(31,111,235,0.15)' : '#1a1a26',
+                        border: `1px solid ${isActive ? 'rgba(31,111,235,0.45)' : '#2a2a3a'}`,
+                        borderRadius: '0.4rem',
+                        padding: '0.3rem 0.6rem',
+                        cursor: 'pointer',
+                        fontWeight: isActive ? 700 : 600,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  )
+                })}
               </div>
             </>
           ) : (

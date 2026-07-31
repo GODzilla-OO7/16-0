@@ -5,36 +5,23 @@
 }
 
 :root {
-  --bg: #0a0a0f;
-  --bg2: #12121a;
-  --bg3: #1a1a26;
-  --border: #2a2a3a;
+  --bg: #f0f4fb;
+  --bg2: #ffffff;
+  --bg3: #e8edf7;
+  --border: #d0daea;
   --green: #22c55e;
   --green-dim: #16a34a;
   --gold: #f59e0b;
   --gold-dim: #d97706;
-  --text: #f1f5f9;
+  --text: #0f172a;
   --text-muted: #64748b;
-  --text-dim: #94a3b8;
+  --text-dim: #475569;
   --red: #ef4444;
   --blue: #3b82f6;
 }
 
 body {
   background-color: var(--bg);
-  /* Subtle cricket-themed background: mowing stripe pattern + faint oval */
-  background-image:
-    /* Faint vertical mowing stripes — alternating dark green bands */
-    repeating-linear-gradient(
-      90deg,
-      transparent 0px,
-      transparent 48px,
-      rgba(34,197,94,0.025) 48px,
-      rgba(34,197,94,0.025) 96px
-    ),
-    /* Very subtle dot grid — evokes boundary rope markers */
-    radial-gradient(circle at 1px 1px, rgba(34,197,94,0.06) 1px, transparent 0);
-  background-size: 96px 100%, 28px 28px;
   color: var(--text);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   min-height: 100vh;

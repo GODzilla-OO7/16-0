@@ -51,7 +51,7 @@ export default function SquadComposer({ onDone, onBack }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'radial-gradient(ellipse at 50% 0%, #0a1a3a 0%, #060818 60%)',
+      background: 'radial-gradient(ellipse at 50% 0%, #ddeaff 0%, #f0f4fb 60%)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       justifyContent: 'center', padding: '2rem 1rem',
     }}>
@@ -66,7 +66,7 @@ export default function SquadComposer({ onDone, onBack }) {
             fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em',
             textTransform: 'uppercase', marginBottom: '0.75rem',
           }}>Build Your XI</div>
-          <h2 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: 900, color: '#f1f5f9', margin: 0, letterSpacing: '-0.03em' }}>
+          <h2 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.03em' }}>
             Choose Your Composition
           </h2>
           <p style={{ color: '#475569', marginTop: '0.5rem', fontSize: '0.9rem' }}>

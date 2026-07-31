@@ -214,6 +214,22 @@ export default function WheelSpin({
 
   const allDrafted = landedEntry && rawPlayers.length === 0
 
+  // Detect stuck state: all players ineligible (role-full per composition)
+  const hasAnyEligible = squadPlayers.some(p => p._eligible)
+  const isStuck = !allDrafted && squadPlayers.length > 0 && !hasAnyEligible
+
+  // When stuck with no rerolls → unlock all so user can always proceed
+  if (isStuck && rerollsLeft === 0) {
+    squadPlayers = squadPlayers.map(p => ({ ...p, _eligible: true }))
+  }
+
+  // Auto-reroll when stuck but rerolls are available
+  useEffect(() => {
+    if (phase === 'selecting' && isStuck && rerollsLeft > 0) {
+      spinAgain()
+    }
+  }, [phase, landedEntry])  // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div style={{ width: '100%' }}>
       {phase !== 'selecting' ? (
@@ -232,6 +248,7 @@ export default function WheelSpin({
           entry={landedEntry}
           players={squadPlayers}
           allDrafted={allDrafted}
+          compositionUnlocked={isStuck && rerollsLeft === 0}
           hardMode={hardMode}
           ratingType={ratingType}
           needs={needs}
@@ -322,7 +339,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
 
 // ─── Select phase ─────────────────────────────────────────────────────────
 
-function SelectPhase({ entry, players, allDrafted, hardMode, ratingType, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, isIPLMode, onPick, onSpinAgain }) {
+function SelectPhase({ entry, players, allDrafted, compositionUnlocked, hardMode, ratingType, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, isIPLMode, onPick, onSpinAgain }) {
   const canReroll = rerollsLeft > 0
   const year = extractYear(entry.season)
 
@@ -355,8 +372,10 @@ function SelectPhase({ entry, players, allDrafted, hardMode, ratingType, needs, 
 
       {/* Info bar */}
       <div style={{ padding: '0.45rem 1.25rem', background: '#12121a', borderBottom: '1px solid #1a1a26', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.7rem', color: mustPick ? '#f59e0b' : '#64748b' }}>
-          {mustPick
+        <span style={{ fontSize: '0.7rem', color: compositionUnlocked ? '#ef4444' : mustPick ? '#f59e0b' : '#64748b' }}>
+          {compositionUnlocked
+            ? '⚠ No matching players — pick anyone'
+            : mustPick
             ? `⚠ Must pick a ${mustPick.label} — others shown below`
             : hardMode ? '🔒 Hard Mode'
             : `${players.filter(p => p._eligible).length} eligible · ${ratingType === 'prime' ? '⚡ Prime' : '📅 Season'} ratings`

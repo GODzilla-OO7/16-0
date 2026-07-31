@@ -9,7 +9,7 @@ const s = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem 1rem',
-    background: 'radial-gradient(ellipse at 50% 0%, #0a1a3a 0%, #060818 60%)',
+    background: 'radial-gradient(ellipse at 50% 0%, #ddeaff 0%, #f0f4fb 60%)',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -33,13 +33,13 @@ const s = {
     lineHeight: 1,
     textAlign: 'center',
     marginBottom: '0.5rem',
-    background: 'linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)',
+    background: 'linear-gradient(135deg, #0f172a 0%, #1F6FEB 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
   },
   subtitle: {
     fontSize: '1.1rem',
-    color: '#64748b',
+    color: '#475569',
     textAlign: 'center',
     marginBottom: '3.5rem',
     maxWidth: 480,
@@ -52,8 +52,8 @@ const s = {
     maxWidth: 900,
   },
   card: (color) => ({
-    background: '#12121a',
-    border: `1px solid #2a2a3a`,
+    background: '#ffffff',
+    border: `1px solid #d0daea`,
     borderRadius: '1rem',
     padding: '1.75rem',
     cursor: 'pointer',
@@ -70,12 +70,12 @@ const s = {
   cardTitle: {
     fontSize: '1.4rem',
     fontWeight: 800,
-    color: '#f1f5f9',
+    color: '#0f172a',
     marginBottom: '0.5rem',
   },
   cardDesc: {
     fontSize: '0.875rem',
-    color: '#64748b',
+    color: '#475569',
     lineHeight: 1.5,
     marginBottom: '1.25rem',
   },
@@ -86,7 +86,7 @@ const s = {
   },
   stat: {
     fontSize: '0.75rem',
-    color: '#94a3b8',
+    color: '#64748b',
     fontWeight: 500,
   },
   statVal: {
@@ -98,13 +98,13 @@ const s = {
     top: '1.5rem',
     right: '1.5rem',
     fontSize: '1.25rem',
-    color: '#2a2a3a',
+    color: '#94a3b8',
     transition: 'color 0.2s',
   },
   footer: {
     marginTop: '3rem',
     fontSize: '0.8rem',
-    color: '#2a2a3a',
+    color: '#94a3b8',
     textAlign: 'center',
   }
 }

@@ -20,6 +20,22 @@ const roleColor = {
   'pace-bowler': '#ef4444', 'spin-bowler': '#a855f7',
 }
 
+// Composition → ordered flat list of role slots
+const COMP_ORDER = ['opener', 'top-order', 'wicket-keeper', 'middle-order', 'all-rounder', 'pace-bowler', 'spin-bowler']
+const COMP_FULL_LABEL = {
+  'opener': 'Opener', 'top-order': 'Top Order', 'wicket-keeper': 'Wicket-keeper',
+  'middle-order': 'Middle Order', 'all-rounder': 'All-rounder',
+  'pace-bowler': 'Pace Bowler', 'spin-bowler': 'Spin Bowler',
+}
+function buildCompSlots(composition) {
+  if (!composition) return null
+  const slots = []
+  for (const role of COMP_ORDER) {
+    for (let i = 0; i < (composition[role] || 0); i++) slots.push(role)
+  }
+  return slots
+}
+
 // Batting order: openers first, bowlers last
 const BATTING_WEIGHT = {
   'opener': 0, 'top-order': 1, 'wicket-keeper': 2,
@@ -33,7 +49,7 @@ function defaultSort(arr) {
   return [...arr].sort((a, b) => (BATTING_WEIGHT[a.role] ?? 9) - (BATTING_WEIGHT[b.role] ?? 9))
 }
 
-export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, compact = false, ratingType = 'season', mode = 'ipl' }) {
+export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, compact = false, ratingType = 'season', mode = 'ipl', composition = null }) {
   const filled = team.length
   const total  = POSITIONS.length
   const isDone = filled === total
@@ -66,6 +82,7 @@ export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, co
   }
 
   const emptyCount = total - filled
+  const compSlots = buildCompSlots(composition)
 
   return (
     <div style={{
@@ -188,9 +205,13 @@ export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, co
 
         {/* Empty slots */}
         {Array.from({ length: emptyCount }, (_, j) => {
-          const slotIdx  = filled + j
-          const posSlot  = POSITIONS[slotIdx]
-          const isActive = currentSlot === slotIdx
+          const slotIdx    = filled + j
+          const posSlot    = POSITIONS[slotIdx]
+          const isActive   = currentSlot === slotIdx
+          const roleForSlot = compSlots ? compSlots[slotIdx] : null
+          const slotLabel   = roleForSlot ? COMP_FULL_LABEL[roleForSlot] : (posSlot?.description ?? 'Player')
+          const slotBadge   = roleForSlot ? (roleLabel[roleForSlot] ?? '—') : null
+          const slotColor   = roleForSlot ? (roleColor[roleForSlot] ?? '#64748b') : '#2a2a3a'
           return (
             <div
               key={`empty-${j}`}
@@ -198,16 +219,24 @@ export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, co
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 padding: compact ? '0.375rem 0.5rem' : '0.5rem 0.75rem',
                 borderRadius: '0.5rem', marginBottom: '2px',
-                background: isActive ? '#0d2418' : 'transparent',
+                background: isActive ? '#ddeaff' : 'transparent',
                 border: isActive ? '1px solid #1F6FEB44' : '1px solid transparent',
                 transition: 'background 0.2s',
               }}
             >
-              <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, background: '#1a1a26', border: '1px solid #2a2a3a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800, color: '#2a2a3a' }}>
-                {slotIdx + 1}
+              <div style={{
+                width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                background: roleForSlot ? slotColor + '18' : '#1a1a26',
+                border: `1px solid ${roleForSlot ? slotColor + '44' : '#2a2a3a'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.52rem', fontWeight: 900, color: slotColor,
+              }}>
+                {slotBadge ?? (slotIdx + 1)}
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.75rem', color: '#2a2a3a' }}>{posSlot?.description ?? 'Player'}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '0.75rem', color: roleForSlot ? slotColor : '#2a2a3a', fontWeight: roleForSlot ? 600 : 400 }}>
+                  {slotLabel}
+                </div>
               </div>
             </div>
           )
