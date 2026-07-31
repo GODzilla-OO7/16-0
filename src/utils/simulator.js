@@ -306,11 +306,52 @@ function accumulateMatchStats(result, runTotals, ballTotals, wicketTotals, bowlB
   }
 }
 
+// ─── Match Event generation ────────────────────────────────────────────────
+
+export function generateMatchEvent(team, matchIndex, eventIndices) {
+  if (!eventIndices.has(matchIndex)) return null
+
+  const batters  = team.filter(p => ['opener','top-order','middle-order','wicket-keeper','all-rounder'].includes(p.role))
+  const bowlers  = team.filter(p => ['pace-bowler','spin-bowler','all-rounder'].includes(p.role))
+
+  const isBatEvent = batters.length > 0 && (bowlers.length === 0 || Math.random() < 0.6)
+
+  if (isBatEvent && batters.length > 0) {
+    const player   = batters[Math.floor(Math.random() * batters.length)]
+    const isCentury = Math.random() < 0.35
+    return {
+      type:        isCentury ? 'century' : 'half-century',
+      playerName:  player.name,
+      milestone:   isCentury ? 99 : 49,
+    }
+  }
+
+  if (!isBatEvent && bowlers.length > 0) {
+    const player = bowlers[Math.floor(Math.random() * bowlers.length)]
+    return {
+      type:       'hat-trick',
+      playerName: player.name,
+    }
+  }
+
+  return null
+}
+
 export function simulateFullSeason(team, mode, manager, options = {}) {
   const config      = MODE_CONFIG[mode]
   const myStr       = calcTeamStrength(team, manager, mode)
   const format      = config.format
   const totalTarget = config.totalMatches
+
+  // Pre-assign which match indices get events (avg ~10, max 2/match, total 6-14)
+  const eventCount    = 6 + Math.floor(Math.random() * 9)   // 6–14
+  const totalMatches  = config.totalMatches + 3             // approx upper bound inc. playoffs
+  const eventIndices  = new Set()
+  let attempts = 0
+  while (eventIndices.size < Math.min(eventCount, totalMatches) && attempts < 100) {
+    eventIndices.add(Math.floor(Math.random() * totalMatches))
+    attempts++
+  }
 
   const results = []
   let wins = 0
@@ -326,6 +367,9 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   function playMatch(stage, matchNum, opp) {
     const result = simulateMatch(myStr, opp, format, matchNum, team)
     result.stage = stage
+    // Attach match event if this match index was selected
+    const event = generateMatchEvent(team, results.length, eventIndices)
+    if (event) result.event = event
     accumulateMatchStats(result, runTotals, ballTotals, wicketTotals, bowlBallTotals, bowlRunTotals, oppRunTotals, oppWicketTotals, oppRoleMap, oppTeamMap, format, opp.name, opp.strength)
     results.push(result)
     if (result.won) wins++

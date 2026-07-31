@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { simulateFullSeason, simulateIPLPlayoffs, generateIPLTable } from '../utils/simulator.js'
 import { MODE_CONFIG } from '../data/players.js'
+import MatchEvent from './MatchEvent.jsx'
 
 // ─── Final drama commentary ─────────────────────────────────────────────────
 
@@ -41,6 +42,10 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
   // Heartbreak overlay — shown full-screen on Semi or Final loss in WC
   const [showHeartbreak,  setShowHeartbreak]  = useState(false)
+
+  // Match events — quick-time moments (century, hat-trick etc.)
+  const [pendingEvent,    setPendingEvent]    = useState(null)  // { event, matchToReveal, resumeFn }
+
 
   // Group draw — WC modes show a group draw before simulation starts
   const cfg    = MODE_CONFIG[mode]
@@ -109,6 +114,21 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         if (!isIPL && match.stage === 'Final') {
           setPendingFinal(match)
           setFinalPhase('button')
+          return
+        }
+        // Intercept match event (century / hat-trick moments)
+        if (match.event) {
+          setPendingEvent({
+            event: match.event,
+            opponent: match.opponent,
+            resume: () => {
+              setPendingEvent(null)
+              setRevealed(prev => [...prev, match])
+              addStats(match, setLiveRuns, setLiveWkts)
+              i++
+              scheduleNext()
+            }
+          })
           return
         }
         setRevealed(prev => [...prev, match])
@@ -298,6 +318,15 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             </button>
           </div>
         </div>
+      )}
+
+      {/* ── Match Event overlay ─────────────────────────────────────── */}
+      {pendingEvent && (
+        <MatchEvent
+          event={pendingEvent.event}
+          opponent={pendingEvent.opponent}
+          onContinue={pendingEvent.resume}
+        />
       )}
 
       {/* ── Heartbreak Overlay ───────────────────────────────────────── */}
