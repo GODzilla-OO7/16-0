@@ -195,9 +195,9 @@ export default function WheelSpin({
     // Each group independently sorted by overall desc
     const eligible   = sortByOvr(rawPlayers.filter(p => satisfiesNeed(p, mustPick) && !isRoleFull(p, team, composition)))
     const ineligible = sortByOvr(rawPlayers.filter(p => !satisfiesNeed(p, mustPick) || isRoleFull(p, team, composition)))
-    // Safety: if no eligible players exist in this squad, fall back to showing all
+    // No players satisfy the mandatory role — mark ALL ineligible so auto-reroll kicks in
     if (eligible.length === 0) {
-      squadPlayers = sortByOvr(rawPlayers).map(p => ({ ...p, _eligible: !isRoleFull(p, team, composition) }))
+      squadPlayers = sortByOvr(rawPlayers).map(p => ({ ...p, _eligible: false }))
     } else {
       squadPlayers = [
         ...eligible.map(p => ({ ...p, _eligible: true })),
