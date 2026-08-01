@@ -80,7 +80,7 @@ function ModeCard({ icon, title, desc, onClick, disabled, comingSoon, C }) {
         fontSize: '1.25rem',
       }}>{icon}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.9rem', fontWeight: 800, color: C.offWhite, marginBottom: '0.15rem' }}>
+        <div style={{ fontSize: '0.9rem', fontWeight: 800, color: C.text, marginBottom: '0.15rem' }}>
           {title}
           {comingSoon && (
             <span style={{
@@ -121,9 +121,15 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
   }
 
   useEffect(() => {
-    fetchTotalPlays().then(n => setTotalPlays(n))
-    const unsub = subscribeToPlays(n => setTotalPlays(n))
-    return unsub
+    // Initial fetch
+    fetchTotalPlays().then(n => { if (n != null) setTotalPlays(n) })
+    // Realtime subscription (works when Supabase replication is enabled)
+    const unsub = subscribeToPlays(n => { if (n != null) setTotalPlays(n) })
+    // Polling fallback every 20s so the counter always stays fresh
+    const poll = setInterval(() => {
+      fetchTotalPlays().then(n => { if (n != null) setTotalPlays(n) })
+    }, 20000)
+    return () => { unsub(); clearInterval(poll) }
   }, [])
 
   return (
