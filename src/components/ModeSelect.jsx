@@ -43,10 +43,13 @@ const DARK = {
   sectionLbl:'#2a3855',
 }
 
+const PLAY_COUNT_OFFSET = 100  // seed count — real plays add on top
+
 function formatCount(n) {
   if (n == null) return null
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
-  return String(n)
+  const total = n + PLAY_COUNT_OFFSET
+  if (total >= 1000) return (total / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  return String(total)
 }
 
 function ModeCard({ icon, title, desc, onClick, disabled, comingSoon, C }) {
