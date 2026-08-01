@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { simulateFullSeason, simulateIPLPlayoffs, generateIPLTable } from '../utils/simulator.js'
 import { MODE_CONFIG } from '../data/players.js'
 import MatchEvent from './MatchEvent.jsx'
+import ImpactSub from './ImpactSub.jsx'
 
 // ─── Final drama commentary ─────────────────────────────────────────────────
 
@@ -45,6 +46,12 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
   // Match events — quick-time moments (century, hat-trick etc.)
   const [pendingEvent,    setPendingEvent]    = useState(null)  // { event, matchToReveal, resumeFn }
+
+  // Impact Sub — mid-season transfer before playoffs (IPL only)
+  const [activeTeam,      setActiveTeam]      = useState(team)  // may be updated by Impact Sub
+  const [showImpactSub,   setShowImpactSub]   = useState(false)
+  const [impactSubDone,   setImpactSubDone]   = useState(false)
+  const [impactSubLog,    setImpactSubLog]    = useState(null)  // { out, in, event }
 
 
   // Group draw — WC modes show a group draw before simulation starts
@@ -161,7 +168,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   }, [tournamentStarted])
 
   function startPlayoffs() {
-    const pd = simulateIPLPlayoffs(team, manager, iplPosition, iplTable?.table ?? [])
+    const pd = simulateIPLPlayoffs(activeTeam, manager, iplPosition, iplTable?.table ?? [])
     if (!pd?.results?.length) { setIplPhase('done'); return }
     setPlayoffData(pd)
     setIplPhase('playoffs')
@@ -332,6 +339,26 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         </div>
       )}
 
+      {/* ── Impact Sub overlay ──────────────────────────────────────── */}
+      {showImpactSub && (
+        <ImpactSub
+          team={activeTeam}
+          mode={mode}
+          onComplete={(newTeam, outPlayer, inPlayer, event) => {
+            setActiveTeam(newTeam)
+            setImpactSubLog({ out: outPlayer, in: inPlayer, event })
+            setImpactSubDone(true)
+            setShowImpactSub(false)
+            startPlayoffs()
+          }}
+          onSkip={() => {
+            setImpactSubDone(true)
+            setShowImpactSub(false)
+            startPlayoffs()
+          }}
+        />
+      )}
+
       {/* ── Match Event overlay ─────────────────────────────────────── */}
       {pendingEvent && (
         <MatchEvent
@@ -436,7 +463,21 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
             {/* IPL Table */}
             {iplPhase === 'table' && iplTable && (
-              <IPLTableView table={iplTable.table} position={iplTable.position} qualified={iplTable.qualified} leagueWins={leagueSeason?.wins} onProceed={startPlayoffs} onSummary={callOnDone} />
+              <IPLTableView
+                table={iplTable.table}
+                position={iplTable.position}
+                qualified={iplTable.qualified}
+                leagueWins={leagueSeason?.wins}
+                impactSubLog={impactSubLog}
+                onProceed={() => {
+                  if (!impactSubDone && iplTable.qualified) {
+                    setShowImpactSub(true)
+                  } else {
+                    startPlayoffs()
+                  }
+                }}
+                onSummary={callOnDone}
+              />
             )}
 
             {/* Done result banner */}

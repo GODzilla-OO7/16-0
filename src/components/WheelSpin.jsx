@@ -126,7 +126,7 @@ function extractYear(season) {
 export default function WheelSpin({
   mode, settings, composition, slotIndex, totalSlots,
   draftedIds, team, rerollsLeft, onReroll, onResult,
-  budget, onSpend,
+  budget, onSpend, onRetryFromBeginning, onRetryBidding,
 }) {
   const [phase, setPhase]             = useState('idle')
   const [landedEntry, setLandedEntry] = useState(null)
@@ -221,24 +221,31 @@ export default function WheelSpin({
     if (pool.length === 0) pool = entries  // absolute last resort
     const shuffled = shuffle(pool)
     const chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
-    let i = 0, interval = 60
+    const TOTAL_TICKS = 33
+    let i = 0
+
+    // Cubic ease-out: starts at 30ms, smoothly decelerates to 300ms over TOTAL_TICKS
+    function getInterval(tick) {
+      const t = tick / TOTAL_TICKS
+      return Math.round(30 + 270 * (t * t * t))
+    }
 
     function tick() {
       i++
-      const isLast = i >= 22
-      const entry = isLast ? chosen : pool[i % pool.length]
-      setCycleEntry(entry)
+      const isLast = i >= TOTAL_TICKS
+      // Use shuffled pool so years change throughout the animation
+      setCycleEntry(isLast ? chosen : shuffled[i % shuffled.length])
       if (isLast) {
+        // Linger on chosen team before opening the player list
         cycleRef.current = setTimeout(() => {
           setLandedEntry(chosen)
           setPhase('selecting')
-        }, 400)
+        }, 550)
       } else {
-        if (i > 20) interval = Math.min(interval + 12, 220)
-        cycleRef.current = setTimeout(tick, interval)
+        cycleRef.current = setTimeout(tick, getInterval(i))
       }
     }
-    cycleRef.current = setTimeout(tick, interval)
+    cycleRef.current = setTimeout(tick, getInterval(0))
   }
 
   function spin() {
@@ -323,17 +330,9 @@ export default function WheelSpin({
     }
   }, [phase, landedEntry])  // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Budget exhausted auto-pick: find cheapest eligible player from squad and pick them
-  useEffect(() => {
-    if (phase !== 'selecting' || !budgetExhaustedDisplay || allDrafted) return
-    const cheapest = [...squadPlayers]
-      .filter(p => p._eligible && !p._budgetBlocked)
-      .sort((a, b) => (a._price ?? 0) - (b._price ?? 0))[0]
-    if (cheapest) {
-      const t = setTimeout(() => pickPlayer(cheapest), 800)
-      return () => clearTimeout(t)
-    }
-  }, [phase, landedEntry, budgetExhaustedDisplay])  // eslint-disable-line react-hooks/exhaustive-deps
+  // Budget truly stuck: exhausted AND no rerolls AND no affordable eligible players
+  const isBudgetStuck = budgetExhaustedDisplay && rerollsLeft === 0 &&
+    squadPlayers.filter(p => p._eligible && !p._budgetBlocked).length === 0
 
   return (
     <div style={{ width: '100%' }}>
@@ -356,6 +355,7 @@ export default function WheelSpin({
           allDrafted={allDrafted}
           compositionUnlocked={isStuck && rerollsLeft === 0}
           budgetExhausted={budgetExhaustedDisplay}
+          budgetStuck={isBudgetStuck}
           hardMode={hardMode}
           ratingType={ratingType}
           needs={needs}
@@ -369,6 +369,8 @@ export default function WheelSpin({
           budget={budget}
           onPick={pickPlayer}
           onSpinAgain={spinAgain}
+          onRetryFromBeginning={onRetryFromBeginning}
+          onRetryBidding={onRetryBidding}
         />
       )}
     </div>
@@ -465,12 +467,59 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
 
 // ─── Select phase ─────────────────────────────────────────────────────────
 
-function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetExhausted, hardMode, ratingType, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, isIPLMode, budget, onPick, onSpinAgain }) {
+function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetExhausted, budgetStuck, hardMode, ratingType, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, isIPLMode, budget, onPick, onSpinAgain, onRetryFromBeginning, onRetryBidding }) {
   const canReroll = rerollsLeft > 0
   const year = extractYear(entry.season)
 
   return (
-    <div style={{ animation: 'fade-in 0.2s ease both', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ animation: 'fade-in 0.2s ease both', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+
+      {/* Budget stuck overlay */}
+      {budgetStuck && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 10,
+          background: 'rgba(10,10,15,0.95)', backdropFilter: 'blur(6px)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: '2rem', textAlign: 'center', borderRadius: '0.5rem',
+          animation: 'fade-in 0.3s ease both',
+        }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>💸</div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.4rem' }}>
+            Team Incomplete
+          </div>
+          <div style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.6, marginBottom: '1.75rem', maxWidth: 280 }}>
+            Budget exhausted and no rerolls left. You can't field a full XI for this tournament.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', width: '100%', maxWidth: 260 }}>
+            <button
+              onClick={onRetryBidding}
+              style={{
+                padding: '0.875rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
+                color: '#0a0a0f', border: 'none', borderRadius: '0.625rem',
+                fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
+              }}
+            >
+              🔄 Retry Bidding
+            </button>
+            <div style={{ fontSize: '0.65rem', color: '#475569', margin: '0.1rem 0' }}>
+              Keeps your settings &amp; composition — resets squad &amp; budget
+            </div>
+            <button
+              onClick={onRetryFromBeginning}
+              style={{
+                padding: '0.75rem', background: 'transparent',
+                color: '#94a3b8', border: '1px solid #2a2a3a', borderRadius: '0.625rem',
+                fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              ↩ Start Over
+            </button>
+            <div style={{ fontSize: '0.65rem', color: '#475569', margin: '0.1rem 0' }}>
+              Back to edition select
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header — shows "TeamName · YEAR" prominently */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', background: entry.color + '18', borderBottom: `1px solid ${entry.color}33` }}>
         <div>

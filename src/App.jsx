@@ -9,14 +9,15 @@ import TeamStrengthPanel from './components/TeamStrengthPanel.jsx'
 import MatchSimulator from './components/MatchSimulator.jsx'
 import Results from './components/Results.jsx'
 import ProfileModal from './components/ProfileModal.jsx'
-import CricketOval from './components/CricketOval.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import SquadComposer from './components/SquadComposer.jsx'
 import DailyChallenge from './components/DailyChallenge.jsx'
+import H2HLobby from './components/H2HLobby.jsx'
+import H2HDraft from './components/H2HDraft.jsx'
 import { STARTING_BUDGET } from './components/WheelSpin.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
-import { useAuth, saveGameResult } from './hooks/useAuth.js'
+import { useAuth, saveGameResult, incrementTotalPlays } from './hooks/useAuth.js'
 
 // Batting order sort — mirrors TeamSheet's defaultSort
 const BATTING_ORDER_WEIGHT = {
@@ -49,6 +50,8 @@ export default function App() {
   const [confirmedManager, setConfirmedManager] = useState(null) // coach confirmed by user click
   const [composition, setComposition] = useState(null) // squad role blueprint
   const [budgetLeft, setBudgetLeft]   = useState(STARTING_BUDGET) // ₹125cr auction budget
+  const [showH2H,    setShowH2H]      = useState(false)
+  const [h2hRoom,    setH2hRoom]      = useState(null)  // active H2H room
 
   function handleModeSelect(m) {
     setMode(m)
@@ -97,6 +100,7 @@ export default function App() {
     setSummary(sum)
     setMatchResults(results)
     setPhase('results')
+    incrementTotalPlays()  // global counter — works for everyone, logged in or not
 
     // Record season locally + check awards
     const { newlyEarned } = recordSeason({
@@ -151,6 +155,16 @@ export default function App() {
     setBudgetLeft(STARTING_BUDGET)
   }
 
+  // Retry bidding: keep composition + settings, reset squad + budget
+  function handleRetryBidding() {
+    setTeam([])
+    setDraftedIds(new Set())
+    setManager(null)
+    setPreviewManager(null); setConfirmedManager(null)
+    setBudgetLeft(STARTING_BUDGET)
+    setRerollsLeft(settings?.rerolls ?? 3)
+  }
+
   const btnBase = {
     width: 44, height: 44, borderRadius: '50%',
     background: '#12121a', border: '1px solid #2a2a3a',
@@ -178,32 +192,61 @@ export default function App() {
         {user ? (user.email?.[0]?.toUpperCase() ?? '👤') : '👤'}
       </button>
 
-      {/* Daily challenge button */}
-      <button
-        onClick={() => setShowDailyChallenge(true)}
-        title="Daily Challenge"
-        style={{ ...btnBase, color: '#f59e0b', fontSize: '1.1rem' }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#f59e0b' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = '#f59e0b' }}
-      >
-        🗓️
-      </button>
-
       {/* Medals button */}
       <button
         onClick={() => { setNewAwards([]); setShowProfile(true) }}
         title="Medals & Awards"
-        style={{ ...btnBase, color: newAwards.length > 0 ? '#f59e0b' : '#64748b', fontSize: '1.1rem' }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#1F6FEB'; e.currentTarget.style.color = '#1F6FEB' }}
+        style={{ ...btnBase, color: newAwards.length > 0 ? '#f59e0b' : '#64748b', fontSize: '1.1rem', position: 'relative' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#f59e0b' }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = newAwards.length > 0 ? '#f59e0b' : '#64748b' }}
       >
         🏅
+        {newAwards.length > 0 && (
+          <span style={{ position: 'absolute', top: -4, right: -4, width: 14, height: 14, borderRadius: '50%', background: '#f59e0b', fontSize: '0.55rem', fontWeight: 900, color: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {newAwards.length}
+          </span>
+        )}
       </button>
     </div>
   )
 
+  // H2H active draft screen (full-page takeover)
+  if (h2hRoom) {
+    return (
+      <H2HDraft
+        room={h2hRoom}
+        uid={sessionStorage.getItem('h2h_uid') ?? ''}
+        onBack={() => { setH2hRoom(null); setShowH2H(false) }}
+        onDone={finalRoom => {
+          const myUid   = sessionStorage.getItem('h2h_uid') ?? ''
+          const amHost  = myUid === finalRoom.host_id
+          const myTeam  = sortByBattingOrder(amHost ? (finalRoom.host_team ?? []) : (finalRoom.guest_team ?? []))
+          setH2hRoom(null)
+          setShowH2H(false)
+          setTeam(myTeam)
+          setMode('ipl')
+          setSettings({ ratingType: 'overall', difficulty: 'normal', rerolls: 0 })
+          setManager(null)
+          setPhase('simulate')
+        }}
+      />
+    )
+  }
+
   const globalOverlays = (
     <>
+      {showProfile && (
+        <ProfileModal onClose={() => setShowProfile(false)} newAwards={newAwards} />
+      )}
+      {showH2H && (
+        <H2HLobby
+          onClose={() => setShowH2H(false)}
+          onStartDraft={(room, uid) => {
+            setShowH2H(false)
+            setH2hRoom(room)
+          }}
+        />
+      )}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} onSuccess={() => setShowAuth(false)} />}
       {showUserProfile && user && (
         <UserProfile
@@ -231,7 +274,16 @@ export default function App() {
 
   if (phase === 'menu')     return (
     <>
-      <ModeSelect onSelect={handleModeSelect} />
+      <ModeSelect
+        onSelect={handleModeSelect}
+        onH2H={() => setShowH2H(true)}
+        onDailyChallenge={() => setShowDailyChallenge(true)}
+        user={user}
+        onSignIn={() => setShowAuth(true)}
+        onAccount={() => setShowUserProfile(true)}
+        onMedals={() => { setNewAwards([]); setShowProfile(true) }}
+        newAwards={newAwards}
+      />
       {profileBtn}
       {globalOverlays}
     </>
@@ -290,15 +342,15 @@ export default function App() {
             }}>
               💰 ₹{budgetLeft}cr
             </div>
-            <div style={{ fontSize: '0.85rem', color: slotsFilled === totalSlots ? 'var(--green)' : 'var(--text-muted)', fontWeight: 700 }}>
+            <div style={{ fontSize: '0.85rem', color: isDone ? '#1F6FEB' : 'var(--text-muted)', fontWeight: 700 }}>
               {slotsFilled}/{totalSlots}
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 280px', gap: '1.5rem', maxWidth: 1080, margin: '0 auto', padding: '1.5rem', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 296px', gap: '1.25rem', maxWidth: 1100, margin: '0 auto', padding: '1.25rem', alignItems: 'start' }}>
 
-          {/* Left column */}
+          {/* Left column — wheel or done banner */}
           <div>
             <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '1rem', overflow: 'hidden' }}>
               {!isDone ? (
@@ -315,68 +367,64 @@ export default function App() {
                   onResult={handlePlayerPicked}
                   budget={budgetLeft}
                   onSpend={amt => setBudgetLeft(b => Math.max(0, b - amt))}
+                  onRetryFromBeginning={handleBackToSettings}
+                  onRetryBidding={handleRetryBidding}
                 />
               ) : (
-                <div style={{ animation: 'fade-in-up 0.4s ease both' }}>
-                  <div style={{ textAlign: 'center', padding: '1.5rem 1.5rem 0.75rem' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
-                      XI Complete
-                    </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.35rem' }}>
-                      Squad is set
-                    </div>
-                    <div style={{ color: '#64748b', fontSize: '0.82rem', marginBottom: '1rem' }}>
-                      {confirmedManager
-                        ? `${confirmedManager.icon} ${confirmedManager.name} is your coach`
-                        : 'Reorder your XI, then pick your coach on the right →'}
-                    </div>
+                <div style={{ padding: '1.75rem 1.5rem', textAlign: 'center', animation: 'fade-in-up 0.4s ease both' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
+                    XI Complete
                   </div>
-                  <div style={{ padding: '0 1rem' }}>
-                    <CricketOval
-                    team={team}
-                    ratingType={settings?.ratingType}
-                    onReorder={newOrder => setTeam(newOrder)}
-                  />
+                  <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.5rem' }}>
+                    Squad is set ✓
                   </div>
-                  {confirmedManager && (
-                    <div style={{ padding: '1rem' }}>
-                      <button
-                        onClick={() => handleManagerSelect(confirmedManager)}
-                        style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: '1.05rem', fontWeight: 800, cursor: 'pointer' }}
-                      >
-                        🏏 Start Season →
-                      </button>
-                    </div>
-                  )}
+                  <div style={{ color: '#64748b', fontSize: '0.82rem' }}>
+                    Reorder your XI using the arrows on the right, then spin for a coach and start the season.
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* TeamStrengthPanel — shows predicted finish once coach lands/confirmed */}
+            {/* Team strength panel */}
             {team.length > 0 && (
-              <TeamStrengthPanel team={team} manager={isDone ? (confirmedManager || previewManager) : null} mode={mode} showPenalty={isDone} />
+              <TeamStrengthPanel
+                team={team}
+                manager={isDone ? (confirmedManager || previewManager) : null}
+                mode={mode}
+                showPenalty={isDone}
+                onStart={isDone && confirmedManager ? () => handleManagerSelect(confirmedManager) : undefined}
+              />
             )}
           </div>
 
-          {/* Right column: TeamSheet while drafting, inline ManagerSelect when done */}
-          <div style={{ position: 'sticky', top: '4.5rem' }}>
-            {!isDone ? (
+          {/* Right column — TeamSheet scrolls in its own space; ManagerSelect pinned below */}
+          <div style={{
+            position: 'sticky', top: '4.5rem',
+            height: 'calc(100vh - 5.5rem)',
+            display: 'flex', flexDirection: 'column', gap: '0.625rem',
+          }}>
+            {/* TeamSheet takes all remaining space and scrolls internally if needed */}
+            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
               <TeamSheet
                 team={team}
-                currentSlot={slotsFilled}
                 onReorder={newOrder => setTeam(newOrder)}
                 ratingType={settings?.ratingType}
                 mode={mode}
                 composition={composition}
               />
-            ) : (
-              <ManagerSelect
-                inline
-                mode={mode}
-                team={team}
-                onLand={mgr => { setPreviewManager(mgr); if (!confirmedManager) setConfirmedManager(null) }}
-                onSelect={mgr => { setPreviewManager(null); setConfirmedManager(mgr) }}
-              />
+            </div>
+
+            {/* ManagerSelect: fixed at bottom, never compresses TeamSheet */}
+            {isDone && (
+              <div style={{ flexShrink: 0 }}>
+                <ManagerSelect
+                  inline
+                  mode={mode}
+                  team={team}
+                  onLand={mgr => setPreviewManager(mgr)}
+                  onSelect={mgr => { setConfirmedManager(mgr); setPreviewManager(mgr) }}
+                />
+              </div>
             )}
           </div>
         </div>

@@ -57,6 +57,54 @@ export async function saveGameResult(userId, { mode, wins, losses, total, stageR
   }
 }
 
+// ── Global play counter (anonymous + logged-in) ──────────────────────────────
+// Reads from / increments the global_stats table (single row, id=1).
+// Run this SQL in Supabase once to create the table:
+//
+//   create table global_stats (
+//     id int primary key default 1,
+//     total_plays bigint default 0,
+//     check (id = 1)
+//   );
+//   insert into global_stats values (1, 0);
+//   alter table global_stats enable row level security;
+//   create policy "read" on global_stats for select using (true);
+//   create policy "increment" on global_stats for update using (true) with check (true);
+
+export async function fetchTotalPlays() {
+  const sb = await getSupabase()
+  if (!sb) return null
+  const { data, error } = await sb.from('global_stats').select('total_plays').eq('id', 1).single()
+  if (error) return null
+  return data?.total_plays ?? null
+}
+
+export async function incrementTotalPlays() {
+  const sb = await getSupabase()
+  if (!sb) return
+  // Use rpc for atomic increment; falls back silently if not set up yet
+  await sb.rpc('increment_plays').catch(() => {
+    // Fallback: plain update (non-atomic but fine for low concurrency)
+    sb.from('global_stats')
+      .update({ total_plays: sb.rpc('increment_plays') })
+      .eq('id', 1)
+      .then(() => {})
+  })
+}
+
+export function subscribeToPlays(onUpdate) {
+  let channel = null
+  getSupabase().then(sb => {
+    if (!sb) return
+    channel = sb
+      .channel('global_stats_changes')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'global_stats' },
+        payload => onUpdate(payload.new?.total_plays))
+      .subscribe()
+  })
+  return () => { channel?.unsubscribe() }
+}
+
 export async function fetchProfile(userId) {
   const sb = await getSupabase()
   if (!sb) return { profile: null, results: [] }

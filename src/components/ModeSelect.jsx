@@ -1,137 +1,140 @@
-import { useState } from 'react'
-import { MODE_CONFIG } from '../data/players.js'
-
-const s = {
-  page: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '2rem 1rem',
-    background: 'radial-gradient(ellipse at 50% 0%, #ddeaff 0%, #f0f4fb 60%)',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  badge: {
-    display: 'inline-block',
-    padding: '0.25rem 0.75rem',
-    background: 'rgba(31,111,235,0.15)',
-    border: '1px solid rgba(31,111,235,0.3)',
-    borderRadius: '999px',
-    color: '#1F6FEB',
-    fontSize: '0.75rem',
-    fontWeight: 600,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    marginBottom: '1.5rem',
-  },
-  title: {
-    fontSize: 'clamp(3rem, 8vw, 5.5rem)',
-    fontWeight: 900,
-    letterSpacing: '-0.04em',
-    lineHeight: 1,
-    textAlign: 'center',
-    marginBottom: '0.5rem',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1F6FEB 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-  },
-  subtitle: {
-    fontSize: '1.1rem',
-    color: '#475569',
-    textAlign: 'center',
-    marginBottom: '3.5rem',
-    maxWidth: 480,
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-    gap: '1rem',
-    width: '100%',
-    maxWidth: 900,
-  },
-  card: (color) => ({
-    background: '#ffffff',
-    border: `1px solid #d0daea`,
-    borderRadius: '1rem',
-    padding: '1.75rem',
-    cursor: 'pointer',
-    transition: 'border-color 0.2s, transform 0.2s, box-shadow 0.2s',
-    textAlign: 'left',
-    position: 'relative',
-    overflow: 'hidden',
-  }),
-  cardIcon: {
-    fontSize: '2.5rem',
-    marginBottom: '1rem',
-    display: 'block',
-  },
-  cardTitle: {
-    fontSize: '1.4rem',
-    fontWeight: 800,
-    color: '#0f172a',
-    marginBottom: '0.5rem',
-  },
-  cardDesc: {
-    fontSize: '0.875rem',
-    color: '#475569',
-    lineHeight: 1.5,
-    marginBottom: '1.25rem',
-  },
-  cardStats: {
-    display: 'flex',
-    gap: '1rem',
-    flexWrap: 'wrap',
-  },
-  stat: {
-    fontSize: '0.75rem',
-    color: '#64748b',
-    fontWeight: 500,
-  },
-  statVal: {
-    color: '#1F6FEB',
-    fontWeight: 700,
-  },
-  cta: {
-    position: 'absolute',
-    top: '1.5rem',
-    right: '1.5rem',
-    fontSize: '1.25rem',
-    color: '#94a3b8',
-    transition: 'color 0.2s',
-  },
-  footer: {
-    marginTop: '3rem',
-    fontSize: '0.8rem',
-    color: '#94a3b8',
-    textAlign: 'center',
-  }
-}
-
-const STATS = {
-  'ipl': ['16 matches', '155+ squads', '2008–2025'],
-  'odi-wc': ['11 matches', '120+ squads', '1975–2023'],
-  't20-wc': ['9 matches', '125+ squads', '2007–2024'],
-}
+import { useState, useEffect } from 'react'
+import { fetchTotalPlays, subscribeToPlays } from '../hooks/useAuth.js'
 
 const HOW_TO_PLAY = [
   { icon: '🎰', title: 'Spin the Wheel', text: 'Each pick, the wheel lands on a random franchise or nation from a random era. You choose one player from that squad to add to your XI.' },
-  { icon: '🔄', title: 'Rerolls', text: 'Not happy with the team you landed on? You get 3 rerolls per game — use them wisely to avoid a squad that doesn\'t suit your needs.' },
-  { icon: '👨‍✈️', title: 'Pick a Coach', text: 'Once your XI is complete, spin for a coach. Coaches give a strength bonus — and if they\'ve won the tournament you\'re playing, they get an extra +2 boost.' },
-  { icon: '📊', title: 'Team Strength', text: 'Your team\'s batting average, bowling average, and overall rating are shown as you build. Batting is weighted by position — openers matter most.' },
-  { icon: '⚠️', title: 'Player Positions', text: 'You can place any player anywhere, but openers and bowlers out of their natural positions will reduce your team strength in simulation.' },
-  { icon: '🏆', title: 'Win the Season', text: 'In IPL you play 14 league matches. In World Cups you play group stages and knockout rounds. Win as many as possible — and chase that perfect record.' },
-  { icon: '🌟', title: 'Tournament Best XI', text: 'At the end of the season, the best performers across all teams are picked for the Tournament XI. How many of your players make it depends on how your team finished.' },
+  { icon: '🔄', title: 'Rerolls', text: 'Not happy with the team you landed on? You get 3 rerolls per game — use them wisely.' },
+  { icon: '👨‍✈️', title: 'Pick a Coach', text: 'Once your XI is complete, spin for a coach. Coaches give a strength bonus — +2 if they won the tournament you\'re playing.' },
+  { icon: '📊', title: 'Team Strength', text: 'Batting average, bowling average, and overall rating shown as you build. Batting weighted by position — openers matter most.' },
+  { icon: '⚠️', title: 'Player Positions', text: 'Openers and bowlers out of position reduce team strength in simulation.' },
+  { icon: '🏆', title: 'Win the Season', text: 'In IPL you play 14 league matches then playoffs. Win as many as possible — chase that perfect record.' },
+  { icon: '🌟', title: 'Tournament Best XI', text: 'At the end of the season, best performers across all teams are picked for the Tournament XI.' },
 ]
 
-export default function ModeSelect({ onSelect }) {
-  const modes = Object.entries(MODE_CONFIG).filter(([key]) => key === 'ipl')
+const LIGHT = {
+  bg:        '#f4f7ff',
+  cardBg:    '#ffffff',
+  cardBorder:'#dce6f7',
+  cardHover: '#eef3ff',
+  htpBg:     '#eef3ff',
+  accent:    '#1F6FEB',
+  accentHov: '#1a5fd4',
+  accentDim: 'rgba(31,111,235,0.08)',
+  accentBrd: 'rgba(31,111,235,0.3)',
+  text:      '#0f172a',
+  muted:     '#64748b',
+  dimText:   '#94a3b8',
+  sectionLbl:'#94a3b8',
+}
+
+const DARK = {
+  bg:        '#05080f',
+  cardBg:    '#0b1120',
+  cardBorder:'#1a2540',
+  cardHover: '#0f1a2e',
+  htpBg:     '#080e1c',
+  accent:    '#1F6FEB',
+  accentHov: '#1a5fd4',
+  accentDim: 'rgba(31,111,235,0.12)',
+  accentBrd: 'rgba(31,111,235,0.25)',
+  text:      '#e8eef8',
+  muted:     '#4b5a73',
+  dimText:   '#2a3855',
+  sectionLbl:'#2a3855',
+}
+
+function formatCount(n) {
+  if (n == null) return null
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  return String(n)
+}
+
+function ModeCard({ icon, title, desc, onClick, disabled, comingSoon, C }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <button
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      onMouseEnter={() => !disabled && setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        width: '100%',
+        padding: '0.875rem 1rem',
+        background: disabled ? C.cardBg : hov ? C.cardHover : C.cardBg,
+        border: `1px solid ${disabled ? C.cardBorder : hov ? C.accentBrd : C.cardBorder}`,
+        borderRadius: '0.625rem',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.875rem',
+        textAlign: 'left',
+        opacity: disabled ? 0.45 : 1,
+        transition: 'border-color 0.15s, background 0.15s',
+        marginBottom: '0.5rem',
+      }}
+    >
+      <div style={{
+        width: 40, height: 40, borderRadius: '0.5rem',
+        background: C.accentDim, flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '1.25rem',
+      }}>{icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '0.9rem', fontWeight: 800, color: C.offWhite, marginBottom: '0.15rem' }}>
+          {title}
+          {comingSoon && (
+            <span style={{
+              marginLeft: '0.5rem', fontSize: '0.6rem', fontWeight: 700,
+              background: C.cardBorder, color: C.muted,
+              padding: '0.1rem 0.4rem', borderRadius: '999px',
+              verticalAlign: 'middle', textTransform: 'uppercase', letterSpacing: '0.05em',
+            }}>Soon</span>
+          )}
+        </div>
+        <div style={{ fontSize: '0.75rem', color: C.muted, lineHeight: 1.4 }}>{desc}</div>
+      </div>
+      <span style={{ color: disabled ? C.dimText : hov ? C.accent : C.muted, fontSize: '1rem', flexShrink: 0, transition: 'color 0.15s' }}>→</span>
+    </button>
+  )
+}
+
+export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, onSignIn, onAccount, onMedals, newAwards = [] }) {
   const [showHTP, setShowHTP] = useState(false)
+  const [totalPlays, setTotalPlays] = useState(null)
+  const [htpHov, setHtpHov] = useState(false)
+  const [dark, setDark] = useState(() => {
+    try { return localStorage.getItem('cricket-theme') === 'dark' } catch { return false }
+  })
+
+  const C = dark ? DARK : LIGHT
+
+  function toggleTheme() {
+    setDark(d => {
+      const next = !d
+      try { localStorage.setItem('cricket-theme', next ? 'dark' : 'light') } catch {}
+      return next
+    })
+  }
+
+  useEffect(() => {
+    fetchTotalPlays().then(n => setTotalPlays(n))
+    const unsub = subscribeToPlays(n => setTotalPlays(n))
+    return unsub
+  }, [])
 
   return (
-    <div style={s.page}>
-      {/* Cricket pitch background — very faded, purely decorative */}
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '3rem 1.25rem',
+      background: C.bg,
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* Faint cricket oval */}
       <svg
         viewBox="0 0 900 620"
         xmlns="http://www.w3.org/2000/svg"
@@ -139,119 +142,284 @@ export default function ModeSelect({ onSelect }) {
           position: 'absolute', top: '50%', left: '50%',
           transform: 'translate(-50%, -50%)',
           width: '100%', maxWidth: 900,
-          opacity: 0.055,
+          opacity: 0.04,
           pointerEvents: 'none',
           userSelect: 'none',
         }}
         aria-hidden="true"
       >
-        {/* Outer boundary oval */}
-        <ellipse cx="450" cy="310" rx="420" ry="285" fill="none" stroke="#1F6FEB" strokeWidth="2.5" />
-        {/* 30-yard inner circle */}
-        <ellipse cx="450" cy="310" rx="210" ry="175" fill="none" stroke="#1F6FEB" strokeWidth="1.5" strokeDasharray="8 6" />
-        {/* The pitch — narrow central rectangle */}
-        <rect x="432" y="165" width="36" height="290" rx="3" fill="none" stroke="#1F6FEB" strokeWidth="2" />
-        {/* Bowling crease — top end */}
-        <line x1="414" y1="200" x2="486" y2="200" stroke="#1F6FEB" strokeWidth="1.5" />
-        {/* Bowling crease — bottom end */}
-        <line x1="414" y1="420" x2="486" y2="420" stroke="#1F6FEB" strokeWidth="1.5" />
-        {/* Popping crease — top */}
-        <line x1="412" y1="212" x2="488" y2="212" stroke="#1F6FEB" strokeWidth="1" />
-        {/* Popping crease — bottom */}
-        <line x1="412" y1="408" x2="488" y2="408" stroke="#1F6FEB" strokeWidth="1" />
-        {/* Stumps — top end (3 dots) */}
-        <circle cx="444" cy="197" r="2.5" fill="#1F6FEB" />
-        <circle cx="450" cy="197" r="2.5" fill="#1F6FEB" />
-        <circle cx="456" cy="197" r="2.5" fill="#1F6FEB" />
-        {/* Stumps — bottom end */}
-        <circle cx="444" cy="423" r="2.5" fill="#1F6FEB" />
-        <circle cx="450" cy="423" r="2.5" fill="#1F6FEB" />
-        <circle cx="456" cy="423" r="2.5" fill="#1F6FEB" />
-        {/* Centre dot */}
-        <circle cx="450" cy="310" r="3" fill="#1F6FEB" />
-        {/* Long-on / long-off field marking lines — subtle radiating lines */}
-        <line x1="450" y1="25" x2="450" y2="165" stroke="#1F6FEB" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
-        <line x1="450" y1="455" x2="450" y2="595" stroke="#1F6FEB" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
-        <line x1="30" y1="310" x2="240" y2="310" stroke="#1F6FEB" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
-        <line x1="660" y1="310" x2="870" y2="310" stroke="#1F6FEB" strokeWidth="0.8" strokeDasharray="4 8" opacity="0.5" />
+        <ellipse cx="450" cy="310" rx="420" ry="285" fill="none" stroke={C.accent} strokeWidth="2.5" />
+        <ellipse cx="450" cy="310" rx="210" ry="175" fill="none" stroke={C.accent} strokeWidth="1.5" strokeDasharray="8 6" />
+        <rect x="432" y="165" width="36" height="290" rx="3" fill="none" stroke={C.accent} strokeWidth="2" />
+        <line x1="414" y1="200" x2="486" y2="200" stroke={C.accent} strokeWidth="1.5" />
+        <line x1="414" y1="420" x2="486" y2="420" stroke={C.accent} strokeWidth="1.5" />
+        <circle cx="450" cy="310" r="3" fill={C.accent} />
       </svg>
 
-      <div style={s.badge}>Unofficial Fan Game</div>
-      <h1 style={s.title}>Cricket 16-0</h1>
-      <p style={s.subtitle}>
-        Spin the wheel. Draft legends from any era. Chase the perfect season.
-      </p>
+      {/* Theme toggle — top right */}
+      <button
+        onClick={toggleTheme}
+        title={dark ? 'Switch to light mode' : 'Switch to night mode'}
+        style={{
+          position: 'absolute', top: '1.25rem', right: '1.25rem', zIndex: 10,
+          width: 36, height: 36, borderRadius: '50%',
+          background: C.cardBg, border: `1px solid ${C.cardBorder}`,
+          cursor: 'pointer', fontSize: '1rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'border-color 0.15s, background 0.15s',
+          boxShadow: dark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
+        }}
+        onMouseEnter={e => e.currentTarget.style.borderColor = C.accentBrd}
+        onMouseLeave={e => e.currentTarget.style.borderColor = C.cardBorder}
+      >
+        {dark ? '☀️' : '🌙'}
+      </button>
 
-      <div style={s.grid}>
-        {modes.map(([key, cfg]) => (
-          <button
-            key={key}
-            style={s.card()}
-            onClick={() => onSelect(key)}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = '#1F6FEB'
-              e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = '0 8px 30px rgba(31,111,235,0.15)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = '#2a2a3a'
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = 'none'
-            }}
-          >
-            <span style={s.cardIcon}>{cfg.icon}</span>
-            <div style={s.cardTitle}>{cfg.label}</div>
-            <div style={s.cardDesc}>{cfg.description}</div>
-            <div style={s.cardStats}>
-              {STATS[key].map(stat => (
-                <span key={stat} style={s.stat}>{stat}</span>
-              ))}
-            </div>
-            <span style={s.cta}>→</span>
-          </button>
-        ))}
-      </div>
+      <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
 
-      {/* How to Play */}
-      <div style={{ marginTop: '2.5rem', width: '100%', maxWidth: 900 }}>
+        {/* Badge */}
+        <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+          <span style={{
+            display: 'inline-block',
+            padding: '0.2rem 0.75rem',
+            background: C.accentDim,
+            border: `1px solid ${C.accentBrd}`,
+            borderRadius: '999px',
+            color: C.accent,
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}>Unofficial Fan Game</span>
+        </div>
+
+        {/* Title */}
+        <h1 style={{
+          fontSize: 'clamp(2.6rem, 10vw, 4rem)',
+          fontWeight: 900,
+          letterSpacing: '-0.04em',
+          lineHeight: 1,
+          textAlign: 'center',
+          marginBottom: '0.6rem',
+          color: C.text,
+        }}>Cricket 16-0</h1>
+
+        <p style={{
+          fontSize: '0.95rem',
+          color: C.muted,
+          textAlign: 'center',
+          marginBottom: '0.75rem',
+          lineHeight: 1.5,
+        }}>
+          Spin the wheel. Draft legends from any era. Chase the perfect season.
+        </p>
+
+        {/* Live counter */}
+        {totalPlays != null && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+            marginBottom: '2rem',
+            fontSize: '0.78rem', fontWeight: 600, color: C.muted,
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block', boxShadow: '0 0 5px #22c55e', flexShrink: 0 }} />
+            <span><span style={{ color: C.text, fontWeight: 800 }}>{formatCount(totalPlays)}</span> seasons played globally</span>
+          </div>
+        )}
+
+        {/* Primary CTA */}
+        <button
+          onClick={() => onSelect('ipl')}
+          style={{
+            width: '100%',
+            padding: '0.9rem 1.5rem',
+            background: C.accent,
+            border: 'none',
+            borderRadius: '0.625rem',
+            color: '#fff',
+            fontSize: '1rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            marginBottom: '0.625rem',
+            transition: 'background 0.15s, transform 0.1s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = C.accentHov; e.currentTarget.style.transform = 'translateY(-1px)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = C.accent; e.currentTarget.style.transform = 'translateY(0)' }}
+        >
+          Play Cricket 16-0 <span style={{ fontSize: '1.1rem' }}>→</span>
+        </button>
+
+        {/* How it works */}
         <button
           onClick={() => setShowHTP(v => !v)}
+          onMouseEnter={() => setHtpHov(true)}
+          onMouseLeave={() => setHtpHov(false)}
           style={{
-            width: '100%', padding: '0.875rem 1.25rem',
-            background: '#12121a', border: '1px solid #2a2a3a',
-            borderRadius: showHTP ? '1rem 1rem 0 0' : '1rem',
-            color: '#94a3b8', fontSize: '0.875rem', fontWeight: 700,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            transition: 'border-color 0.2s',
+            width: '100%',
+            padding: '0.8rem 1.25rem',
+            background: C.cardBg,
+            border: `1px solid ${htpHov ? C.accentBrd : C.cardBorder}`,
+            borderRadius: showHTP ? '0.625rem 0.625rem 0 0' : '0.625rem',
+            color: C.muted,
+            fontSize: '0.9rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.375rem',
+            marginBottom: showHTP ? 0 : '1.75rem',
+            transition: 'border-color 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = '#1F6FEB'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = '#2a2a3a'}
         >
-          <span>❓ How to Play</span>
-          <span style={{ fontSize: '0.75rem', color: '#2a2a3a' }}>{showHTP ? '▲ hide' : '▼ show'}</span>
+          <span>❓</span> How it works <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: C.dimText }}>{showHTP ? '▲' : '▼'}</span>
         </button>
+
         {showHTP && (
           <div style={{
-            background: '#0e0e18', border: '1px solid #2a2a3a', borderTop: 'none',
-            borderRadius: '0 0 1rem 1rem', padding: '1.5rem',
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem',
+            background: C.htpBg,
+            border: `1px solid ${C.cardBorder}`,
+            borderTop: 'none',
+            borderRadius: '0 0 0.625rem 0.625rem',
+            padding: '1.25rem',
+            marginBottom: '1.75rem',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '1rem',
           }}>
             {HOW_TO_PLAY.map(item => (
-              <div key={item.title} style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0, marginTop: '0.1rem' }}>{item.icon}</span>
+              <div key={item.title} style={{ display: 'flex', gap: '0.625rem', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '1.25rem', lineHeight: 1, flexShrink: 0, marginTop: '0.1rem' }}>{item.icon}</span>
                 <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#f1f5f9', marginBottom: '0.25rem' }}>{item.title}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.55 }}>{item.text}</div>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: C.text, marginBottom: '0.2rem' }}>{item.title}</div>
+                  <div style={{ fontSize: '0.72rem', color: C.muted, lineHeight: 1.5 }}>{item.text}</div>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
 
-      <p style={s.footer}>
-        Unofficial fan game · Not affiliated with any cricket board or league
-      </p>
+        {/* PLAY WITH MATES */}
+        <div style={{ marginBottom: '1.75rem' }}>
+          <div style={{
+            fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em',
+            textTransform: 'uppercase', color: C.sectionLbl,
+            marginBottom: '0.625rem', paddingLeft: '0.125rem',
+          }}>Play with mates</div>
+
+          <ModeCard
+            icon="⚔️"
+            title="H2H Challenge"
+            desc="Draft your XI vs a friend — snake or live auction. Most points wins."
+            onClick={onH2H}
+            C={C}
+          />
+        </div>
+
+        {/* MORE WAYS TO PLAY */}
+        <div>
+          <div style={{
+            fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em',
+            textTransform: 'uppercase', color: C.sectionLbl,
+            marginBottom: '0.625rem', paddingLeft: '0.125rem',
+          }}>More ways to play</div>
+
+          <ModeCard
+            icon="📅"
+            title="Daily Challenge"
+            desc="Today's puzzle: one go, fresh every day."
+            onClick={onDailyChallenge}
+            C={C}
+          />
+
+          <ModeCard
+            icon="🌍"
+            title="World Cup Modes"
+            desc="ODI & T20 World Cups · 1975–2024."
+            disabled
+            comingSoon
+            C={C}
+          />
+        </div>
+
+        {/* ACCOUNT */}
+        <div style={{ marginTop: '1.75rem', borderTop: `1px solid ${C.cardBorder}`, paddingTop: '1.5rem' }}>
+          {user ? (
+            <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center' }}>
+              <button
+                onClick={onAccount}
+                style={{
+                  flex: 1, padding: '0.7rem 1rem',
+                  background: C.accentDim, border: `1px solid ${C.accentBrd}`,
+                  borderRadius: '0.625rem', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  transition: 'border-color 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
+                onMouseLeave={e => e.currentTarget.style.borderColor = C.accentBrd}
+              >
+                <span style={{ width: 28, height: 28, borderRadius: '50%', background: C.accent, color: '#fff', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {user.email?.[0]?.toUpperCase() ?? '?'}
+                </span>
+                <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                  <div style={{ fontSize: '0.65rem', color: C.muted }}>Signed in · progress saved</div>
+                </div>
+              </button>
+              <button
+                onClick={onMedals}
+                title="Medals & Awards"
+                style={{
+                  width: 44, height: 44, flexShrink: 0, borderRadius: '0.625rem',
+                  background: newAwards.length > 0 ? '#f59e0b22' : C.cardBg,
+                  border: `1px solid ${newAwards.length > 0 ? '#f59e0b66' : C.cardBorder}`,
+                  cursor: 'pointer', fontSize: '1.15rem', position: 'relative',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'border-color 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#f59e0b'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = newAwards.length > 0 ? '#f59e0b66' : C.cardBorder}
+              >
+                🏅
+                {newAwards.length > 0 && (
+                  <span style={{ position: 'absolute', top: -4, right: -4, width: 14, height: 14, borderRadius: '50%', background: '#f59e0b', fontSize: '0.55rem', fontWeight: 900, color: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {newAwards.length}
+                  </span>
+                )}
+              </button>
+            </div>
+          ) : (
+            <div>
+              <button
+                onClick={onSignIn}
+                style={{
+                  width: '100%', padding: '0.75rem 1rem',
+                  background: C.cardBg, border: `1px solid ${C.cardBorder}`,
+                  borderRadius: '0.625rem', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '0.75rem',
+                  transition: 'border-color 0.15s, background 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = C.accentBrd; e.currentTarget.style.background = C.cardHover }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = C.cardBorder; e.currentTarget.style.background = C.cardBg }}
+              >
+                <span style={{ fontSize: '1.1rem' }}>👤</span>
+                <div style={{ flex: 1, textAlign: 'left' }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 800, color: C.text }}>Sign in</div>
+                  <div style={{ fontSize: '0.68rem', color: C.muted }}>Save your progress, medals & awards across sessions</div>
+                </div>
+                <span style={{ color: C.muted, fontSize: '0.85rem' }}>→</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        <p style={{ marginTop: '1.5rem', fontSize: '0.72rem', color: C.dimText, textAlign: 'center' }}>
+          Unofficial fan game · Not affiliated with any cricket board or league
+        </p>
+      </div>
     </div>
   )
 }

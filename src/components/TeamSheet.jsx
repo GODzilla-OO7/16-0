@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react'
-import { POSITIONS } from '../data/players.js'
 
-// Same scale as WheelSpin so ratings match before/after pick
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 3))) }
-function primeVal(v)     { return Math.min(99, Math.round(scaleDisplay(v) * 1.055)) }
-function scaledOverall(player, ratingType) {
-  if (ratingType === 'prime') return scaleDisplay(player.primeOverall ?? player.overall)
-  return scaleDisplay(player.overall)
-}
 
 const roleLabel = {
   'opener': 'OPN', 'top-order': 'BAT', 'middle-order': 'BAT',
@@ -19,16 +12,22 @@ const roleColor = {
   'wicket-keeper': '#f59e0b', 'all-rounder': '#3b82f6',
   'pace-bowler': '#ef4444', 'spin-bowler': '#a855f7',
 }
-
-// Composition → ordered flat list of role slots
-const COMP_ORDER = ['opener', 'top-order', 'wicket-keeper', 'middle-order', 'all-rounder', 'pace-bowler', 'spin-bowler']
 const COMP_FULL_LABEL = {
   'opener': 'Opener', 'top-order': 'Top Order', 'wicket-keeper': 'Wicket-keeper',
   'middle-order': 'Middle Order', 'all-rounder': 'All-rounder',
   'pace-bowler': 'Pace Bowler', 'spin-bowler': 'Spin Bowler',
 }
+const COMP_ORDER = ['opener', 'top-order', 'wicket-keeper', 'middle-order', 'all-rounder', 'pace-bowler', 'spin-bowler']
+
+// Zone determines valid reorder range: players can only swap within their zone
+const ROLE_ZONE = {
+  'opener': 'top', 'top-order': 'top',
+  'wicket-keeper': 'middle', 'middle-order': 'middle', 'all-rounder': 'middle',
+  'pace-bowler': 'tail', 'spin-bowler': 'tail',
+}
+
 function buildCompSlots(composition) {
-  if (!composition) return null
+  if (!composition) return Array(11).fill(null)
   const slots = []
   for (const role of COMP_ORDER) {
     for (let i = 0; i < (composition[role] || 0); i++) slots.push(role)
@@ -36,230 +35,246 @@ function buildCompSlots(composition) {
   return slots
 }
 
-// Batting order: openers first, bowlers last
-const BATTING_WEIGHT = {
-  'opener': 0, 'top-order': 1, 'wicket-keeper': 2,
-  'middle-order': 3, 'all-rounder': 4,
-  'pace-bowler': 5, 'spin-bowler': 6,
+// Build 11 fixed slots and assign players to matching role slots
+function buildSlottedTeam(players, composition) {
+  const compRoles = buildCompSlots(composition)
+  const slots = compRoles.map(role => ({ role, player: null }))
+  for (const p of players) {
+    const i = slots.findIndex(s => s.role === p.role && !s.player)
+    if (i >= 0) {
+      slots[i].player = p
+    } else {
+      // Fallback: first empty slot
+      const j = slots.findIndex(s => !s.player)
+      if (j >= 0) slots[j].player = p
+    }
+  }
+  return slots
 }
 
-// All positions are freely moveable — bad positioning is penalised in team strength instead
-
-function defaultSort(arr) {
-  return [...arr].sort((a, b) => (BATTING_WEIGHT[a.role] ?? 9) - (BATTING_WEIGHT[b.role] ?? 9))
+function canSwap(slots, i, j) {
+  const pI = slots[i]?.player
+  const pJ = slots[j]?.player
+  if (!pI || !pJ) return false
+  return (ROLE_ZONE[pI.role] ?? 'middle') === (ROLE_ZONE[pJ.role] ?? 'middle')
 }
 
-export default function TeamSheet({ team, currentSlot, onSimulate, onReorder, compact = false, ratingType = 'season', mode = 'ipl', composition = null }) {
-  const filled = team.length
-  const total  = POSITIONS.length
-  const isDone = filled === total
+export default function TeamSheet({
+  team, onSimulate, onReorder,
+  compact = false, ratingType = 'season', mode = 'ipl', composition = null,
+}) {
+  const [slots, setSlots] = useState(() => buildSlottedTeam(team, composition))
+  const [highlight, setHighlight] = useState(null)
 
-  // Maintain ordered list — auto-sorted when new player added, user-reorderable when full
-  const [orderedTeam, setOrderedTeam] = useState(() => defaultSort(team))
-  const [highlight, setHighlight]     = useState(null) // index of last moved player
-
+  // Re-initialize when composition resets (new game)
   useEffect(() => {
-    setOrderedTeam(prev => {
-      // Find any new players (just been added)
-      const prevIds = new Set(prev.map(p => p.id))
-      const added   = team.filter(p => !prevIds.has(p.id))
-      if (added.length === 0) return prev.filter(p => team.some(t => t.id === p.id))
-      // Insert new players in default batting order position
-      const merged = [...prev, ...added]
-      return defaultSort(merged)
+    setSlots(buildSlottedTeam(team, composition))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [composition])
+
+  // Sync when new players are added (during draft)
+  useEffect(() => {
+    setSlots(prev => {
+      const teamIds    = new Set(team.map(p => p.id))
+      const prevIds    = new Set(prev.flatMap(s => s.player ? [s.player.id] : []))
+      const newPlayers = team.filter(p => !prevIds.has(p.id))
+      const removedIds = new Set([...prevIds].filter(id => !teamIds.has(id)))
+
+      if (newPlayers.length === 0 && removedIds.size === 0) return prev
+
+      // Remove dropped players, keep positions of surviving players
+      const next = prev.map(s => ({
+        ...s,
+        player: s.player && removedIds.has(s.player.id) ? null : s.player,
+      }))
+
+      // Place new players in their matching role slot
+      for (const player of newPlayers) {
+        const i = next.findIndex(s => s.role === player.role && !s.player)
+        if (i >= 0) {
+          next[i] = { ...next[i], player }
+        } else {
+          const j = next.findIndex(s => !s.player)
+          if (j >= 0) next[j] = { ...next[j], player }
+        }
+      }
+      return next
     })
   }, [team])
 
   function move(fromIdx, dir) {
     const toIdx = fromIdx + dir
-    if (toIdx < 0 || toIdx >= orderedTeam.length) return
-    const next = [...orderedTeam]
-    ;[next[fromIdx], next[toIdx]] = [next[toIdx], next[fromIdx]]
-    setOrderedTeam(next)
+    setSlots(prev => {
+      if (!canSwap(prev, fromIdx, toIdx)) return prev
+      const next = prev.map(s => ({ ...s }))
+      const temp = next[fromIdx].player
+      next[fromIdx] = { ...next[fromIdx], player: next[toIdx].player }
+      next[toIdx]   = { ...next[toIdx],   player: temp }
+      // Notify parent with new player order (slot order = batting order)
+      const ordered = next.map(s => s.player).filter(Boolean)
+      onReorder?.(ordered)
+      return next
+    })
     setHighlight(toIdx)
     setTimeout(() => setHighlight(null), 600)
-    onReorder?.(next)
   }
 
-  const emptyCount = total - filled
-  const compSlots = buildCompSlots(composition)
+  const filled        = slots.filter(s => s.player).length
+  const total         = slots.length
+  const isDone        = filled === total
+  const activeSlotIdx = slots.findIndex(s => !s.player)
 
   return (
     <div style={{
-      background: '#12121a',
-      border: '1px solid #2a2a3a',
-      borderRadius: '1rem',
-      overflow: 'hidden',
-      minWidth: compact ? 0 : 240,
+      background: '#12121a', border: '1px solid #2a2a3a',
+      borderRadius: '1rem', overflow: 'hidden',
     }}>
       {/* Header */}
       <div style={{
-        padding: compact ? '0.875rem 1rem' : '1rem 1.25rem',
+        padding: compact ? '0.625rem 0.875rem' : '0.875rem 1.1rem',
         borderBottom: '1px solid #2a2a3a',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
-        <span style={{ fontWeight: 800, fontSize: compact ? '0.875rem' : '1rem', color: '#f1f5f9' }}>
+        <span style={{ fontWeight: 800, fontSize: compact ? '0.78rem' : '0.9rem', color: '#f1f5f9' }}>
           Your XI
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {isDone && onReorder && (
-            <span style={{ fontSize: '0.55rem', color: '#2a2a3a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              reorder ↕
-            </span>
-          )}
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: filled === total ? '#1F6FEB' : '#64748b' }}>
-            {filled}/{total}
-          </span>
-        </div>
+        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isDone ? '#1F6FEB' : '#64748b' }}>
+          {filled}/{total}
+        </span>
       </div>
 
       {/* Slots */}
-      <div style={{ padding: compact ? '0.5rem' : '0.75rem' }}>
-        {orderedTeam.map((player, i) => {
+      <div style={{ padding: compact ? '0.35rem' : '0.45rem' }}>
+        {slots.map((slot, i) => {
+          const { role, player } = slot
+          const isActive  = !player && i === activeSlotIdx
           const isHighlit = highlight === i
-          const canUp   = i > 0
-          const canDown = i < orderedTeam.length - 1
+          const slotColor = roleColor[role] ?? '#64748b'
+
+          const canUp    = isDone && canSwap(slots, i, i - 1)
+          const canDown  = isDone && canSwap(slots, i, i + 1)
+          const showArrows = isDone && player && (canUp || canDown)
 
           return (
             <div
-              key={player.id}
+              key={i}
               style={{
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                padding: compact ? '0.375rem 0.5rem' : '0.5rem 0.625rem',
-                borderRadius: '0.5rem', marginBottom: '2px',
-                background: isHighlit ? '#0047CC18' : '#1a1a26',
-                border: `1px solid ${isHighlit ? '#1F6FEB44' : 'transparent'}`,
+                display: 'flex', alignItems: 'center',
+                gap: compact ? '0.3rem' : '0.4rem',
+                padding: compact ? '0.28rem 0.35rem' : '0.36rem 0.45rem',
+                borderRadius: '0.375rem', marginBottom: '2px',
+                background: isHighlit
+                  ? (roleColor[player?.role] ?? slotColor) + '18'
+                  : isActive ? '#ddeaff'
+                  : player ? '#1a1a26' : 'transparent',
+                border: `1px solid ${
+                  isActive ? '#1F6FEB44'
+                  : isHighlit ? (roleColor[player?.role] ?? slotColor) + '44'
+                  : 'transparent'
+                }`,
                 transition: 'all 0.25s',
-                animation: 'fade-in-up 0.3s ease both',
               }}
             >
-              {/* Position number */}
+              {/* Role badge */}
               <div style={{
-                width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                background: (roleColor[player.role] ?? '#64748b') + '22',
-                border: `1px solid ${(roleColor[player.role] ?? '#64748b') + '44'}`,
+                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                background: player
+                  ? (roleColor[player.role] ?? '#64748b') + '22'
+                  : slotColor + '18',
+                border: `1px solid ${player
+                  ? (roleColor[player.role] ?? '#64748b') + '44'
+                  : slotColor + '33'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.65rem', fontWeight: 900,
-                color: roleColor[player.role] ?? '#64748b',
+                fontSize: '0.5rem', fontWeight: 900,
+                color: player ? (roleColor[player.role] ?? '#64748b') : slotColor,
               }}>
-                {i + 1}
+                {player ? (roleLabel[player.role] ?? i + 1) : (roleLabel[role] ?? i + 1)}
               </div>
 
-              {/* Player info */}
+              {/* Name / placeholder */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: compact ? '0.75rem' : '0.8rem', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  {player.name}
-                  {mode === 'ipl' && player.nationality !== 'India' && <span style={{ fontSize: '0.7rem' }} title="Overseas player">✈️</span>}
-                </div>
-                <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{player.nationality}</div>
+                {player ? (
+                  <>
+                    <div style={{
+                      fontSize: compact ? '0.7rem' : '0.76rem',
+                      fontWeight: 700, color: '#f1f5f9',
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                      display: 'flex', alignItems: 'center', gap: '0.2rem',
+                    }}>
+                      {player.name}
+                      {mode === 'ipl' && player.nationality !== 'India' && (
+                        <span style={{ fontSize: '0.62rem' }} title="Overseas">✈️</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.57rem', color: '#64748b' }}>{player.nationality}</div>
+                  </>
+                ) : (
+                  <div style={{
+                    fontSize: compact ? '0.68rem' : '0.72rem',
+                    color: isActive ? '#1F6FEB' : slotColor,
+                    fontWeight: isActive ? 700 : 500,
+                  }}>
+                    {role ? COMP_FULL_LABEL[role] : 'Player'}
+                  </div>
+                )}
               </div>
 
-              {/* Role + rating */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', flexShrink: 0 }}>
-                <span style={{ fontSize: '0.6rem', fontWeight: 800, background: (roleColor[player.role] ?? '#64748b') + '22', color: roleColor[player.role] ?? '#64748b', padding: '1px 4px', borderRadius: '3px' }}>
-                  {roleLabel[player.role] ?? '—'}
+              {/* Overall rating */}
+              {player && (
+                <span style={{ fontSize: '0.66rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>
+                  {scaleDisplay(ratingType === 'prime' ? (player.primeOverall ?? player.overall) : player.overall)}
                 </span>
-                <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#f59e0b' }}>{scaledOverall(player, ratingType)}</span>
-              </div>
-
-              {/* Reorder arrows — only when XI is complete */}
-              {isDone && onReorder && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', flexShrink: 0, marginLeft: '0.125rem' }}>
-                  <button
-                    onClick={() => move(i, -1)}
-                    disabled={!canUp}
-                    title="Move up"
-                    style={{
-                      width: 18, height: 18,
-                      background: canUp ? '#1F6FEB22' : 'transparent',
-                      border: `1px solid ${canUp ? '#1F6FEB44' : '#1a1a26'}`,
-                      borderRadius: '3px', fontSize: '0.55rem', fontWeight: 900,
-                      color: canUp ? '#1F6FEB' : '#2a2a3a',
-                      cursor: canUp ? 'pointer' : 'default',
-                      lineHeight: 1, padding: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}
-                  >▲</button>
-                  <button
-                    onClick={() => move(i, 1)}
-                    disabled={!canDown}
-                    title="Move down"
-                    style={{
-                      width: 18, height: 18,
-                      background: canDown ? '#1F6FEB22' : 'transparent',
-                      border: `1px solid ${canDown ? '#1F6FEB44' : '#1a1a26'}`,
-                      borderRadius: '3px', fontSize: '0.55rem', fontWeight: 900,
-                      color: canDown ? '#1F6FEB' : '#2a2a3a',
-                      cursor: canDown ? 'pointer' : 'default',
-                      lineHeight: 1, padding: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}
-                  >▼</button>
-                </div>
               )}
-            </div>
-          )
-        })}
 
-        {/* Empty slots */}
-        {Array.from({ length: emptyCount }, (_, j) => {
-          const slotIdx    = filled + j
-          const posSlot    = POSITIONS[slotIdx]
-          const isActive   = currentSlot === slotIdx
-          const roleForSlot = compSlots ? compSlots[slotIdx] : null
-          const slotLabel   = roleForSlot ? COMP_FULL_LABEL[roleForSlot] : (posSlot?.description ?? 'Player')
-          const slotBadge   = roleForSlot ? (roleLabel[roleForSlot] ?? '—') : null
-          const slotColor   = roleForSlot ? (roleColor[roleForSlot] ?? '#64748b') : '#2a2a3a'
-          return (
-            <div
-              key={`empty-${j}`}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                padding: compact ? '0.375rem 0.5rem' : '0.5rem 0.75rem',
-                borderRadius: '0.5rem', marginBottom: '2px',
-                background: isActive ? '#ddeaff' : 'transparent',
-                border: isActive ? '1px solid #1F6FEB44' : '1px solid transparent',
-                transition: 'background 0.2s',
-              }}
-            >
-              <div style={{
-                width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                background: roleForSlot ? slotColor + '18' : '#1a1a26',
-                border: `1px solid ${roleForSlot ? slotColor + '44' : '#2a2a3a'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.52rem', fontWeight: 900, color: slotColor,
-              }}>
-                {slotBadge ?? (slotIdx + 1)}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.75rem', color: roleForSlot ? slotColor : '#2a2a3a', fontWeight: roleForSlot ? 600 : 400 }}>
-                  {slotLabel}
+              {/* Reorder arrows — only when XI complete and adjacent slot in same zone */}
+              {showArrows ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', flexShrink: 0 }}>
+                  {[
+                    { dir: -1, enabled: canUp,   symbol: '▲' },
+                    { dir:  1, enabled: canDown,  symbol: '▼' },
+                  ].map(({ dir, enabled, symbol }) => {
+                    const c = roleColor[player.role] ?? '#64748b'
+                    return (
+                      <button
+                        key={dir}
+                        onClick={() => enabled && move(i, dir)}
+                        disabled={!enabled}
+                        style={{
+                          width: 15, height: 15,
+                          background: enabled ? c + '22' : 'transparent',
+                          border: `1px solid ${enabled ? c + '55' : 'transparent'}`,
+                          borderRadius: '2px',
+                          fontSize: '0.42rem', fontWeight: 900,
+                          color: enabled ? c : 'transparent',
+                          cursor: enabled ? 'pointer' : 'default',
+                          lineHeight: 1, padding: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        {symbol}
+                      </button>
+                    )
+                  })}
                 </div>
-              </div>
+              ) : isDone && player ? (
+                <div style={{ width: 15, flexShrink: 0 }} />
+              ) : null}
             </div>
           )
         })}
       </div>
 
-      {/* Simulate button */}
-      {filled === total && onSimulate && (
-        <div style={{ padding: '0.75rem', borderTop: '1px solid #2a2a3a' }}>
+      {/* Simulate button (only when XI done and caller provides the handler) */}
+      {isDone && onSimulate && (
+        <div style={{ padding: '0.625rem', borderTop: '1px solid #2a2a3a' }}>
           <button
             onClick={onSimulate}
             style={{
-              width: '100%',
-              padding: '0.875rem',
+              width: '100%', padding: '0.75rem',
               background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
-              color: '#0a0a0f',
-              border: 'none',
-              borderRadius: '0.625rem',
-              fontSize: '0.9rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
+              color: '#0a0a0f', border: 'none', borderRadius: '0.5rem',
+              fontSize: '0.875rem', fontWeight: 800,
+              cursor: 'pointer', letterSpacing: '0.05em', textTransform: 'uppercase',
               animation: 'pulse-glow 2s ease infinite',
             }}
           >

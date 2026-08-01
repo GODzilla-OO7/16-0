@@ -78,7 +78,7 @@ function getSpinChipLabel(mode) {
   return '🏆 WC Winner'
 }
 
-export default function ManagerSelect({ mode, team, onSelect, onBack, inline = false, onLand }) {
+export default function ManagerSelect({ mode, team, onSelect, onBack, inline = false, onLand, onStart }) {
   const [phase, setPhase] = useState('idle') // idle | spinning | landed | confirmed
   const [displayIdx, setDisplayIdx] = useState(0)
   const [landed, setLanded] = useState(null)
@@ -133,19 +133,19 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
     ? getStoryPrediction(team, landed, mode, predictedStr)
     : null
 
-  // ── Shared inner content (used in both inline and full-page) ────────────────
+  // ── Full-page reel card ────────────────────────────────────────────────────
   const reelCard = (
     <div style={{
       position: 'relative',
       background: '#12121a',
       border: `2px solid ${phase === 'landed' ? '#1F6FEB66' : '#2a2a3a'}`,
-      borderRadius: inline ? '0.875rem' : '1.25rem',
+      borderRadius: '1.25rem',
       overflow: 'hidden',
       marginBottom: '1rem',
-      minHeight: inline ? 140 : 220,
+      minHeight: 220,
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      padding: inline ? '1.1rem 1rem' : '1.75rem 1.5rem',
+      padding: '1.75rem 1.5rem',
       transition: 'border-color 0.3s, box-shadow 0.3s',
       boxShadow: phase === 'landed' ? '0 0 40px #1F6FEB18' : 'none',
     }}>
@@ -157,10 +157,10 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
       )}
       {displayed && (
         <div style={{ textAlign: 'center', zIndex: 3 }}>
-          <div style={{ fontSize: inline ? '2.2rem' : '3.5rem', lineHeight: 1, marginBottom: '0.5rem', filter: isSpinning ? 'blur(1.5px)' : 'none', transition: 'filter 0.08s' }}>
+          <div style={{ fontSize: '3.5rem', lineHeight: 1, marginBottom: '0.5rem', filter: isSpinning ? 'blur(1.5px)' : 'none', transition: 'filter 0.08s' }}>
             {displayed.icon}
           </div>
-          <div style={{ fontSize: inline ? '1.1rem' : '1.5rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>
             {displayed.name}
           </div>
           <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: phase === 'landed' ? '0.75rem' : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
@@ -169,7 +169,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
           </div>
           {phase === 'landed' && landed && (
             <div style={{ animation: 'fade-in 0.3s ease both' }}>
-              <div style={{ fontSize: inline ? '0.72rem' : '0.875rem', color: '#94a3b8', lineHeight: 1.5, marginBottom: '0.625rem', maxWidth: 280, margin: '0 auto 0.625rem' }}>
+              <div style={{ fontSize: '0.875rem', color: '#94a3b8', lineHeight: 1.5, marginBottom: '0.625rem', maxWidth: 280, margin: '0 auto 0.625rem' }}>
                 {landed.description}
               </div>
               {isWCWinner && (
@@ -192,81 +192,163 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
   const storyBlock = phase === 'landed' && storyData && (
     <div style={{
       background: '#0e1820', border: '1px solid #1e3a2e',
-      borderRadius: '0.75rem', padding: inline ? '0.875rem 1rem' : '1.1rem 1.25rem',
+      borderRadius: '0.75rem', padding: '1.1rem 1.25rem',
       marginBottom: '1rem', animation: 'fade-in 0.4s ease both',
     }}>
       <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
         📖 Season Outlook
       </div>
-      <p style={{ fontSize: inline ? '0.75rem' : '0.82rem', color: '#94a3b8', lineHeight: 1.6, margin: '0 0 0.75rem', fontStyle: 'italic' }}>
+      <p style={{ fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.6, margin: '0 0 0.75rem', fontStyle: 'italic' }}>
         {storyData.narrative}
       </p>
       <div style={{ borderTop: '1px solid #1e3a2e', paddingTop: '0.625rem', textAlign: 'center' }}>
         <div style={{ fontSize: '0.58rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>
           Predicted Finish
         </div>
-        <div style={{ fontSize: inline ? '1.3rem' : '1.6rem', fontWeight: 900, color: storyData.predictedColor, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+        <div style={{ fontSize: '1.6rem', fontWeight: 900, color: storyData.predictedColor, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
           {storyData.predictedPos}
         </div>
       </div>
     </div>
   )
 
-  const buttons = (
+  const fullPageButtons = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', alignItems: 'center' }}>
       {isSpinning ? (
         <div style={{ width: '100%', padding: '0.875rem', background: 'transparent', border: '1px solid #2a2a3a', borderRadius: '0.75rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem', fontWeight: 700 }}>
           Spinning…
         </div>
-      ) : phase === 'confirmed' ? (
-        <div style={{ width: '100%', padding: '0.8rem', background: '#1F6FEB1a', border: '1px solid #1F6FEB44', borderRadius: '0.75rem', textAlign: 'center', color: '#1F6FEB', fontSize: '0.85rem', fontWeight: 800 }}>
-          ✓ Coach confirmed — click Start Season on the left
-        </div>
       ) : phase === 'landed' ? (
         <button
-          onClick={() => {
-            if (inline) { setPhase('confirmed'); onSelect(landed) }
-            else onSelect(landed)
-          }}
-          style={{ width: '100%', padding: inline ? '0.8rem' : '0.9rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: inline ? '0.85rem' : '0.9rem', fontWeight: 800, cursor: 'pointer' }}
+          onClick={() => onSelect(landed)}
+          style={{ width: '100%', padding: '0.9rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer' }}
         >
           ✓ Pick {landed?.name?.split(' ').pop()} as Coach
         </button>
       ) : (
         <button
           onClick={spin}
-          style={{ width: '100%', padding: inline ? '0.875rem' : '1rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: inline ? '0.9rem' : '1rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.04em' }}
+          style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.04em' }}
         >
           🎰 Spin for Coach
         </button>
       )}
-      {phase !== 'confirmed' && (
-        <button
-          onClick={() => onSelect(null)}
-          style={{ background: 'none', border: 'none', color: '#2a2a3a', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
-        >
-          Continue without a manager
-        </button>
-      )}
+      <button
+        onClick={() => onSelect(null)}
+        style={{ background: 'none', border: 'none', color: '#2a2a3a', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+      >
+        Continue without a manager
+      </button>
     </div>
   )
 
-  // ── Inline mode (embedded in draft screen right column) ─────────────────────
+  // ── Inline (compact) mode — embedded in draft screen right column ───────────
   if (inline) {
+    // Confirmed: show coach summary (2 short sentences max) — Start Season is in TeamStrengthPanel
+    if (phase === 'confirmed' && landed) {
+      const shortDesc = landed.description?.split(/[.!]/).filter(Boolean).slice(0, 2).join('. ').trim() + '.'
+      return (
+        <div style={{ background: '#12121a', border: '1px solid #1F6FEB44', borderRadius: '0.875rem', padding: '0.75rem 0.875rem', animation: 'fade-in 0.3s ease both' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+            <span style={{ fontSize: '1.6rem', lineHeight: 1, flexShrink: 0 }}>{landed.icon}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                {landed.name}
+                {isWCWinner && <span style={{ fontSize: '0.58rem', padding: '0.1rem 0.3rem', background: '#f59e0b22', border: '1px solid #f59e0b55', borderRadius: '999px', color: '#f59e0b', fontWeight: 800 }}>🏆</span>}
+              </div>
+              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{landed.nationality} · {landed.style}</div>
+            </div>
+            <span style={{ fontSize: '0.75rem', color: '#1F6FEB', fontWeight: 800, flexShrink: 0 }}>✓</span>
+          </div>
+          <div style={{ marginTop: '0.5rem', fontSize: '0.68rem', color: '#94a3b8', lineHeight: 1.5 }}>
+            {shortDesc}
+          </div>
+        </div>
+      )
+    }
+
     return (
-      <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '1rem', padding: '1rem', animation: 'fade-in 0.3s ease both' }}>
-        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', textAlign: 'center' }}>
-          🎽 Pick Your Coach
+      <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '0.875rem', padding: '0.75rem 0.875rem', animation: 'fade-in 0.3s ease both' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.625rem' }}>
+          🎽 Coach
         </div>
-        <div style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'center', marginBottom: '1rem', lineHeight: 1.5 }}>
-          {getSubtitle(mode)}
+
+        {/* Compact reel */}
+        <div style={{
+          position: 'relative',
+          background: '#0d0d16',
+          border: `1.5px solid ${phase === 'landed' ? '#1F6FEB66' : '#1a1a26'}`,
+          borderRadius: '0.625rem',
+          overflow: 'hidden',
+          marginBottom: '0.625rem',
+          padding: '0.625rem 0.75rem',
+          display: 'flex', alignItems: 'center', gap: '0.625rem',
+          minHeight: 52,
+          transition: 'border-color 0.3s',
+        }}>
+          {isSpinning && (
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #0d0d16, transparent 20%, transparent 80%, #0d0d16)', zIndex: 2, pointerEvents: 'none' }} />
+          )}
+          <span style={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0, filter: isSpinning ? 'blur(1px)' : 'none', transition: 'filter 0.08s', zIndex: 3 }}>
+            {displayed?.icon ?? '🎽'}
+          </span>
+          <div style={{ flex: 1, minWidth: 0, zIndex: 3 }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', filter: isSpinning ? 'blur(1px)' : 'none', transition: 'filter 0.08s' }}>
+              {displayed?.name ?? '—'}
+            </div>
+            <div style={{ fontSize: '0.6rem', color: '#64748b', filter: isSpinning ? 'blur(1px)' : 'none', transition: 'filter 0.08s' }}>
+              {displayed ? `${displayed.nationality} · ${displayed.style}` : '—'}
+              {isDisplayedWCWinner && <span style={{ marginLeft: '0.3rem', color: '#f59e0b' }}>🏆</span>}
+            </div>
+          </div>
+          {phase === 'idle' && (
+            <span style={{ fontSize: '0.6rem', color: '#2a2a3a', flexShrink: 0, zIndex: 3 }}>spin →</span>
+          )}
         </div>
-        {reelCard}
-        {storyBlock}
-        {buttons}
+
+        {/* Landed coach brief description */}
+        {phase === 'landed' && landed && (
+          <div style={{ fontSize: '0.67rem', color: '#94a3b8', lineHeight: 1.45, marginBottom: '0.625rem', animation: 'fade-in 0.3s ease both' }}>
+            {landed.description?.split(/[.!]/).filter(Boolean)[0]}.
+            {isWCWinner && <span style={{ color: '#f59e0b', fontWeight: 700 }}> {getWCChipLabel(mode)}.</span>}
+          </div>
+        )}
+
+        {/* Buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          {isSpinning ? (
+            <div style={{ padding: '0.6rem', background: 'transparent', border: '1px solid #1a1a26', borderRadius: '0.5rem', textAlign: 'center', color: '#64748b', fontSize: '0.78rem', fontWeight: 700 }}>
+              Spinning…
+            </div>
+          ) : phase === 'landed' ? (
+            <button
+              onClick={() => { setPhase('confirmed'); onSelect(landed) }}
+              style={{ width: '100%', padding: '0.625rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer' }}
+            >
+              ✓ Confirm {landed?.name?.split(' ').pop()}
+            </button>
+          ) : (
+            <button
+              onClick={spin}
+              style={{ width: '100%', padding: '0.625rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer' }}
+            >
+              🎰 Spin for Coach
+            </button>
+          )}
+          {phase !== 'confirmed' && (
+            <button
+              onClick={() => { setPhase('confirmed'); onSelect(null) }}
+              style={{ background: 'none', border: 'none', color: '#334155', fontSize: '0.68rem', cursor: 'pointer', fontWeight: 600, padding: '0.2rem' }}
+            >
+              Skip coach
+            </button>
+          )}
+        </div>
       </div>
     )
   }
+
+  const buttons = fullPageButtons
 
   // ── Full-page mode (standalone screen) ──────────────────────────────────────
   return (

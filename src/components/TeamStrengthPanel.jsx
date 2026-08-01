@@ -96,7 +96,7 @@ function OverseasTracker({ team }) {
 
 // ─── Main Panel ──────────────────────────────────────────────────────────────
 
-export default function TeamStrengthPanel({ team, manager, mode, showPenalty = false }) {
+export default function TeamStrengthPanel({ team, manager, mode, showPenalty = false, onStart }) {
   if (!team || team.length === 0) return null
 
   const rawStr = calcTeamStrength(team, manager, mode)
@@ -236,6 +236,24 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
 
       {/* Overseas tracker — IPL only */}
       {mode === 'ipl' && <OverseasTracker team={team} />}
+
+      {/* Start Season button — shown once coach is confirmed */}
+      {onStart && manager && (
+        <button
+          onClick={onStart}
+          style={{
+            marginTop: '0.875rem',
+            width: '100%', padding: '0.875rem',
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            color: '#0a0a0f', border: 'none', borderRadius: '0.625rem',
+            fontSize: '1rem', fontWeight: 800,
+            cursor: 'pointer', letterSpacing: '0.03em',
+            animation: 'pulse-glow 2s ease infinite',
+          }}
+        >
+          🏏 Start Season →
+        </button>
+      )}
     </div>
   )
 }

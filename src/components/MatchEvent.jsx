@@ -14,6 +14,12 @@ const BATTING_MOMENTS = [
   { label: 'Glance to Fine', desc: 'Pitched on the pads, room to clip away' },
 ]
 
+const BOWLING_SITUATIONS = [
+  { label: 'New batsman',   desc: 'Fresh batter just walked in — nerves and uncertainty' },
+  { label: 'Set batsman',   desc: 'The batter has played 20 balls — comfortable and watchful' },
+  { label: 'Tail cameo',    desc: 'The number 10 is blocking everything — stubborn defence' },
+]
+
 const BATTING_CHOICES = [
   { label: 'Defend',   icon: '🛡️', desc: 'Play it safe — protect the wicket', successChance: 0.82 },
   { label: 'Drive',    icon: '🏏', desc: 'Push through the line for the milestone', successChance: 0.55 },
@@ -60,8 +66,8 @@ export default function MatchEvent({ event, opponent, onContinue }) {
   const choices   = isBatting ? BATTING_CHOICES : BOWLING_CHOICES
 
   const ballType  = isBatting
-    ? BATTING_MOMENTS[Math.floor(Math.random() * BATTING_MOMENTS.length)]
-    : BALLS_FACING[Math.floor(Math.random() * BALLS_FACING.length)]
+    ? BALLS_FACING[Math.floor(Math.random() * BALLS_FACING.length)]
+    : BOWLING_SITUATIONS[Math.floor(Math.random() * BOWLING_SITUATIONS.length)]
 
   function pick(choice) {
     const roll = Math.random()
@@ -130,7 +136,7 @@ export default function MatchEvent({ event, opponent, onContinue }) {
               marginBottom: '1.5rem', textAlign: 'center',
             }}>
               <div style={{ fontSize: '0.65rem', color: '#475569', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.3rem' }}>
-                {isBatting ? 'The opportunity' : 'Next ball'}
+                {isBatting ? 'Next ball' : 'Situation'}
               </div>
               <div style={{ fontSize: '1rem', fontWeight: 800, color: '#f1f5f9' }}>
                 {ballType.label}

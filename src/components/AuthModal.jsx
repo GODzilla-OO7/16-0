@@ -18,7 +18,11 @@ export default function AuthModal({ onClose, onSuccess }) {
     if (!sb) { setError('Auth not available. Please try again.'); setLoading(false); return }
 
     if (mode === 'signup') {
-      const { error } = await sb.auth.signUp({ email, password })
+      const { error } = await sb.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.origin },
+      })
       if (error) { setError(error.message); setLoading(false); return }
       setSent(true)
     } else {
