@@ -43,7 +43,7 @@ const DARK = {
   sectionLbl:'#2a3855',
 }
 
-const PLAY_COUNT_OFFSET = 100  // seed count — real plays add on top
+const PLAY_COUNT_OFFSET = 103  // seed count — real plays add on top
 
 function formatCount(n) {
   if (n == null) return null
