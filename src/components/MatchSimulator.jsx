@@ -316,7 +316,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
       {showCelebration && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
-          background: 'radial-gradient(ellipse at 50% 40%, #2a1500 0%, #0a0a0f 70%)',
+          background: 'radial-gradient(ellipse at 50% 40%, #2a1500 0%, var(--bg) 70%)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           animation: 'fade-in 0.4s ease both',
         }}>
@@ -331,7 +331,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             </div>
             <button
               onClick={dismissCelebration}
-              style={{ marginTop: '2.5rem', padding: '0.875rem 2.5rem', background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', animation: 'fade-in 0.5s 1.2s ease both', animationFillMode: 'both' }}
+              style={{ marginTop: '2.5rem', padding: '0.875rem 2.5rem', background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: 'var(--bg)', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', animation: 'fade-in 0.5s 1.2s ease both', animationFillMode: 'both' }}
             >
               View Season Summary →
             </button>
@@ -372,7 +372,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
       {showHeartbreak && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
-          background: 'radial-gradient(ellipse at 50% 40%, #1a0505 0%, #0a0a0f 70%)',
+          background: 'radial-gradient(ellipse at 50% 40%, #1a0505 0%, var(--bg) 70%)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           animation: 'fade-in 0.4s ease both',
         }}>
@@ -389,7 +389,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             {leagueSeason?.actualWinner && (
               <div style={{ marginTop: '0.75rem', padding: '0.5rem 1.25rem', background: 'rgba(255,255,255,0.07)', borderRadius: '0.5rem', display: 'inline-block', animation: 'fade-in 0.5s 1s ease both', animationFillMode: 'both' }}>
                 <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>🏆 Tournament Winner: </span>
-                <span style={{ fontSize: '0.9rem', color: '#f1f5f9', fontWeight: 800 }}>{leagueSeason.actualWinner}</span>
+                <span style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 800 }}>{leagueSeason.actualWinner}</span>
               </div>
             )}
             <button
@@ -408,7 +408,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
           <div style={{ fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.3rem' }}>{cfg.icon} {cfg.label}</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.2rem' }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>
             {!tournamentStarted ? '🎲 Group Stage Draw' : phaseLabel}
           </div>
           {tournamentStarted && (
@@ -447,7 +447,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               { label: 'Losses', value: leagueLosses,  color: '#ef4444' },
               { label: 'Played', value: revealed.length, color: '#94a3b8' },
             ].map(s => (
-              <div key={s.label} style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '0.75rem' }}>
+              <div key={s.label} style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
                 <div style={{ fontSize: '1.75rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
                 <div style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.2rem' }}>{s.label}</div>
               </div>
@@ -487,11 +487,11 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
             {/* WC non-Final elimination: show results button once all matches are done */}
             {iplPhase === 'done' && !isIPL && finalPhase === 'idle' && (
-              <div style={{ textAlign: 'center', padding: '1.25rem', background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '0.875rem', marginBottom: '0.5rem' }}>
+              <div style={{ textAlign: 'center', padding: '1.25rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', marginBottom: '0.5rem' }}>
                 <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: '0.75rem' }}>Tournament over for your team</div>
                 <button
                   onClick={callOnDone}
-                  style={{ padding: '0.875rem 2rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
+                  style={{ padding: '0.875rem 2rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
                 >
                   View Season Summary →
                 </button>
@@ -613,7 +613,7 @@ function FinalGate({ result, phase, step, commentary, onPlay, onDone }) {
         <div style={{ fontSize: '0.7rem', color: '#f59e0b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '0.75rem' }}>
           🏆 THE FINAL
         </div>
-        <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.25rem' }}>
+        <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.25rem' }}>
           Your XI vs {opponent}
         </div>
         <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1.5rem' }}>
@@ -628,13 +628,13 @@ function FinalGate({ result, phase, step, commentary, onPlay, onDone }) {
                 key={i}
                 style={{
                   padding: '0.625rem 0.875rem',
-                  background: '#1a1a26',
+                  background: 'var(--border2)',
                   borderRadius: '0.5rem',
                   fontSize: '0.82rem',
-                  color: i === step - 1 ? '#f1f5f9' : '#64748b',
+                  color: i === step - 1 ? 'var(--text)' : '#64748b',
                   fontWeight: i === step - 1 ? 700 : 400,
                   animation: 'commentary-in 0.35s ease both',
-                  borderLeft: `3px solid ${i === step - 1 ? '#f59e0b' : '#2a2a3a'}`,
+                  borderLeft: `3px solid ${i === step - 1 ? '#f59e0b' : 'var(--border)'}`,
                 }}
               >
                 {line}
@@ -669,7 +669,7 @@ function FinalGate({ result, phase, step, commentary, onPlay, onDone }) {
             style={{
               padding: '1rem 2.5rem',
               background: 'linear-gradient(135deg,#f59e0b,#d97706)',
-              color: '#0a0a0f', border: 'none', borderRadius: '0.875rem',
+              color: 'var(--bg)', border: 'none', borderRadius: '0.875rem',
               fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer',
               letterSpacing: '0.04em', textTransform: 'uppercase',
               boxShadow: '0 0 30px #f59e0b33',
@@ -684,7 +684,7 @@ function FinalGate({ result, phase, step, commentary, onPlay, onDone }) {
         {isDone && onDone && (
           <button
             onClick={onDone}
-            style={{ marginTop: '0.5rem', width: '100%', padding: '0.875rem', background: 'linear-gradient(135deg,#1F6FEB,#0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer' }}
+            style={{ marginTop: '0.5rem', width: '100%', padding: '0.875rem', background: 'linear-gradient(135deg,#1F6FEB,#0047CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer' }}
           >
             See Full Results →
           </button>
@@ -699,10 +699,10 @@ function FinalGate({ result, phase, step, commentary, onPlay, onDone }) {
 function IPLResultBanner({ outcome, iplChampion, onDone }) {
   const cfg = {
     champion:     { bg:'linear-gradient(135deg,#1a1200,#0f0d00)', border:'#f59e0b55', icon:'🏆', title:'IPL CHAMPIONS!',  color:'#f59e0b', sub:'You lifted the trophy. Legendary.' },
-    'runner-up':  { bg:'#1a1a26',  border:'#94a3b844', icon:'🥈', title:'Runners-Up',          color:'#94a3b8', sub:`Well played — you made the Final. ${iplChampion} won the IPL.` },
+    'runner-up':  { bg:'var(--border2)',  border:'#94a3b844', icon:'🥈', title:'Runners-Up',          color:'#94a3b8', sub:`Well played — you made the Final. ${iplChampion} won the IPL.` },
     eliminated:   { bg:'#1a0d0d',  border:'#ef444444', icon:'❌', title:'Knocked Out',           color:'#ef4444', sub:`So close. ${iplChampion} went on to lift the trophy.` },
     not_qualified:{ bg:'#1a0d0d',  border:'#7f1d1d44', icon:'📊', title:'Did Not Qualify',      color:'#ef4444', sub:`${iplChampion} won the IPL this season.` },
-  }[outcome] ?? { bg:'#12121a', border:'#2a2a3a', icon:'📊', title:'Season Complete', color:'#94a3b8', sub:'' }
+  }[outcome] ?? { bg:'var(--card)', border:'var(--border)', icon:'📊', title:'Season Complete', color:'#94a3b8', sub:'' }
 
   return (
     <div style={{ textAlign:'center', padding:'1.5rem', background:cfg.bg, border:`2px solid ${cfg.border}`, borderRadius:'1rem', animation:'fade-in-up 0.4s ease both' }}>
@@ -712,7 +712,7 @@ function IPLResultBanner({ outcome, iplChampion, onDone }) {
       {onDone && (
         <button
           onClick={onDone}
-          style={{ padding:'0.875rem 2rem', background:'linear-gradient(135deg,#1F6FEB,#0047CC)', color:'#0a0a0f', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}
+          style={{ padding:'0.875rem 2rem', background:'linear-gradient(135deg,#1F6FEB,#0047CC)', color:'var(--bg)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}
         >
           See Full Results →
         </button>
@@ -737,14 +737,14 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
         </div>
       </div>
 
-      <div style={{ background:'#12121a', border:'1px solid #2a2a3a', borderRadius:'1rem', overflow:'hidden', marginBottom:'1.25rem' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', background:'#1a1a26', borderBottom:'1px solid #2a2a3a', fontSize:'0.58rem', fontWeight:800, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'1rem', overflow:'hidden', marginBottom:'1.25rem' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', background:'var(--border2)', borderBottom:'1px solid var(--border)', fontSize:'0.58rem', fontWeight:800, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.08em' }}>
           <div>#</div><div>Team</div><div style={{ textAlign:'center' }}>W</div><div style={{ textAlign:'center' }}>L</div><div style={{ textAlign:'center' }}>Pts</div><div style={{ textAlign:'right' }}>NRR</div>
         </div>
         {table.map((row, i) => (
-          <div key={row.team} style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', borderBottom: i < table.length-1 ? '1px solid #1a1a26' : 'none', background: row.isUser ? '#1F6FEB08' : 'transparent', borderLeft: row.isUser ? '3px solid #1F6FEB' : i < 4 ? '3px solid #1F6FEB22' : '3px solid transparent' }}>
-            <div style={{ fontSize:'0.72rem', fontWeight:800, color: i < 4 ? '#1F6FEB' : '#2a2a3a', alignSelf:'center' }}>{i+1}</div>
-            <div style={{ fontSize:'0.82rem', fontWeight: row.isUser ? 900 : 600, color: row.isUser ? '#f1f5f9' : '#94a3b8', alignSelf:'center' }}>{row.team}{row.isUser && ' ⭐'}</div>
+          <div key={row.team} style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', borderBottom: i < table.length-1 ? '1px solid var(--border2)' : 'none', background: row.isUser ? '#1F6FEB08' : 'transparent', borderLeft: row.isUser ? '3px solid #1F6FEB' : i < 4 ? '3px solid #1F6FEB22' : '3px solid transparent' }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:800, color: i < 4 ? '#1F6FEB' : 'var(--border)', alignSelf:'center' }}>{i+1}</div>
+            <div style={{ fontSize:'0.82rem', fontWeight: row.isUser ? 900 : 600, color: row.isUser ? 'var(--text)' : '#94a3b8', alignSelf:'center' }}>{row.team}{row.isUser && ' ⭐'}</div>
             <div style={{ fontSize:'0.82rem', fontWeight:700, color:'#1F6FEB', textAlign:'center', alignSelf:'center' }}>{row.wins}</div>
             <div style={{ fontSize:'0.82rem', fontWeight:700, color:'#ef4444', textAlign:'center', alignSelf:'center' }}>{row.losses}</div>
             <div style={{ fontSize:'0.9rem', fontWeight:900, color:'#f59e0b', textAlign:'center', alignSelf:'center' }}>{row.points}</div>
@@ -756,11 +756,11 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
       {!qualified && topTeam && (
         <div style={{ padding:'1rem', background:'#1a1200', border:'1px solid #f59e0b33', borderRadius:'0.875rem', marginBottom:'1.25rem', textAlign:'center' }}>
           <div style={{ fontSize:'0.62rem', color:'#f59e0b', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.3rem' }}>IPL Champions (Simulated)</div>
-          <div style={{ fontSize:'1.1rem', fontWeight:900, color:'#f1f5f9' }}>🏆 {topTeam.team}</div>
+          <div style={{ fontSize:'1.1rem', fontWeight:900, color:'var(--text)' }}>🏆 {topTeam.team}</div>
         </div>
       )}
 
-      <button onClick={qualified ? onProceed : onSummary} style={{ width:'100%', padding:'1rem', background: qualified ? 'linear-gradient(135deg,#1F6FEB,#0047CC)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: qualified ? '#0a0a0f' : '#f1f5f9', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}>
+      <button onClick={qualified ? onProceed : onSummary} style={{ width:'100%', padding:'1rem', background: qualified ? 'linear-gradient(135deg,#1F6FEB,#0047CC)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: qualified ? 'var(--bg)' : 'var(--text)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}>
         {qualified ? 'Proceed to Playoffs →' : 'View Season Summary →'}
       </button>
     </div>
@@ -777,10 +777,10 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
   return (
     <div style={{ background: won ? '#0d2418' : '#1a0d0d', border:`1px solid ${won ? '#0047CC44' : '#7f1d1d44'}`, borderRadius:'0.75rem', overflow:'hidden', animation: isLatest ? 'slide-in-right 0.3s ease both' : 'none' }}>
       <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', padding:'0.75rem 1rem', cursor: hasHighlights ? 'pointer' : 'default' }} onClick={hasHighlights ? onToggle : undefined}>
-        <div style={{ width:28, height:28, borderRadius:'50%', background:'#1a1a26', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.62rem', fontWeight:800, color:'#64748b', flexShrink:0 }}>{matchNum}</div>
+        <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--border2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.62rem', fontWeight:800, color:'#64748b', flexShrink:0 }}>{matchNum}</div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:'0.58rem', color:stageClr, textTransform:'uppercase', letterSpacing:'0.07em', fontWeight:700 }}>{stage}</div>
-          <div style={{ fontSize:'0.875rem', fontWeight:700, color:'#f1f5f9', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>vs {opponent}</div>
+          <div style={{ fontSize:'0.875rem', fontWeight:700, color:'var(--text)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>vs {opponent}</div>
         </div>
         <div style={{ textAlign:'right', flexShrink:0 }}>
           <div style={{ fontSize:'0.7rem', color: won ? '#0047CC' : '#dc2626', fontWeight:700 }}>{summary}</div>
@@ -789,7 +789,7 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
         <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background: won ? '#1F6FEB22' : '#ef444422', border:`1px solid ${won ? '#1F6FEB66' : '#ef444466'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.62rem', fontWeight:900, color: won ? '#1F6FEB' : '#ef4444' }}>
           {won ? 'W' : 'L'}
         </div>
-        {hasHighlights && <div style={{ fontSize:'0.58rem', color:'#2a2a3a', flexShrink:0 }}>{expanded ? '▲' : '▼'}</div>}
+        {hasHighlights && <div style={{ fontSize:'0.58rem', color:'var(--border)', flexShrink:0 }}>{expanded ? '▲' : '▼'}</div>}
       </div>
 
       {expanded && hasHighlights && (
@@ -803,7 +803,7 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
                 <div style={{ fontSize:'0.58rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.07em' }}>
                   {event.type === 'century' ? 'Century Moment' : event.type === 'half-century' ? 'Fifty Moment' : 'Hat-Trick Ball'}
                 </div>
-                <div style={{ fontSize:'0.9rem', fontWeight:800, color:'#f1f5f9' }}>{event.playerName}</div>
+                <div style={{ fontSize:'0.9rem', fontWeight:800, color:'var(--text)' }}>{event.playerName}</div>
                 <div style={{ fontSize:'0.75rem', fontWeight:700, color: eventResult.success ? '#f59e0b' : '#ef4444' }}>
                   {eventResult.success
                     ? (event.type === 'hat-trick' ? 'Hat-trick! 🔥' : event.type === 'century' ? 'Hundred! 🏆' : 'Fifty! 🎉')
@@ -817,7 +817,7 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
               <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background:'#1F6FEB18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem' }}>🏏</div>
               <div>
                 <div style={{ fontSize:'0.58rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.07em' }}>Top Scorer</div>
-                <div style={{ fontSize:'0.9rem', fontWeight:800, color:'#f1f5f9' }}>{stats.topScorer.name}</div>
+                <div style={{ fontSize:'0.9rem', fontWeight:800, color:'var(--text)' }}>{stats.topScorer.name}</div>
                 <div style={{ fontSize:'0.75rem', color:'#1F6FEB', fontWeight:700 }}>{stats.topScorer.runs} runs off {stats.topScorer.balls}b · SR {stats.topScorer.sr}</div>
               </div>
             </div>
@@ -827,7 +827,7 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
               <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background:'#a855f718', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem' }}>🎯</div>
               <div>
                 <div style={{ fontSize:'0.58rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.07em' }}>Best Bowling</div>
-                <div style={{ fontSize:'0.9rem', fontWeight:800, color:'#f1f5f9' }}>{stats.topBowler.name}</div>
+                <div style={{ fontSize:'0.9rem', fontWeight:800, color:'var(--text)' }}>{stats.topBowler.name}</div>
                 <div style={{ fontSize:'0.75rem', color:'#a855f7', fontWeight:700 }}>{stats.topBowler.wickets}/{stats.topBowler.runsConceded}</div>
               </div>
             </div>
@@ -857,14 +857,14 @@ function GroupDraw({ mode, drawnOpponents, onStart }) {
       </div>
       {/* Your XI first */}
       {highlight && (
-        <div style={{ padding: '0.55rem 1rem', borderBottom: '1px solid #1a1a26', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#1F6FEB08' }}>
+        <div style={{ padding: '0.55rem 1rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#1F6FEB08' }}>
           <span style={{ fontSize: '0.85rem' }}>⭐</span>
-          <span style={{ fontSize: '0.875rem', fontWeight: 900, color: '#f1f5f9' }}>Your XI</span>
+          <span style={{ fontSize: '0.875rem', fontWeight: 900, color: 'var(--text)' }}>Your XI</span>
           <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#1F6FEB', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>You</span>
         </div>
       )}
       {teams.map((name, i) => (
-        <div key={name} style={{ padding: '0.5rem 1rem', borderBottom: i < teams.length - 1 ? '1px solid #1a1a26' : 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div key={name} style={{ padding: '0.5rem 1rem', borderBottom: i < teams.length - 1 ? '1px solid var(--border2)' : 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8' }}>{name}</span>
         </div>
       ))}
@@ -899,7 +899,7 @@ function GroupDraw({ mode, drawnOpponents, onStart }) {
         style={{
           width: '100%', padding: '1rem',
           background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
-          color: '#0a0a0f', border: 'none', borderRadius: '0.875rem',
+          color: 'var(--bg)', border: 'none', borderRadius: '0.875rem',
           fontSize: '1.05rem', fontWeight: 800, cursor: 'pointer',
           letterSpacing: '0.03em',
         }}
@@ -915,12 +915,12 @@ function GroupDraw({ mode, drawnOpponents, onStart }) {
 function LeaderboardPanel({ title, entries, valueKey, unit, color }) {
   if (!entries.length) return null
   return (
-    <div style={{ background:'#12121a', border:'1px solid #2a2a3a', borderRadius:'0.875rem', overflow:'hidden' }}>
-      <div style={{ padding:'0.6rem 1rem', borderBottom:'1px solid #1a1a26', fontSize:'0.72rem', fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.08em' }}>{title}</div>
+    <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'0.875rem', overflow:'hidden' }}>
+      <div style={{ padding:'0.6rem 1rem', borderBottom:'1px solid var(--border2)', fontSize:'0.72rem', fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.08em' }}>{title}</div>
       {entries.map((e, i) => (
-        <div key={e.name} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.5rem 1rem', borderBottom: i < entries.length-1 ? '1px solid #1a1a26' : 'none' }}>
-          <div style={{ fontSize:'0.62rem', color: i===0 ? color : '#2a2a3a', fontWeight:900, width:16 }}>{i===0 ? '▶' : `${i+1}`}</div>
-          <div style={{ flex:1, fontSize:'0.78rem', fontWeight:600, color:'#f1f5f9', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{e.name}</div>
+        <div key={e.name} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.5rem 1rem', borderBottom: i < entries.length-1 ? '1px solid var(--border2)' : 'none' }}>
+          <div style={{ fontSize:'0.62rem', color: i===0 ? color : 'var(--border)', fontWeight:900, width:16 }}>{i===0 ? '▶' : `${i+1}`}</div>
+          <div style={{ flex:1, fontSize:'0.78rem', fontWeight:600, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{e.name}</div>
           <div style={{ fontSize:'0.875rem', fontWeight:900, color: i===0 ? color : '#94a3b8', flexShrink:0 }}>
             {e[valueKey]}<span style={{ fontSize:'0.58rem', color:'#64748b', marginLeft:'0.2rem' }}>{unit}</span>
           </div>

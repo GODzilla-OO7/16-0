@@ -389,7 +389,7 @@ function BudgetBar({ budget }) {
         <span style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>💰 Budget</span>
         <span style={{ fontSize: '0.95rem', fontWeight: 900, color, transition: 'color 0.3s' }}>{fmtCr(budget)}</span>
       </div>
-      <div style={{ height: 6, background: '#1a1a26', borderRadius: 3 }}>
+      <div style={{ height: 6, background: 'var(--border2)', borderRadius: 3 }}>
         <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 3, transition: 'width 0.4s, background 0.3s' }} />
       </div>
     </div>
@@ -407,7 +407,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
         <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700, marginBottom: '0.3rem' }}>
           Pick {slotIndex + 1} of {totalSlots}
         </div>
-        <div style={{ fontSize: '0.68rem', color: '#2a2a3a', fontWeight: 600, marginBottom: '0.3rem' }}>
+        <div style={{ fontSize: '0.68rem', color: 'var(--border)', fontWeight: 600, marginBottom: '0.3rem' }}>
           {rerollsLeft} reroll{rerollsLeft !== 1 ? 's' : ''} remaining
         </div>
         {mustPick && (
@@ -423,8 +423,8 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
       {/* Ticker — now shows "Team Year" prominently */}
       <div style={{
         width: '100%', maxWidth: 360, minHeight: 110, borderRadius: '1rem',
-        border: `2px solid ${cycleEntry ? cycleEntry.color + '88' : '#2a2a3a'}`,
-        background: cycleEntry ? cycleEntry.color + '14' : '#12121a',
+        border: `2px solid ${cycleEntry ? cycleEntry.color + '88' : 'var(--border)'}`,
+        background: cycleEntry ? cycleEntry.color + '14' : 'var(--card)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         padding: '1.25rem',
         boxShadow: cycleEntry && isSpinning ? `0 0 30px ${cycleEntry.color}33` : 'none',
@@ -442,7 +442,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
             )}
           </>
         ) : (
-          <div style={{ fontSize: '0.9rem', color: '#2a2a3a', fontWeight: 600 }}>Spin to land on a team</div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--border)', fontWeight: 600 }}>Spin to land on a team</div>
         )}
       </div>
 
@@ -452,8 +452,8 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
         style={{
           padding: '0.875rem 2.75rem',
           background: isSpinning ? 'transparent' : 'linear-gradient(135deg, #1F6FEB, #0047CC)',
-          color: isSpinning ? '#64748b' : '#0a0a0f',
-          border: isSpinning ? '1px solid #2a2a3a' : 'none',
+          color: isSpinning ? '#64748b' : 'var(--bg)',
+          border: isSpinning ? '1px solid var(--border)' : 'none',
           borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800,
           cursor: isSpinning ? 'default' : 'pointer', minWidth: 180,
           letterSpacing: '0.06em', textTransform: 'uppercase',
@@ -478,13 +478,13 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
       {budgetStuck && (
         <div style={{
           position: 'absolute', inset: 0, zIndex: 10,
-          background: 'rgba(10,10,15,0.95)', backdropFilter: 'blur(6px)',
+          background: 'var(--card)', backdropFilter: 'blur(6px)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           padding: '2rem', textAlign: 'center', borderRadius: '0.5rem',
           animation: 'fade-in 0.3s ease both',
         }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>💸</div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.4rem' }}>
+          <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.4rem' }}>
             Team Incomplete
           </div>
           <div style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.6, marginBottom: '1.75rem', maxWidth: 280 }}>
@@ -495,7 +495,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
               onClick={onRetryBidding}
               style={{
                 padding: '0.875rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
-                color: '#0a0a0f', border: 'none', borderRadius: '0.625rem',
+                color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
                 fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
               }}
             >
@@ -508,7 +508,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
               onClick={onRetryFromBeginning}
               style={{
                 padding: '0.75rem', background: 'transparent',
-                color: '#94a3b8', border: '1px solid #2a2a3a', borderRadius: '0.625rem',
+                color: '#94a3b8', border: '1px solid var(--border)', borderRadius: '0.625rem',
                 fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
               }}
             >
@@ -558,7 +558,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
       )}
 
       {/* Info bar */}
-      <div style={{ padding: '0.45rem 1.25rem', background: '#12121a', borderBottom: '1px solid #1a1a26', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '0.45rem 1.25rem', background: 'var(--card)', borderBottom: '1px solid var(--border2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '0.7rem', color: compositionUnlocked ? '#ef4444' : mustPick ? '#f59e0b' : '#64748b' }}>
           {compositionUnlocked
             ? '⚠ No matching players — pick anyone'
@@ -574,17 +574,17 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
             ↺ Different team ({rerollsLeft} left)
           </button>
         ) : (
-          <span style={{ fontSize: '0.68rem', color: '#2a2a3a', fontWeight: 600 }}>No rerolls left</span>
+          <span style={{ fontSize: '0.68rem', color: 'var(--border)', fontWeight: 600 }}>No rerolls left</span>
         )}
       </div>
 
       {/* Player list */}
-      <div style={{ background: '#12121a', overflowY: 'auto', maxHeight: '55vh' }}>
+      <div style={{ background: 'var(--card)', overflowY: 'auto', maxHeight: '55vh' }}>
         {allDrafted ? (
           <div style={{ padding: '2rem', textAlign: 'center' }}>
             <div style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1rem' }}>All players from this squad are already in your XI.</div>
             {canReroll && (
-              <button onClick={onSpinAgain} style={{ padding: '0.75rem 1.5rem', background: '#1a1a26', color: '#f1f5f9', border: '1px solid #2a2a3a', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 700 }}>
+              <button onClick={onSpinAgain} style={{ padding: '0.75rem 1.5rem', background: 'var(--border2)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 700 }}>
                 ↺ Spin again
               </button>
             )}
@@ -607,7 +607,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
             return (
               <div key={player.id}>
                 {showDivider && (
-                  <div style={{ padding: '0.3rem 1.25rem', background: '#0a0a0f', fontSize: '0.6rem', color: '#2a2a3a', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', borderTop: '1px solid #1a1a26', borderBottom: '1px solid #1a1a26' }}>
+                  <div style={{ padding: '0.3rem 1.25rem', background: 'var(--bg)', fontSize: '0.6rem', color: 'var(--border)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', borderTop: '1px solid var(--border2)', borderBottom: '1px solid var(--border2)' }}>
                     {mustPick && !player._eligible ? 'Other players — wrong role' : 'Over budget'}
                   </div>
                 )}
@@ -654,7 +654,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
       style={{
         display: 'flex', alignItems: 'center', gap: '0.875rem',
         padding: '0.75rem 1.25rem',
-        borderBottom: isLast ? 'none' : '1px solid #1a1a26',
+        borderBottom: isLast ? 'none' : '1px solid var(--border2)',
         cursor: blocked ? 'not-allowed' : 'pointer',
         background: blocked ? 'transparent' : hovered ? (highlight ? highlight + '15' : teamColor + '10') : highlight ? highlight + '08' : 'transparent',
         transition: 'background 0.12s',
@@ -674,7 +674,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
 
       {/* Name + nationality + indicators */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+        <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           {player.name}
           {isOverseas && <span style={{ fontSize: '0.7rem' }} title="Overseas player">✈️</span>}
           {isMustPick && !blocked && <span style={{ marginLeft: '0.2rem', fontSize: '0.58rem', color: '#f59e0b', fontWeight: 800 }}>NEEDED</span>}
@@ -689,7 +689,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
 
       {/* Ratings + Price */}
       {hardMode ? (
-        <div style={{ fontSize: '1rem', fontWeight: 900, color: '#2a2a3a', letterSpacing: '0.1em' }}>???</div>
+        <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--border)', letterSpacing: '0.1em' }}>???</div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', flexShrink: 0 }}>
           <MiniBar label="Bat"  value={ratings.batting} color="#1F6FEB" />
@@ -713,7 +713,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
       )}
 
       {!blocked && (
-        <div style={{ color: hovered ? (highlight || teamColor) : '#2a2a3a', fontSize: '1rem', transition: 'color 0.12s', flexShrink: 0 }}>→</div>
+        <div style={{ color: hovered ? (highlight || teamColor) : 'var(--border)', fontSize: '1rem', transition: 'color 0.12s', flexShrink: 0 }}>→</div>
       )}
     </div>
   )
@@ -722,7 +722,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
 function MiniBar({ label, value, color }) {
   return (
     <div style={{ textAlign: 'center', width: 42 }}>
-      <div style={{ height: 4, background: '#1a1a26', borderRadius: 2, marginBottom: 2 }}>
+      <div style={{ height: 4, background: 'var(--border2)', borderRadius: 2, marginBottom: 2 }}>
         <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: 2 }} />
       </div>
       <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 600 }}>{label} {value}</div>

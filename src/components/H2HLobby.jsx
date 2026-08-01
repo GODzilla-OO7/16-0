@@ -173,8 +173,8 @@ export default function H2HLobby({ onClose, onStartDraft }) {
   }
 
   const inp = {
-    width: '100%', padding: '0.75rem 1rem', background: '#0a0a0f',
-    border: '1px solid #2a2a3a', borderRadius: '0.5rem', color: '#f1f5f9',
+    width: '100%', padding: '0.75rem 1rem', background: 'var(--bg)',
+    border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--text)',
     fontSize: '1rem', outline: 'none', boxSizing: 'border-box',
   }
 
@@ -187,12 +187,12 @@ export default function H2HLobby({ onClose, onStartDraft }) {
     }}>
       <div style={{
         width: '100%', maxWidth: 420,
-        background: '#0d0d16', border: '1px solid #2a2a3a',
+        background: '#0d0d16', border: '1px solid var(--border)',
         borderRadius: '1.25rem', padding: '1.75rem',
         animation: 'fade-in-up 0.25s ease both',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#f1f5f9' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>
             {screen === 'home'    ? '⚔️ Head to Head' :
              screen === 'waiting' ? '🔗 Room ' + roomId :
              screen === 'create'  ? '🏠 Create Room' : '🚪 Join Room'}
@@ -202,11 +202,11 @@ export default function H2HLobby({ onClose, onStartDraft }) {
 
         {/* Name gate */}
         {!nameSet && (
-          <div style={{ marginBottom: '1.25rem', padding: '1rem', background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '0.75rem' }}>
+          <div style={{ marginBottom: '1.25rem', padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
             <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Your display name</div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <input style={{ ...inp, flex: 1 }} value={myName} onChange={e => setMyName(e.target.value)} placeholder="Enter your name" onKeyDown={e => e.key === 'Enter' && saveName()} />
-              <button onClick={saveName} style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>✓</button>
+              <button onClick={saveName} style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>✓</button>
             </div>
           </div>
         )}
@@ -225,7 +225,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
             </p>
 
             {/* Draft mode selector */}
-            <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '0.75rem', padding: '1rem' }}>
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem', padding: '1rem' }}>
               <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.75rem' }}>Draft Mode</div>
               {[
                 { id: 'snake', icon: '🐍', label: 'Snake Draft', desc: 'Take turns picking — order reverses each round. No money, pure strategy.' },
@@ -237,14 +237,14 @@ export default function H2HLobby({ onClose, onStartDraft }) {
                   style={{
                     display: 'flex', gap: '0.75rem', padding: '0.75rem',
                     marginBottom: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
-                    border: `1.5px solid ${draftMode === m.id ? '#1F6FEB' : '#1a1a26'}`,
+                    border: `1.5px solid ${draftMode === m.id ? '#1F6FEB' : 'var(--border2)'}`,
                     background: draftMode === m.id ? '#1F6FEB12' : 'transparent',
                     transition: 'border-color 0.15s, background 0.15s',
                   }}
                 >
                   <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>{m.icon}</span>
                   <div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#f1f5f9', marginBottom: '0.15rem' }}>{m.label}</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)', marginBottom: '0.15rem' }}>{m.label}</div>
                     <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: 1.4 }}>{m.desc}</div>
                   </div>
                 </div>
@@ -254,14 +254,14 @@ export default function H2HLobby({ onClose, onStartDraft }) {
             <button
               onClick={() => { setScreen('create'); createRoom() }}
               disabled={!nameSet || loading}
-              style={{ padding: '0.875rem', background: nameSet ? 'linear-gradient(135deg, #1F6FEB, #0047CC)' : '#1a1a26', color: nameSet ? '#0a0a0f' : '#475569', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: nameSet ? 'pointer' : 'not-allowed' }}
+              style={{ padding: '0.875rem', background: nameSet ? 'linear-gradient(135deg, #1F6FEB, #0047CC)' : 'var(--border2)', color: nameSet ? 'var(--bg)' : '#475569', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: nameSet ? 'pointer' : 'not-allowed' }}
             >
               🏠 Create Room
             </button>
             <button
               onClick={() => setScreen('join')}
               disabled={!nameSet}
-              style={{ padding: '0.875rem', background: 'transparent', color: nameSet ? '#94a3b8' : '#475569', border: '1px solid #2a2a3a', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 700, cursor: nameSet ? 'pointer' : 'not-allowed' }}
+              style={{ padding: '0.875rem', background: 'transparent', color: nameSet ? '#94a3b8' : '#475569', border: '1px solid var(--border)', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 700, cursor: nameSet ? 'pointer' : 'not-allowed' }}
             >
               🚪 Join Room
             </button>
@@ -284,7 +284,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
             <button
               onClick={joinRoom}
               disabled={loading || joinCode.length < 6}
-              style={{ padding: '0.875rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#0a0a0f', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
+              style={{ padding: '0.875rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
             >
               {loading ? 'Joining…' : '🚪 Join'}
             </button>
@@ -295,7 +295,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
         {/* ── Waiting room ── */}
         {screen === 'waiting' && room && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ textAlign: 'center', padding: '1rem', background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '0.875rem' }}>
+            <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem' }}>
               <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>Room Code</div>
               <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#1F6FEB', letterSpacing: '0.25em' }}>{roomId}</div>
               <div style={{ fontSize: '0.75rem', color: '#475569', marginTop: '0.3rem' }}>Share this with your opponent</div>
@@ -306,7 +306,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
               <PlayerSlot name={room.guest_name} label="Guest" ready={!!room.guest_id} />
             </div>
 
-            <div style={{ padding: '0.6rem 0.875rem', background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '0.5rem', fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ padding: '0.6rem 0.875rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span>{room.draft_mode === 'snake' ? '🐍' : '🔨'}</span>
               <span style={{ fontWeight: 700, color: '#94a3b8' }}>{room.draft_mode === 'snake' ? 'Snake Draft' : 'Live Auction'}</span>
             </div>
@@ -318,15 +318,15 @@ export default function H2HLobby({ onClose, onStartDraft }) {
                 style={{
                   padding: '0.9rem', fontWeight: 800, fontSize: '0.95rem', border: 'none',
                   borderRadius: '0.625rem', cursor: room.guest_id ? 'pointer' : 'not-allowed',
-                  background: room.guest_id ? 'linear-gradient(135deg, #f59e0b, #d97706)' : '#1a1a26',
-                  color: room.guest_id ? '#0a0a0f' : '#475569',
+                  background: room.guest_id ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'var(--border2)',
+                  color: room.guest_id ? 'var(--bg)' : '#475569',
                 }}
               >
                 {room.guest_id ? '🏏 Start Draft' : '⏳ Waiting for opponent…'}
               </button>
             )}
             {isGuest && (
-              <div style={{ textAlign: 'center', padding: '0.875rem', background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '0.625rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 700 }}>
+              <div style={{ textAlign: 'center', padding: '0.875rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.625rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 700 }}>
                 ⏳ Waiting for host to start…
               </div>
             )}
@@ -342,8 +342,8 @@ function PlayerSlot({ name, label, ready }) {
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.75rem',
       padding: '0.75rem 0.875rem',
-      background: ready ? '#0d1a0d' : '#12121a',
-      border: `1px solid ${ready ? '#22c55e44' : '#2a2a3a'}`,
+      background: ready ? '#0d1a0d' : 'var(--card)',
+      border: `1px solid ${ready ? '#22c55e44' : 'var(--border)'}`,
       borderRadius: '0.625rem',
     }}>
       <span style={{ fontSize: '1.2rem' }}>{ready ? '✅' : '⏳'}</span>

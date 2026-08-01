@@ -133,12 +133,12 @@ function XIPanel({ name, team, isMe }) {
 
   return (
     <div style={{
-      background: '#0b0b16',
-      border: `1px solid ${isMe ? '#1F6FEB44' : '#2a2a3a'}`,
+      background: 'var(--card2)',
+      border: `1px solid ${isMe ? '#1F6FEB44' : 'var(--border)'}`,
       borderRadius: '0.75rem', overflow: 'hidden',
       position: 'sticky', top: '4.5rem',
     }}>
-      <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid #1a1a26', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontSize: '0.75rem', fontWeight: 900, color: isMe ? '#1F6FEB' : '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>{name}</div>
         <div style={{ display: 'flex', gap: '0.4rem', fontSize: '0.6rem', flexShrink: 0 }}>
           <span style={{ color: oc >= 4 ? '#ef4444' : '#475569', fontWeight: 700 }}>🌍{oc}/4</span>
@@ -149,11 +149,11 @@ function XIPanel({ name, team, isMe }) {
         <div key={i} style={{
           display: 'flex', alignItems: 'center', gap: '0.35rem',
           padding: '0.3rem 0.6rem',
-          borderBottom: i < 10 ? '1px solid #12121a' : 'none',
+          borderBottom: i < 10 ? '1px solid var(--card)' : 'none',
           background: player ? 'transparent' : '#07070f',
           minHeight: 28,
         }}>
-          <span style={{ fontSize: '0.52rem', fontWeight: 800, color: '#2a2a3a', width: 24, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{label}</span>
+          <span style={{ fontSize: '0.52rem', fontWeight: 800, color: 'var(--border)', width: 24, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{label}</span>
           {player ? (
             <>
               <span style={{ fontSize: '0.68rem', fontWeight: 600, color: '#d1d5db', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</span>
@@ -625,20 +625,20 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
   const bp = room.auction_bid?.base_price ?? 0
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#f1f5f9', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', display: 'flex', flexDirection: 'column' }}>
 
       {/* Header */}
-      <div style={{ padding: '0.75rem 1.25rem', borderBottom: '1px solid #1a1a26', display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(10,10,15,0.96)', position: 'sticky', top: 0, zIndex: 10 }}>
+      <div style={{ padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--card)', position: 'sticky', top: 0, zIndex: 10 }}>
         <button
           onClick={onBack}
           title="Back to home"
-          style={{ background: 'none', border: '1px solid #2a2a3a', borderRadius: '0.375rem', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '0.3rem 0.6rem', flexShrink: 0, transition: 'border-color 0.15s, color 0.15s' }}
+          style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '0.375rem', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '0.3rem 0.6rem', flexShrink: 0, transition: 'border-color 0.15s, color 0.15s' }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = '#64748b' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = '#64748b' }}
         >
           ← Exit
         </button>
-        <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#f1f5f9', flex: 1 }}>
+        <div style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--text)', flex: 1 }}>
           {isSnake ? `🐍 Snake Draft — Pick ${(room.pick_number ?? 0) + 1}/22` : `🔨 Live Auction — ${myTeam.length}/11 players`}
         </div>
         {!isSnake && (
@@ -659,7 +659,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
           {/* ── SNAKE UI ── */}
           {isSnake && (
             <>
-              <div style={{ marginBottom: '0.875rem', padding: '0.6rem 1rem', borderRadius: '0.5rem', background: snakeMyTurn ? '#0d1a0d' : '#12121a', border: `1px solid ${snakeMyTurn ? '#22c55e44' : '#2a2a3a'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ marginBottom: '0.875rem', padding: '0.6rem 1rem', borderRadius: '0.5rem', background: snakeMyTurn ? '#0d1a0d' : 'var(--card)', border: `1px solid ${snakeMyTurn ? '#22c55e44' : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontWeight: 800, fontSize: '0.88rem', color: snakeMyTurn ? '#22c55e' : '#64748b' }}>
                   {snakeMyTurn ? '✅ Your pick' : currentEntry ? `⏳ ${oppName}'s pick` : '⏳ Spinning…'}
                 </span>
@@ -671,7 +671,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
               </div>
 
               {(spinning || cycleEntry) && !currentEntry && (
-                <div style={{ padding: '1.25rem', background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '0.875rem', textAlign: 'center', marginBottom: '0.875rem' }}>
+                <div style={{ padding: '1.25rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', textAlign: 'center', marginBottom: '0.875rem' }}>
                   <div style={{ fontSize: '1.1rem', fontWeight: 900, color: cycleEntry?.color ?? '#1F6FEB' }}>
                     {cycleEntry?.teamName ?? '—'}
                   </div>
@@ -686,7 +686,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
                       <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', opacity: 0.7 }}>{currentEntry.season}</span>
                     </div>
                   </div>
-                  <div style={{ background: '#12121a', border: `1px solid ${currentEntry.color}22`, borderTop: 'none', borderRadius: '0 0 0.75rem 0.75rem', overflow: 'hidden' }}>
+                  <div style={{ background: 'var(--card)', border: `1px solid ${currentEntry.color}22`, borderTop: 'none', borderRadius: '0 0 0.75rem 0.75rem', overflow: 'hidden' }}>
                     {snakePlayers.length === 0 ? (
                       <div style={{ padding: '1rem', textAlign: 'center', color: '#475569', fontSize: '0.85rem' }}>All players from this squad already taken</div>
                     ) : snakePlayers.map((p, i) => (
@@ -696,21 +696,21 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.75rem',
                           padding: '0.6rem 1rem',
-                          borderBottom: i < snakePlayers.length - 1 ? '1px solid #1a1a26' : 'none',
+                          borderBottom: i < snakePlayers.length - 1 ? '1px solid var(--border2)' : 'none',
                           cursor: snakeMyTurn ? 'pointer' : 'default',
                           transition: 'background 0.1s',
                         }}
-                        onMouseEnter={e => { if (snakeMyTurn) e.currentTarget.style.background = '#1a1a26' }}
+                        onMouseEnter={e => { if (snakeMyTurn) e.currentTarget.style.background = 'var(--border2)' }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#f1f5f9' }}>{p.name}</div>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text)' }}>{p.name}</div>
                           <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{p.nationality} · {p.role}</div>
                         </div>
                         <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>
                           {scaleDisplay(p.overall)}
                         </div>
-                        {snakeMyTurn && <div style={{ color: '#2a2a3a', fontSize: '0.9rem' }}>→</div>}
+                        {snakeMyTurn && <div style={{ color: 'var(--border)', fontSize: '0.9rem' }}>→</div>}
                       </div>
                     ))}
                   </div>
@@ -731,12 +731,12 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
 
               {/* Player card */}
               {currentPlayer && (
-                <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '0.875rem', overflow: 'hidden' }}>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
 
                   {/* Player header */}
-                  <div style={{ padding: '1rem 1.25rem', background: '#0d1020', borderBottom: '1px solid #2a2a3a', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ padding: '1rem 1.25rem', background: '#0d1020', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.2rem' }}>{currentPlayer.name}</div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>{currentPlayer.name}</div>
                       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.7rem', fontWeight: 700, color: roleColor(currentPlayer.role), background: roleColor(currentPlayer.role) + '22', padding: '0.15rem 0.5rem', borderRadius: '999px' }}>
                           {currentPlayer.role}
@@ -752,7 +752,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
                   </div>
 
                   {/* Base price */}
-                  <div style={{ padding: '0.6rem 1.25rem', borderBottom: '1px solid #1a1a26', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ padding: '0.6rem 1.25rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>Base price</span>
                     <span style={{ fontSize: '1rem', fontWeight: 900, color: '#22c55e' }}>₹{bp}cr</span>
                   </div>
@@ -781,10 +781,10 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
                                 disabled={voted || blocked}
                                 style={{
                                   flex: 1, padding: '0.8rem',
-                                  background: myInterest === true ? '#0d1a0d' : (voted || blocked) ? '#12121a' : '#0d1a0d',
-                                  border: `2px solid ${myInterest === true ? '#22c55e' : (voted || blocked) ? '#1a1a26' : '#22c55e44'}`,
+                                  background: myInterest === true ? '#0d1a0d' : (voted || blocked) ? 'var(--card)' : '#0d1a0d',
+                                  border: `2px solid ${myInterest === true ? '#22c55e' : (voted || blocked) ? 'var(--border2)' : '#22c55e44'}`,
                                   borderRadius: '0.625rem',
-                                  color: myInterest === true ? '#22c55e' : (voted || blocked) ? '#2a2a3a' : '#22c55e',
+                                  color: myInterest === true ? '#22c55e' : (voted || blocked) ? 'var(--border)' : '#22c55e',
                                   fontSize: '1rem', fontWeight: 800,
                                   cursor: (!voted && !blocked) ? 'pointer' : 'not-allowed',
                                   transition: 'all 0.15s',
@@ -797,10 +797,10 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
                                 disabled={voted}
                                 style={{
                                   flex: 1, padding: '0.8rem',
-                                  background: myInterest === false ? '#1a0d0d' : '#12121a',
-                                  border: `2px solid ${myInterest === false ? '#ef4444' : voted ? '#1a1a26' : '#ef444444'}`,
+                                  background: myInterest === false ? '#1a0d0d' : 'var(--card)',
+                                  border: `2px solid ${myInterest === false ? '#ef4444' : voted ? 'var(--border2)' : '#ef444444'}`,
                                   borderRadius: '0.625rem',
-                                  color: myInterest === false ? '#ef4444' : voted ? '#2a2a3a' : '#ef4444',
+                                  color: myInterest === false ? '#ef4444' : voted ? 'var(--border)' : '#ef4444',
                                   fontSize: '1rem', fontWeight: 800,
                                   cursor: !voted ? 'pointer' : 'not-allowed',
                                   transition: 'all 0.15s',
@@ -818,7 +818,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
                           { name: room.host_name, val: room.auction_bid?.host_interest },
                           { name: room.guest_name, val: room.auction_bid?.guest_interest },
                         ].map(({ name, val }) => (
-                          <div key={name} style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '999px', background: val === true ? '#0d1a0d' : val === false ? '#1a0d0d' : '#12121a', color: val === true ? '#22c55e' : val === false ? '#ef4444' : '#475569', border: `1px solid ${val === true ? '#22c55e44' : val === false ? '#ef444444' : '#2a2a3a'}` }}>
+                          <div key={name} style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '999px', background: val === true ? '#0d1a0d' : val === false ? '#1a0d0d' : 'var(--card)', color: val === true ? '#22c55e' : val === false ? '#ef4444' : '#475569', border: `1px solid ${val === true ? '#22c55e44' : val === false ? '#ef444444' : 'var(--border)'}` }}>
                             {name}: {val === true ? 'Yes ✅' : val === false ? 'No ❌' : '…'}
                           </div>
                         ))}
@@ -846,12 +846,12 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
                           }}
                           disabled={bidSubmitted}
                           placeholder={`Min ₹${bp}cr`}
-                          style={{ flex: 1, padding: '0.6rem 0.875rem', background: '#0a0a0f', border: '1px solid #2a2a3a', borderRadius: '0.4rem', color: '#f1f5f9', fontSize: '0.95rem', outline: 'none' }}
+                          style={{ flex: 1, padding: '0.6rem 0.875rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: 'var(--text)', fontSize: '0.95rem', outline: 'none' }}
                         />
                         <button
                           onClick={submitBid}
                           disabled={bidSubmitted || !myBid || parseFloat(myBid) < bp}
-                          style={{ padding: '0.6rem 1rem', background: bidSubmitted ? '#1a1a26' : 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: bidSubmitted ? '#475569' : '#fff', border: 'none', borderRadius: '0.4rem', fontWeight: 800, cursor: bidSubmitted ? 'not-allowed' : 'pointer', fontSize: '0.875rem', whiteSpace: 'nowrap' }}
+                          style={{ padding: '0.6rem 1rem', background: bidSubmitted ? 'var(--border2)' : 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: bidSubmitted ? '#475569' : '#fff', border: 'none', borderRadius: '0.4rem', fontWeight: 800, cursor: bidSubmitted ? 'not-allowed' : 'pointer', fontSize: '0.875rem', whiteSpace: 'nowrap' }}
                         >
                           {bidSubmitted ? '✓ Bid placed' : 'Bid'}
                         </button>
@@ -862,7 +862,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
                           { name: room.host_name, val: bidsLocal.host },
                           { name: room.guest_name, val: bidsLocal.guest },
                         ].map(({ name, val }) => (
-                          <div key={name} style={{ flex: 1, padding: '0.4rem 0.75rem', borderRadius: '0.4rem', background: val != null ? '#0d1a0d' : '#12121a', border: `1px solid ${val != null ? '#22c55e44' : '#2a2a3a'}`, fontSize: '0.75rem', fontWeight: 700, color: val != null ? '#22c55e' : '#475569', textAlign: 'center' }}>
+                          <div key={name} style={{ flex: 1, padding: '0.4rem 0.75rem', borderRadius: '0.4rem', background: val != null ? '#0d1a0d' : 'var(--card)', border: `1px solid ${val != null ? '#22c55e44' : 'var(--border)'}`, fontSize: '0.75rem', fontWeight: 700, color: val != null ? '#22c55e' : '#475569', textAlign: 'center' }}>
                             {name}: {val != null ? `₹${val}cr` : '…'}
                           </div>
                         ))}
@@ -874,7 +874,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
 
               {/* Last result banner */}
               {lastResult && (
-                <div style={{ marginTop: '0.75rem', padding: '0.6rem 1rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 700, animation: 'fade-in 0.3s ease both', background: lastResult.skipped ? '#12121a' : '#0d1a0d', border: `1px solid ${lastResult.skipped ? '#2a2a3a' : '#22c55e44'}`, color: lastResult.skipped ? '#475569' : '#86efac' }}>
+                <div style={{ marginTop: '0.75rem', padding: '0.6rem 1rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 700, animation: 'fade-in 0.3s ease both', background: lastResult.skipped ? 'var(--card)' : '#0d1a0d', border: `1px solid ${lastResult.skipped ? 'var(--border)' : '#22c55e44'}`, color: lastResult.skipped ? '#475569' : '#86efac' }}>
                   {lastResult.skipped
                     ? `⏭ ${lastResult.player.name} skipped — no interest`
                     : `✅ ${lastResult.winner} got ${lastResult.player.name} for ₹${lastResult.price}cr`}
@@ -901,13 +901,13 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
 
 function TeamColumn({ name, team, budget, highlight }) {
   return (
-    <div style={{ background: '#12121a', border: `1px solid ${highlight ? '#1F6FEB44' : '#2a2a3a'}`, borderRadius: '0.75rem', overflow: 'hidden' }}>
-      <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid #2a2a3a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ background: 'var(--card)', border: `1px solid ${highlight ? '#1F6FEB44' : 'var(--border)'}`, borderRadius: '0.75rem', overflow: 'hidden' }}>
+      <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontSize: '0.78rem', fontWeight: 800, color: highlight ? '#1F6FEB' : '#64748b' }}>{name} ({team.length}/11)</div>
         {budget != null && <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#22c55e' }}>₹{budget}cr</div>}
       </div>
       {team.map((p, i) => (
-        <div key={p.id ?? p.name ?? i} style={{ padding: '0.3rem 0.75rem', borderBottom: i < team.length - 1 ? '1px solid #1a1a26' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div key={p.id ?? p.name ?? i} style={{ padding: '0.3rem 0.75rem', borderBottom: i < team.length - 1 ? '1px solid var(--border2)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
           <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>{scaleDisplay(p.overall)}</div>
         </div>
@@ -918,14 +918,14 @@ function TeamColumn({ name, team, budget, highlight }) {
 
 function DraftDone({ room, uid, onDone }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center', padding: '2rem' }}>
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏏</div>
-        <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.5rem' }}>Draft Complete!</div>
+        <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.5rem' }}>Draft Complete!</div>
         <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '2rem' }}>Both squads are set. The IPL season begins now.</div>
         <button
           onClick={() => onDone(room)}
-          style={{ padding: '0.875rem 2rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#0a0a0f', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer' }}
+          style={{ padding: '0.875rem 2rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'var(--bg)', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer' }}
         >
           🏏 Start Season →
         </button>

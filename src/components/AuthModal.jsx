@@ -36,8 +36,8 @@ export default function AuthModal({ onClose, onSuccess }) {
 
   const inputStyle = {
     width: '100%', padding: '0.75rem 1rem',
-    background: '#0a0a0f', border: '1px solid #2a2a3a',
-    borderRadius: '0.5rem', color: '#f1f5f9',
+    background: 'var(--bg)', border: '1px solid var(--border)',
+    borderRadius: '0.5rem', color: 'var(--text)',
     fontSize: '0.95rem', outline: 'none',
     boxSizing: 'border-box',
     transition: 'border-color 0.2s',
@@ -54,7 +54,7 @@ export default function AuthModal({ onClose, onSuccess }) {
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       <div style={{
-        background: '#12121a', border: '1px solid #2a2a3a',
+        background: 'var(--card)', border: '1px solid var(--border)',
         borderRadius: '1.25rem', padding: '2rem',
         width: '100%', maxWidth: 380,
         animation: 'fade-in-up 0.25s ease both',
@@ -62,7 +62,7 @@ export default function AuthModal({ onClose, onSuccess }) {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🏏</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#f1f5f9' }}>
+          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)' }}>
             {mode === 'signin' ? 'Welcome back' : 'Create account'}
           </div>
           <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.25rem' }}>
@@ -75,11 +75,11 @@ export default function AuthModal({ onClose, onSuccess }) {
             <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📧</div>
             <div style={{ fontWeight: 800, color: '#1F6FEB', marginBottom: '0.5rem' }}>Check your email</div>
             <div style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.6 }}>
-              We sent a confirmation link to <strong style={{ color: '#f1f5f9' }}>{email}</strong>. Click it to activate your account, then come back and sign in.
+              We sent a confirmation link to <strong style={{ color: 'var(--text)' }}>{email}</strong>. Click it to activate your account, then come back and sign in.
             </div>
             <button
               onClick={() => { setMode('signin'); setSent(false) }}
-              style={{ marginTop: '1.25rem', padding: '0.75rem 1.5rem', background: '#1a1a26', border: '1px solid #2a2a3a', borderRadius: '0.5rem', color: '#f1f5f9', cursor: 'pointer', fontWeight: 700 }}
+              style={{ marginTop: '1.25rem', padding: '0.75rem 1.5rem', background: 'var(--border2)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--text)', cursor: 'pointer', fontWeight: 700 }}
             >
               Back to Sign In
             </button>
@@ -98,7 +98,7 @@ export default function AuthModal({ onClose, onSuccess }) {
                 required
                 style={inputStyle}
                 onFocus={e => e.target.style.borderColor = '#1F6FEB'}
-                onBlur={e => e.target.style.borderColor = '#2a2a3a'}
+                onBlur={e => e.target.style.borderColor = 'var(--border)'}
               />
             </div>
 
@@ -115,7 +115,7 @@ export default function AuthModal({ onClose, onSuccess }) {
                 minLength={6}
                 style={inputStyle}
                 onFocus={e => e.target.style.borderColor = '#1F6FEB'}
-                onBlur={e => e.target.style.borderColor = '#2a2a3a'}
+                onBlur={e => e.target.style.borderColor = 'var(--border)'}
               />
             </div>
 
@@ -131,7 +131,7 @@ export default function AuthModal({ onClose, onSuccess }) {
               style={{
                 width: '100%', padding: '0.875rem',
                 background: loading ? '#1a2e1a' : 'linear-gradient(135deg, #1F6FEB, #0047CC)',
-                color: loading ? '#64748b' : '#0a0a0f',
+                color: loading ? '#64748b' : 'var(--bg)',
                 border: 'none', borderRadius: '0.625rem',
                 fontSize: '1rem', fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'opacity 0.2s',

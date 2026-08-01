@@ -4,7 +4,7 @@ import { getSupabase } from '../lib/supabase'
 
 const MODE_LABEL = { ipl: '🏏 IPL', 'odi-wc': '🌍 ODI WC', 't20-wc': '⚡ T20 WC' }
 
-function StatCard({ label, value, color = '#f1f5f9', sub }) {
+function StatCard({ label, value, color = 'var(--text)', sub }) {
   return (
     <div style={{
       background: '#0e0e18', border: '1px solid #1e1e2e',
@@ -45,7 +45,7 @@ function ResultRow({ result }) {
           flexShrink: 0,
         }} />
         <div>
-          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f1f5f9' }}>
+          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text)' }}>
             {result.wins}W – {result.losses}L
             {result.perfect && <span style={{ marginLeft: '0.4rem', fontSize: '0.65rem', color: '#f59e0b' }}>✨ Perfect</span>}
           </div>
@@ -117,7 +117,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                 width: 72, height: 72, borderRadius: '50%',
                 background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1.75rem', fontWeight: 900, color: '#0a0a0f',
+                fontSize: '1.75rem', fontWeight: 900, color: 'var(--bg)',
                 margin: '0 auto 0.875rem',
                 boxShadow: '0 0 24px #1F6FEB44',
               }}>
@@ -130,14 +130,14 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                     value={nameInput}
                     onChange={e => setNameInput(e.target.value)}
                     autoFocus
-                    style={{ padding: '0.4rem 0.75rem', background: '#0a0a0f', border: '1px solid #1F6FEB', borderRadius: '0.4rem', color: '#f1f5f9', fontSize: '1rem', fontWeight: 700, textAlign: 'center' }}
+                    style={{ padding: '0.4rem 0.75rem', background: 'var(--bg)', border: '1px solid #1F6FEB', borderRadius: '0.4rem', color: 'var(--text)', fontSize: '1rem', fontWeight: 700, textAlign: 'center' }}
                   />
-                  <button onClick={saveName} style={{ background: '#1F6FEB', border: 'none', borderRadius: '0.4rem', color: '#0a0a0f', fontWeight: 800, padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✓</button>
-                  <button onClick={() => setEditingName(false)} style={{ background: '#1a1a26', border: '1px solid #2a2a3a', borderRadius: '0.4rem', color: '#64748b', padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✕</button>
+                  <button onClick={saveName} style={{ background: '#1F6FEB', border: 'none', borderRadius: '0.4rem', color: 'var(--bg)', fontWeight: 800, padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✓</button>
+                  <button onClick={() => setEditingName(false)} style={{ background: 'var(--border2)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: '#64748b', padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✕</button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#f1f5f9' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text)' }}>
                     {profile?.display_name || user?.email?.split('@')[0]}
                   </div>
                   <button
@@ -161,7 +161,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                 <StatCard label="Games" value={profile?.total_games ?? 0} />
                 <StatCard label="Wins" value={profile?.total_wins ?? 0} color="#1F6FEB" />
-                <StatCard label="Win %" value={`${winPct}%`} color={winPct >= 60 ? '#f59e0b' : '#f1f5f9'} />
+                <StatCard label="Win %" value={`${winPct}%`} color={winPct >= 60 ? '#f59e0b' : 'var(--text)'} />
                 <StatCard label="Best Streak" value={profile?.best_streak ?? 0} color="#3b82f6" sub="most wins in one season" />
                 <StatCard label="Perfect" value={profile?.perfect_seasons ?? 0} color="#f59e0b" sub="zero-loss seasons" />
                 <StatCard label="Losses" value={profile?.total_losses ?? 0} color="#ef4444" />
@@ -189,13 +189,13 @@ export default function UserProfile({ user, onClose, onSignOut }) {
               onClick={onSignOut}
               style={{
                 width: '100%', padding: '0.75rem',
-                background: 'transparent', border: '1px solid #2a2a3a',
+                background: 'transparent', border: '1px solid var(--border)',
                 borderRadius: '0.625rem', color: '#64748b',
                 fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
                 transition: 'border-color 0.2s, color 0.2s',
               }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = '#64748b' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = '#64748b' }}
             >
               Sign Out
             </button>

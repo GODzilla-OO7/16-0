@@ -65,11 +65,11 @@ function OverseasTracker({ team }) {
                 flex: 1,
                 height: 28,
                 borderRadius: '0.35rem',
-                background: filled ? barColor + '22' : '#1a1a26',
-                border: `1.5px solid ${filled ? barColor : '#2a2a3a'}`,
+                background: filled ? barColor + '22' : 'var(--border2)',
+                border: `1.5px solid ${filled ? barColor : 'var(--border)'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '0.62rem', fontWeight: 700,
-                color: filled ? barColor : '#2a2a3a',
+                color: filled ? barColor : 'var(--border)',
                 overflow: 'hidden',
                 transition: 'all 0.3s ease',
               }}
@@ -81,7 +81,7 @@ function OverseasTracker({ team }) {
       </div>
 
       {/* Progress bar */}
-      <div style={{ height: 3, background: '#1a1a26', borderRadius: 2, overflow: 'hidden' }}>
+      <div style={{ height: 3, background: 'var(--border2)', borderRadius: 2, overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: barColor, borderRadius: 2, transition: 'width 0.4s ease' }} />
       </div>
 
@@ -161,18 +161,18 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
         <span style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
         <span style={{ fontSize: '0.72rem', fontWeight: 900, color }}>{value}</span>
       </div>
-      <div style={{ height: 5, background: '#1a1a26', borderRadius: 3 }}>
+      <div style={{ height: 5, background: 'var(--border2)', borderRadius: 3 }}>
         <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: 3, transition: 'width 0.5s ease' }} />
       </div>
     </div>
   )
 
   return (
-    <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '1rem', padding: '1rem 1.1rem', marginTop: '0.75rem', animation: 'fade-in 0.3s ease both' }}>
+    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1rem', padding: '1rem 1.1rem', marginTop: '0.75rem', animation: 'fade-in 0.3s ease both' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
         <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Team Strength</span>
-        <span style={{ fontSize: '0.65rem', color: '#2a2a3a' }}>{team.length}/11</span>
+        <span style={{ fontSize: '0.65rem', color: 'var(--border)' }}>{team.length}/11</span>
       </div>
 
       <Bar label="Batting avg"  value={avgBat}  color="#1F6FEB" />
@@ -194,7 +194,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
             )}
           </span>
         </div>
-        <div style={{ height: 5, background: '#1a1a26', borderRadius: 3 }}>
+        <div style={{ height: 5, background: 'var(--border2)', borderRadius: 3 }}>
           <div style={{ width: `${avgOvr}%`, height: '100%', background: '#f59e0b', borderRadius: 3, transition: 'width 0.5s ease' }} />
         </div>
       </div>
@@ -208,7 +208,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
 
       {/* Manager bonus display */}
       {manager && (
-        <div style={{ marginTop: '0.6rem', padding: '0.4rem 0.65rem', background: '#1a1a26', borderRadius: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <div style={{ marginTop: '0.6rem', padding: '0.4rem 0.65rem', background: 'var(--border2)', borderRadius: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <span style={{ fontSize: '0.8rem' }}>{manager.icon}</span>
           <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600 }}>{manager.name}</span>
           <span style={{ marginLeft: 'auto', fontSize: '0.62rem', color: '#1F6FEB', fontWeight: 700 }}>
@@ -245,7 +245,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
             marginTop: '0.875rem',
             width: '100%', padding: '0.875rem',
             background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-            color: '#0a0a0f', border: 'none', borderRadius: '0.625rem',
+            color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
             fontSize: '1rem', fontWeight: 800,
             cursor: 'pointer', letterSpacing: '0.03em',
             animation: 'pulse-glow 2s ease infinite',

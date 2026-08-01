@@ -76,7 +76,7 @@ function PlayerCard({ player, idx, isMispos, ratingType, onMoveUp, onMoveDown, i
     border: `1px solid ${enabled ? '#1F6FEB44' : 'transparent'}`,
     borderRadius: '3px',
     fontSize: '0.55rem', fontWeight: 900,
-    color: enabled ? '#1F6FEB' : '#2a2a3a',
+    color: enabled ? '#1F6FEB' : 'var(--border)',
     cursor: enabled ? 'pointer' : 'default',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     lineHeight: 1, padding: 0,
@@ -112,7 +112,7 @@ function PlayerCard({ player, idx, isMispos, ratingType, onMoveUp, onMoveDown, i
         <div style={{
           position: 'absolute', top: -6, left: -6,
           width: 18, height: 18, borderRadius: '50%',
-          background: '#0a0a0f', border: `1.5px solid ${color}`,
+          background: 'var(--bg)', border: `1.5px solid ${color}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '0.5rem', fontWeight: 900, color,
         }}>
@@ -127,7 +127,7 @@ function PlayerCard({ player, idx, isMispos, ratingType, onMoveUp, onMoveDown, i
 
       {/* Last name */}
       <div style={{
-        fontSize: '0.65rem', fontWeight: 800, color: '#f1f5f9',
+        fontSize: '0.65rem', fontWeight: 800, color: 'var(--text)',
         textAlign: 'center', maxWidth: 60,
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>

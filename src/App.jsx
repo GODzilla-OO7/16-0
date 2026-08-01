@@ -30,6 +30,15 @@ function sortByBattingOrder(arr) {
 }
 
 export default function App() {
+  useEffect(() => {
+    const sync = () => {
+      const isDark = localStorage.getItem('cricket-theme') !== 'light'
+      document.body.classList.toggle('light', !isDark)
+    }
+    sync()
+    window.addEventListener('cricket-theme-change', sync)
+    return () => window.removeEventListener('cricket-theme-change', sync)
+  }, [])
   const { user, signOut } = useAuth()
 
   const [mode, setMode]             = useState(null)
@@ -167,7 +176,7 @@ export default function App() {
 
   const btnBase = {
     width: 44, height: 44, borderRadius: '50%',
-    background: '#12121a', border: '1px solid #2a2a3a',
+    background: 'var(--card)', border: '1px solid var(--border)',
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
     transition: 'border-color 0.2s, color 0.2s',
@@ -182,12 +191,12 @@ export default function App() {
         style={{
           ...btnBase,
           color: user ? '#1F6FEB' : '#64748b',
-          borderColor: user ? '#1F6FEB44' : '#2a2a3a',
+          borderColor: user ? '#1F6FEB44' : 'var(--border)',
           fontSize: user ? '0.75rem' : '1.1rem',
           fontWeight: 900,
         }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = '#1F6FEB'; e.currentTarget.style.color = '#1F6FEB' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = user ? '#1F6FEB44' : '#2a2a3a'; e.currentTarget.style.color = user ? '#1F6FEB' : '#64748b' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = user ? '#1F6FEB44' : 'var(--border)'; e.currentTarget.style.color = user ? '#1F6FEB' : '#64748b' }}
       >
         {user ? (user.email?.[0]?.toUpperCase() ?? '👤') : '👤'}
       </button>
@@ -198,11 +207,11 @@ export default function App() {
         title="Medals & Awards"
         style={{ ...btnBase, color: newAwards.length > 0 ? '#f59e0b' : '#64748b', fontSize: '1.1rem', position: 'relative' }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#f59e0b' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a3a'; e.currentTarget.style.color = newAwards.length > 0 ? '#f59e0b' : '#64748b' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = newAwards.length > 0 ? '#f59e0b' : '#64748b' }}
       >
         🏅
         {newAwards.length > 0 && (
-          <span style={{ position: 'absolute', top: -4, right: -4, width: 14, height: 14, borderRadius: '50%', background: '#f59e0b', fontSize: '0.55rem', fontWeight: 900, color: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ position: 'absolute', top: -4, right: -4, width: 14, height: 14, borderRadius: '50%', background: '#f59e0b', fontSize: '0.55rem', fontWeight: 900, color: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {newAwards.length}
           </span>
         )}
@@ -324,7 +333,7 @@ export default function App() {
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0.875rem 1.5rem', borderBottom: '1px solid var(--border)',
-          position: 'sticky', top: 0, background: 'rgba(10,10,15,0.96)',
+          position: 'sticky', top: 0, background: 'var(--card)',
           backdropFilter: 'blur(8px)', zIndex: 10,
         }}>
           <button onClick={handleBackToSettings} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer' }}>
@@ -352,7 +361,7 @@ export default function App() {
 
           {/* Left column — wheel or done banner */}
           <div>
-            <div style={{ background: '#12121a', border: '1px solid #2a2a3a', borderRadius: '1rem', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1rem', overflow: 'hidden' }}>
               {!isDone ? (
                 <WheelSpin
                   mode={mode}
@@ -375,10 +384,10 @@ export default function App() {
                   <div style={{ fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
                     XI Complete
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.5rem' }}>
                     Squad is set ✓
                   </div>
-                  <div style={{ color: '#64748b', fontSize: '0.82rem' }}>
+                  <div style={{ color: 'var(--muted)', fontSize: '0.82rem' }}>
                     Reorder your XI using the arrows on the right, then spin for a coach and start the season.
                   </div>
                 </div>

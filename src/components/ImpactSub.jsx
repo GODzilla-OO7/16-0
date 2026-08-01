@@ -205,7 +205,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
     }}>
       <div style={{
         width: '100%', maxWidth: 440,
-        background: '#0d0d16', border: '1px solid #2a2a3a',
+        background: '#0d0d16', border: '1px solid var(--border)',
         borderRadius: '1.25rem', padding: '1.75rem',
         animation: 'fade-in-up 0.3s ease both',
       }}>
@@ -215,7 +215,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
           <>
             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
               <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🔁</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.4rem' }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.4rem' }}>
                 Impact Sub Window
               </div>
               <div style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.6 }}>
@@ -227,7 +227,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
                 onClick={spinEvent}
                 style={{
                   padding: '0.9rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                  color: '#0a0a0f', border: 'none', borderRadius: '0.625rem',
+                  color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
                   fontSize: '1rem', fontWeight: 800, cursor: 'pointer',
                 }}
               >
@@ -237,7 +237,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
                 onClick={onSkip}
                 style={{
                   padding: '0.75rem', background: 'transparent',
-                  color: '#64748b', border: '1px solid #2a2a3a', borderRadius: '0.625rem',
+                  color: '#64748b', border: '1px solid var(--border)', borderRadius: '0.625rem',
                   fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
                 }}
               >
@@ -258,8 +258,8 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
 
             {/* Event reel */}
             <div style={{
-              background: displayed ? displayed.color + '18' : '#12121a',
-              border: `2px solid ${displayed ? displayed.color + '66' : '#2a2a3a'}`,
+              background: displayed ? displayed.color + '18' : 'var(--card)',
+              border: `2px solid ${displayed ? displayed.color + '66' : 'var(--border)'}`,
               borderRadius: '0.875rem', padding: '1.25rem',
               textAlign: 'center', marginBottom: '1.25rem',
               minHeight: 110, display: 'flex', flexDirection: 'column',
@@ -269,7 +269,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
               <div style={{ fontSize: '2.5rem', marginBottom: '0.4rem', filter: isEventSpinning ? 'blur(1.5px)' : 'none', transition: 'filter 0.08s' }}>
                 {displayed?.icon ?? '🎰'}
               </div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#f1f5f9', filter: isEventSpinning ? 'blur(1px)' : 'none', transition: 'filter 0.08s' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', filter: isEventSpinning ? 'blur(1px)' : 'none', transition: 'filter 0.08s' }}>
                 {displayed?.label ?? '—'}
               </div>
               {phase === 'event-landed' && displayed?.desc && (
@@ -285,7 +285,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
                 style={{
                   width: '100%', padding: '0.875rem',
                   background: `linear-gradient(135deg, ${eventEntry.color}, ${eventEntry.color}cc)`,
-                  color: '#0a0a0f', border: 'none', borderRadius: '0.625rem',
+                  color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
                   fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer',
                 }}
               >
@@ -312,14 +312,14 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
 
             {/* Player reel */}
             <div style={{
-              background: '#12121a', border: '2px solid #2a2a3a',
+              background: 'var(--card)', border: '2px solid var(--border)',
               borderRadius: '0.875rem', padding: '1rem 1.25rem',
               marginBottom: '1rem', minHeight: 80,
               display: 'flex', alignItems: 'center', gap: '0.875rem',
               transition: 'border-color 0.15s',
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '1rem', fontWeight: 900, color: '#f1f5f9', filter: isPlayerSpinning ? 'blur(1.5px)' : 'none', transition: 'filter 0.08s' }}>
+                <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--text)', filter: isPlayerSpinning ? 'blur(1.5px)' : 'none', transition: 'filter 0.08s' }}>
                   {displayedPlayer?.name ?? '—'}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.2rem', filter: isPlayerSpinning ? 'blur(1px)' : 'none', transition: 'filter 0.08s' }}>
@@ -363,7 +363,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
                   style={{
                     width: '100%', padding: '0.875rem',
                     background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                    color: '#0a0a0f', border: 'none', borderRadius: '0.625rem',
+                    color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
                     fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer',
                   }}
                 >

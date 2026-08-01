@@ -97,7 +97,7 @@ export default function SquadComposer({ onDone, onBack }) {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                     <span style={{ fontSize: '1.1rem' }}>{def.icon}</span>
-                    <span style={{ fontSize: '0.875rem', fontWeight: 700, color: count > 0 ? '#f1f5f9' : '#475569' }}>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 700, color: count > 0 ? 'var(--text)' : '#475569' }}>
                       {def.label}
                     </span>
                   </div>
@@ -181,7 +181,7 @@ export default function SquadComposer({ onDone, onBack }) {
                     {def ? (
                       <>
                         <span style={{ fontSize: '0.9rem' }}>{def.icon}</span>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f1f5f9' }}>{def.label.replace(/s$/, '')}</span>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text)' }}>{def.label.replace(/s$/, '')}</span>
                       </>
                     ) : (
                       <span style={{ fontSize: '0.75rem', color: '#1a2550', fontStyle: 'italic' }}>— empty slot</span>

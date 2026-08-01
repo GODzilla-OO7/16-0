@@ -103,7 +103,7 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
   const [totalPlays, setTotalPlays] = useState(null)
   const [htpHov, setHtpHov] = useState(false)
   const [dark, setDark] = useState(() => {
-    try { return localStorage.getItem('cricket-theme') === 'dark' } catch { return false }
+    try { return localStorage.getItem('cricket-theme') !== 'light' } catch { return true }
   })
 
   const C = dark ? DARK : LIGHT
@@ -111,7 +111,11 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
   function toggleTheme() {
     setDark(d => {
       const next = !d
-      try { localStorage.setItem('cricket-theme', next ? 'dark' : 'light') } catch {}
+      try {
+        localStorage.setItem('cricket-theme', next ? 'dark' : 'light')
+        document.body.classList.toggle('light', !next)
+        window.dispatchEvent(new Event('cricket-theme-change'))
+      } catch {}
       return next
     })
   }

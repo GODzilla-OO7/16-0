@@ -126,16 +126,16 @@ export default function TeamSheet({
 
   return (
     <div style={{
-      background: '#12121a', border: '1px solid #2a2a3a',
+      background: 'var(--card)', border: '1px solid var(--border)',
       borderRadius: '1rem', overflow: 'hidden',
     }}>
       {/* Header */}
       <div style={{
         padding: compact ? '0.625rem 0.875rem' : '0.875rem 1.1rem',
-        borderBottom: '1px solid #2a2a3a',
+        borderBottom: '1px solid var(--border)',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
-        <span style={{ fontWeight: 800, fontSize: compact ? '0.78rem' : '0.9rem', color: '#f1f5f9' }}>
+        <span style={{ fontWeight: 800, fontSize: compact ? '0.78rem' : '0.9rem', color: 'var(--text)' }}>
           Your XI
         </span>
         <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isDone ? '#1F6FEB' : '#64748b' }}>
@@ -166,7 +166,7 @@ export default function TeamSheet({
                 background: isHighlit
                   ? (roleColor[player?.role] ?? slotColor) + '18'
                   : isActive ? '#ddeaff'
-                  : player ? '#1a1a26' : 'transparent',
+                  : player ? 'var(--border2)' : 'transparent',
                 border: `1px solid ${
                   isActive ? '#1F6FEB44'
                   : isHighlit ? (roleColor[player?.role] ?? slotColor) + '44'
@@ -197,7 +197,7 @@ export default function TeamSheet({
                   <>
                     <div style={{
                       fontSize: compact ? '0.7rem' : '0.76rem',
-                      fontWeight: 700, color: '#f1f5f9',
+                      fontWeight: 700, color: 'var(--text)',
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       display: 'flex', alignItems: 'center', gap: '0.2rem',
                     }}>
@@ -266,13 +266,13 @@ export default function TeamSheet({
 
       {/* Simulate button (only when XI done and caller provides the handler) */}
       {isDone && onSimulate && (
-        <div style={{ padding: '0.625rem', borderTop: '1px solid #2a2a3a' }}>
+        <div style={{ padding: '0.625rem', borderTop: '1px solid var(--border)' }}>
           <button
             onClick={onSimulate}
             style={{
               width: '100%', padding: '0.75rem',
               background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
-              color: '#0a0a0f', border: 'none', borderRadius: '0.5rem',
+              color: 'var(--bg)', border: 'none', borderRadius: '0.5rem',
               fontSize: '0.875rem', fontWeight: 800,
               cursor: 'pointer', letterSpacing: '0.05em', textTransform: 'uppercase',
               animation: 'pulse-glow 2s ease infinite',
