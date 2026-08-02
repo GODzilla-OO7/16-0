@@ -32,7 +32,7 @@ function sortByBattingOrder(arr) {
 export default function App() {
   useEffect(() => {
     const sync = () => {
-      const isDark = localStorage.getItem('cricket-theme') !== 'light'
+      const isDark = localStorage.getItem('cricket-theme') === 'dark'
       document.body.classList.toggle('light', !isDark)
     }
     sync()

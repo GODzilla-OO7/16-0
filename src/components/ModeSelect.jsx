@@ -106,7 +106,7 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
   const [totalPlays, setTotalPlays] = useState(null)
   const [htpHov, setHtpHov] = useState(false)
   const [dark, setDark] = useState(() => {
-    try { return localStorage.getItem('cricket-theme') !== 'light' } catch { return true }
+    try { return localStorage.getItem('cricket-theme') === 'dark' } catch { return false }
   })
 
   const C = dark ? DARK : LIGHT
