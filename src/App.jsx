@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Component } from 'react'
 import { MODE_CONFIG, POSITIONS } from './data/players.js'
 import ModeSelect from './components/ModeSelect.jsx'
 import DraftSettings from './components/DraftSettings.jsx'
@@ -18,6 +18,33 @@ import H2HDraft from './components/H2HDraft.jsx'
 import { STARTING_BUDGET } from './components/WheelSpin.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
 import { useAuth, saveGameResult, incrementTotalPlays } from './hooks/useAuth.js'
+
+// Error boundary — catches H2HDraft crashes and shows a recoverable error screen
+class H2HErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null } }
+  static getDerivedStateFromError(error) { return { error } }
+  componentDidCatch(error, info) { console.error('[H2H crash]', error, info) }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', padding: '2rem', textAlign: 'center' }}>
+          <div style={{ fontSize: '2rem' }}>⚠️</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>H2H Draft crashed</div>
+          <div style={{ fontSize: '0.8rem', color: '#64748b', fontFamily: 'monospace', background: 'var(--card)', padding: '0.75rem', borderRadius: '0.5rem', maxWidth: 480, wordBreak: 'break-all' }}>
+            {this.state.error?.message ?? String(this.state.error)}
+          </div>
+          <button
+            onClick={() => { this.setState({ error: null }); this.props.onBack?.() }}
+            style={{ padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg,#1F6FEB,#0047CC)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}
+          >
+            ← Back to menu
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 // Batting order sort — mirrors TeamSheet's defaultSort
 const BATTING_ORDER_WEIGHT = {
@@ -248,11 +275,13 @@ export default function App() {
 
   // H2H active draft screen (full-page takeover)
   if (h2hRoom) {
+    const handleH2HBack = () => { setH2hRoom(null); setShowH2H(false) }
     return (
+      <H2HErrorBoundary onBack={handleH2HBack}>
       <H2HDraft
         room={h2hRoom}
         uid={sessionStorage.getItem('h2h_uid') ?? ''}
-        onBack={() => { setH2hRoom(null); setShowH2H(false) }}
+        onBack={handleH2HBack}
         onDone={finalRoom => {
           const myUid   = sessionStorage.getItem('h2h_uid') ?? ''
           const amHost  = myUid === finalRoom.host_id
@@ -266,6 +295,7 @@ export default function App() {
           setPhase('simulate')
         }}
       />
+      </H2HErrorBoundary>
     )
   }
 

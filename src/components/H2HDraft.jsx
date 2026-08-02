@@ -469,6 +469,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
   async function submitInterest(interested) {
     setMyInterest(interested)
     const sb = await getSupabase()
+    if (!sb) return
     const { data } = await sb.from('h2h_rooms').select('auction_bid').eq('id', room.id).single()
     const cur = data?.auction_bid ?? {}
     await sb.from('h2h_rooms').update({
