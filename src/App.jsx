@@ -61,6 +61,7 @@ export default function App() {
   const [budgetLeft, setBudgetLeft]   = useState(STARTING_BUDGET) // ₹125cr auction budget
   const [showH2H,    setShowH2H]      = useState(false)
   const [h2hRoom,    setH2hRoom]      = useState(null)  // active H2H room
+  const [activeChallenge, setActiveChallenge] = useState(null) // daily challenge in progress
 
   function handleModeSelect(m) {
     setMode(m)
@@ -153,6 +154,8 @@ export default function App() {
     setPreviewManager(null); setConfirmedManager(null)
     setComposition(null)
     setBudgetLeft(STARTING_BUDGET)
+    setActiveChallenge(null)
+    window.__activeChallenge = null
   }
 
   function handleBackToSettings() {
@@ -173,6 +176,29 @@ export default function App() {
     setBudgetLeft(STARTING_BUDGET)
     setRerollsLeft(settings?.rerolls ?? 3)
   }
+
+  // Persistent challenge banner — shown across all phases while a daily challenge is active
+  const challengeBanner = activeChallenge ? (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 900,
+      background: 'var(--card)',
+      borderBottom: '1px solid #1F6FEB44',
+      padding: '0.45rem 1.25rem',
+      display: 'flex', alignItems: 'center', gap: '0.625rem',
+      boxShadow: '0 2px 12px rgba(31,111,235,0.12)',
+    }}>
+      <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>
+        🗓️ Daily Challenge
+      </span>
+      <span style={{ width: 1, height: 14, background: '#1F6FEB33', flexShrink: 0 }} />
+      <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text)', flexShrink: 0 }}>
+        {activeChallenge.constraint_label}
+      </span>
+      <span style={{ fontSize: '0.75rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        — {activeChallenge.constraint_desc}
+      </span>
+    </div>
+  ) : null
 
   const btnBase = {
     width: 44, height: 44, borderRadius: '50%',
@@ -244,6 +270,7 @@ export default function App() {
 
   const globalOverlays = (
     <>
+      {challengeBanner}
       {showProfile && (
         <ProfileModal onClose={() => setShowProfile(false)} newAwards={newAwards} />
       )}
@@ -270,10 +297,9 @@ export default function App() {
           onClose={() => setShowDailyChallenge(false)}
           onPlay={(challenge) => {
             setShowDailyChallenge(false)
-            // Start a normal IPL game — the challenge constraint will be enforced in WheelSpin
             setMode('ipl')
             setPhase('settings')
-            // Store challenge for constraint checking after results
+            setActiveChallenge(challenge)
             window.__activeChallenge = challenge
           }}
         />
@@ -328,12 +354,12 @@ export default function App() {
     const cfg         = MODE_CONFIG[mode]
 
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: activeChallenge ? 36 : 0 }}>
         {/* Sticky header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0.875rem 1.5rem', borderBottom: '1px solid var(--border)',
-          position: 'sticky', top: 0, background: 'var(--card)',
+          position: 'sticky', top: activeChallenge ? 36 : 0, background: 'var(--card)',
           backdropFilter: 'blur(8px)', zIndex: 10,
         }}>
           <button onClick={handleBackToSettings} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer' }}>
@@ -408,8 +434,8 @@ export default function App() {
 
           {/* Right column — TeamSheet scrolls in its own space; ManagerSelect pinned below */}
           <div style={{
-            position: 'sticky', top: '4.5rem',
-            height: 'calc(100vh - 5.5rem)',
+            position: 'sticky', top: activeChallenge ? 'calc(36px + 4.5rem)' : '4.5rem',
+            height: activeChallenge ? 'calc(100vh - 5.5rem - 36px)' : 'calc(100vh - 5.5rem)',
             display: 'flex', flexDirection: 'column', gap: '0.625rem',
           }}>
             {/* TeamSheet takes all remaining space and scrolls internally if needed */}
