@@ -6384,6 +6384,178 @@ export const WHEEL_ENTRIES = [
     ]
   },
 
+  // ── IPL 2026 ────────────────────────────────────────────────────────────────
+  {
+    id: 'csk-2026', teamName: 'Chennai Super Kings', season: '2026', competition: ['ipl'],
+    color: '#F7D01B', textColor: '#003B5C', badge: 'CSK',
+    players: [
+      { id: 'ruturaj-csk26',  name: 'Ruturaj Gaikwad',   role: 'opener',        nationality: 'India',        batting: 90, bowling: 8,  fielding: 82, overall: 87 },
+      { id: 'sanju-csk26',    name: 'Sanju Samson',       role: 'wicket-keeper', nationality: 'India',        batting: 88, bowling: 0,  fielding: 82, overall: 85 },
+      { id: 'dhoni-csk26',    name: 'MS Dhoni',           role: 'wicket-keeper', nationality: 'India',        batting: 80, bowling: 0,  fielding: 90, overall: 82 },
+      { id: 'brevis-csk26',   name: 'Dewald Brevis',      role: 'top-order',     nationality: 'S. Africa',    batting: 82, bowling: 0,  fielding: 76, overall: 79 },
+      { id: 'dube-csk26',     name: 'Shivam Dube',        role: 'all-rounder',   nationality: 'India',        batting: 80, bowling: 68, fielding: 74, overall: 77 },
+      { id: 'short-csk26',    name: 'Matthew Short',      role: 'all-rounder',   nationality: 'Australia',    batting: 78, bowling: 68, fielding: 74, overall: 75 },
+      { id: 'noor-csk26',     name: 'Noor Ahmad',         role: 'spin-bowler',   nationality: 'Afghanistan',  batting: 10, bowling: 84, fielding: 66, overall: 79 },
+      { id: 'kamboj-csk26',   name: 'Anshul Kamboj',      role: 'pace-bowler',   nationality: 'India',        batting: 14, bowling: 80, fielding: 66, overall: 75 },
+      { id: 'spencer-csk26',  name: 'Spencer Johnson',    role: 'pace-bowler',   nationality: 'Australia',    batting: 14, bowling: 82, fielding: 68, overall: 77 },
+      { id: 'henry-csk26',    name: 'Matt Henry',         role: 'pace-bowler',   nationality: 'New Zealand',  batting: 18, bowling: 84, fielding: 70, overall: 79 },
+      { id: 'rchahar-csk26',  name: 'Rahul Chahar',       role: 'spin-bowler',   nationality: 'India',        batting: 14, bowling: 80, fielding: 66, overall: 75 },
+    ]
+  },
+  {
+    id: 'dc-2026', teamName: 'Delhi Capitals', season: '2026', competition: ['ipl'],
+    color: '#282968', textColor: '#d4af37', badge: 'DC',
+    players: [
+      { id: 'klrahul-dc26',   name: 'KL Rahul',           role: 'wicket-keeper', nationality: 'India',        batting: 91, bowling: 0,  fielding: 84, overall: 88 },
+      { id: 'axar-dc26',      name: 'Axar Patel',         role: 'all-rounder',   nationality: 'India',        batting: 77, bowling: 86, fielding: 78, overall: 83 },
+      { id: 'miller-dc26',    name: 'David Miller',       role: 'middle-order',  nationality: 'S. Africa',    batting: 85, bowling: 0,  fielding: 78, overall: 82 },
+      { id: 'nissanka-dc26',  name: 'Pathum Nissanka',    role: 'opener',        nationality: 'Sri Lanka',    batting: 82, bowling: 10, fielding: 76, overall: 79 },
+      { id: 'tristan-dc26',   name: 'Tristan Stubbs',     role: 'middle-order',  nationality: 'S. Africa',    batting: 80, bowling: 0,  fielding: 76, overall: 77 },
+      { id: 'karun-dc26',     name: 'Karun Nair',         role: 'top-order',     nationality: 'India',        batting: 80, bowling: 0,  fielding: 74, overall: 76 },
+      { id: 'starc-dc26',     name: 'Mitchell Starc',     role: 'pace-bowler',   nationality: 'Australia',    batting: 20, bowling: 93, fielding: 70, overall: 88 },
+      { id: 'kuldeep-dc26',   name: 'Kuldeep Yadav',      role: 'spin-bowler',   nationality: 'India',        batting: 18, bowling: 91, fielding: 68, overall: 87 },
+      { id: 'nortje-dc26',    name: 'Anrich Nortje',      role: 'pace-bowler',   nationality: 'S. Africa',    batting: 14, bowling: 91, fielding: 68, overall: 86 },
+      { id: 'jamieson-dc26',  name: 'Kyle Jamieson',      role: 'all-rounder',   nationality: 'New Zealand',  batting: 65, bowling: 84, fielding: 72, overall: 80 },
+      { id: 'rehan-dc26',     name: 'Rehan Ahmed',        role: 'spin-bowler',   nationality: 'England',      batting: 40, bowling: 82, fielding: 70, overall: 78 },
+    ]
+  },
+  {
+    id: 'gt-2026', teamName: 'Gujarat Titans', season: '2026', competition: ['ipl'],
+    color: '#1C1C1C', textColor: '#FFD700', badge: 'GT',
+    players: [
+      { id: 'gill-gt26',        name: 'Shubman Gill',      role: 'opener',        nationality: 'India',        batting: 93, bowling: 0,  fielding: 84, overall: 91 },
+      { id: 'buttler-gt26',     name: 'Jos Buttler',       role: 'wicket-keeper', nationality: 'England',      batting: 93, bowling: 0,  fielding: 84, overall: 90 },
+      { id: 'sai-gt26',         name: 'Sai Sudharsan',     role: 'top-order',     nationality: 'India',        batting: 84, bowling: 0,  fielding: 78, overall: 81 },
+      { id: 'rashid-gt26',      name: 'Rashid Khan',       role: 'spin-bowler',   nationality: 'Afghanistan',  batting: 30, bowling: 95, fielding: 76, overall: 93 },
+      { id: 'washington-gt26',  name: 'Washington Sundar', role: 'all-rounder',   nationality: 'India',        batting: 74, bowling: 84, fielding: 74, overall: 81 },
+      { id: 'phillips-gt26',    name: 'Glenn Phillips',    role: 'all-rounder',   nationality: 'New Zealand',  batting: 82, bowling: 68, fielding: 78, overall: 79 },
+      { id: 'holder-gt26',      name: 'Jason Holder',      role: 'all-rounder',   nationality: 'W. Indies',    batting: 68, bowling: 83, fielding: 72, overall: 80 },
+      { id: 'rabada-gt26',      name: 'Kagiso Rabada',     role: 'pace-bowler',   nationality: 'S. Africa',    batting: 18, bowling: 93, fielding: 72, overall: 89 },
+      { id: 'siraj-gt26',       name: 'Mohammed Siraj',    role: 'pace-bowler',   nationality: 'India',        batting: 14, bowling: 87, fielding: 68, overall: 82 },
+      { id: 'prasidh-gt26',     name: 'Prasidh Krishna',   role: 'pace-bowler',   nationality: 'India',        batting: 14, bowling: 84, fielding: 68, overall: 79 },
+      { id: 'tewatia-gt26',     name: 'Rahul Tewatia',     role: 'all-rounder',   nationality: 'India',        batting: 76, bowling: 68, fielding: 72, overall: 74 },
+    ]
+  },
+  {
+    id: 'kkr-2026', teamName: 'Kolkata Knight Riders', season: '2026', competition: ['ipl'],
+    color: '#3A225D', textColor: '#f59e0b', badge: 'KKR',
+    players: [
+      { id: 'narine-kkr26',     name: 'Sunil Narine',          role: 'all-rounder',   nationality: 'W. Indies',    batting: 77, bowling: 90, fielding: 78, overall: 87 },
+      { id: 'rahane-kkr26',     name: 'Ajinkya Rahane',        role: 'opener',        nationality: 'India',        batting: 80, bowling: 0,  fielding: 78, overall: 77 },
+      { id: 'rinku-kkr26',      name: 'Rinku Singh',           role: 'middle-order',  nationality: 'India',        batting: 85, bowling: 0,  fielding: 80, overall: 82 },
+      { id: 'rachin-kkr26',     name: 'Rachin Ravindra',       role: 'all-rounder',   nationality: 'New Zealand',  batting: 84, bowling: 73, fielding: 78, overall: 82 },
+      { id: 'varun-kkr26',      name: 'Varun Chakaravarthy',   role: 'spin-bowler',   nationality: 'India',        batting: 12, bowling: 88, fielding: 70, overall: 84 },
+      { id: 'finn-kkr26',       name: 'Finn Allen',            role: 'wicket-keeper', nationality: 'New Zealand',  batting: 83, bowling: 0,  fielding: 78, overall: 80 },
+      { id: 'angkrish-kkr26',   name: 'Angkrish Raghuvanshi',  role: 'top-order',     nationality: 'India',        batting: 80, bowling: 0,  fielding: 78, overall: 79 },
+      { id: 'cameron-kkr26',    name: 'Cameron Green',         role: 'all-rounder',   nationality: 'Australia',    batting: 78, bowling: 74, fielding: 76, overall: 76 },
+      { id: 'rovman-kkr26',     name: 'Rovman Powell',         role: 'middle-order',  nationality: 'W. Indies',    batting: 81, bowling: 0,  fielding: 76, overall: 78 },
+      { id: 'muzarabani-kkr26', name: 'Blessing Muzarabani',   role: 'pace-bowler',   nationality: 'Zimbabwe',     batting: 10, bowling: 84, fielding: 68, overall: 79 },
+      { id: 'umran-kkr26',      name: 'Umran Malik',           role: 'pace-bowler',   nationality: 'India',        batting: 8,  bowling: 82, fielding: 66, overall: 76 },
+    ]
+  },
+  {
+    id: 'lsg-2026', teamName: 'Lucknow Super Giants', season: '2026', competition: ['ipl'],
+    color: '#A72056', textColor: '#ffffff', badge: 'LSG',
+    players: [
+      { id: 'pant-lsg26',      name: 'Rishabh Pant',       role: 'wicket-keeper', nationality: 'India',        batting: 93, bowling: 0,  fielding: 84, overall: 91 },
+      { id: 'pooran-lsg26',    name: 'Nicholas Pooran',    role: 'wicket-keeper', nationality: 'W. Indies',    batting: 87, bowling: 0,  fielding: 80, overall: 84 },
+      { id: 'marsh-lsg26',     name: 'Mitchell Marsh',     role: 'all-rounder',   nationality: 'Australia',    batting: 84, bowling: 74, fielding: 80, overall: 83 },
+      { id: 'markram-lsg26',   name: 'Aiden Markram',      role: 'top-order',     nationality: 'S. Africa',    batting: 86, bowling: 60, fielding: 78, overall: 83 },
+      { id: 'samad-lsg26',     name: 'Abdul Samad',        role: 'all-rounder',   nationality: 'India',        batting: 77, bowling: 65, fielding: 74, overall: 74 },
+      { id: 'badoni-lsg26',    name: 'Ayush Badoni',       role: 'middle-order',  nationality: 'India',        batting: 78, bowling: 0,  fielding: 74, overall: 75 },
+      { id: 'shami-lsg26',     name: 'Mohammad Shami',     role: 'pace-bowler',   nationality: 'India',        batting: 18, bowling: 92, fielding: 72, overall: 88 },
+      { id: 'avesh-lsg26',     name: 'Avesh Khan',         role: 'pace-bowler',   nationality: 'India',        batting: 14, bowling: 82, fielding: 68, overall: 77 },
+      { id: 'nortje-lsg26',    name: 'Anrich Nortje',      role: 'pace-bowler',   nationality: 'S. Africa',    batting: 14, bowling: 91, fielding: 68, overall: 86 },
+      { id: 'mayank-lsg26',    name: 'Mayank Yadav',       role: 'pace-bowler',   nationality: 'India',        batting: 10, bowling: 85, fielding: 66, overall: 80 },
+      { id: 'linde-lsg26',     name: 'George Linde',       role: 'all-rounder',   nationality: 'S. Africa',    batting: 68, bowling: 80, fielding: 70, overall: 75 },
+    ]
+  },
+  {
+    id: 'mi-2026', teamName: 'Mumbai Indians', season: '2026', competition: ['ipl'],
+    color: '#004BA0', textColor: '#ffffff', badge: 'MI',
+    players: [
+      { id: 'rohit-mi26',      name: 'Rohit Sharma',       role: 'opener',        nationality: 'India',        batting: 94, bowling: 8,  fielding: 82, overall: 89 },
+      { id: 'sky-mi26',        name: 'Suryakumar Yadav',   role: 'top-order',     nationality: 'India',        batting: 94, bowling: 0,  fielding: 84, overall: 91 },
+      { id: 'dekock-mi26',     name: 'Quinton de Kock',    role: 'wicket-keeper', nationality: 'S. Africa',    batting: 90, bowling: 0,  fielding: 84, overall: 87 },
+      { id: 'hardik-mi26',     name: 'Hardik Pandya',      role: 'all-rounder',   nationality: 'India',        batting: 82, bowling: 82, fielding: 82, overall: 84 },
+      { id: 'tilak-mi26',      name: 'N. Tilak Varma',     role: 'middle-order',  nationality: 'India',        batting: 87, bowling: 20, fielding: 80, overall: 84 },
+      { id: 'bumrah-mi26',     name: 'Jasprit Bumrah',     role: 'pace-bowler',   nationality: 'India',        batting: 12, bowling: 97, fielding: 78, overall: 85 },
+      { id: 'boult-mi26',      name: 'Trent Boult',        role: 'pace-bowler',   nationality: 'New Zealand',  batting: 16, bowling: 87, fielding: 70, overall: 82 },
+      { id: 'jacks-mi26',      name: 'Will Jacks',         role: 'all-rounder',   nationality: 'England',      batting: 80, bowling: 65, fielding: 76, overall: 78 },
+      { id: 'rickelton-mi26',  name: 'Ryan Rickelton',     role: 'top-order',     nationality: 'S. Africa',    batting: 83, bowling: 0,  fielding: 76, overall: 80 },
+      { id: 'maharaj-mi26',    name: 'Keshav Maharaj',     role: 'spin-bowler',   nationality: 'S. Africa',    batting: 30, bowling: 85, fielding: 68, overall: 80 },
+      { id: 'ghazanfar-mi26',  name: 'Allah Ghazanfar',    role: 'spin-bowler',   nationality: 'Afghanistan',  batting: 16, bowling: 82, fielding: 66, overall: 77 },
+    ]
+  },
+  {
+    id: 'pbks-2026', teamName: 'Punjab Kings', season: '2026', competition: ['ipl'],
+    color: '#ED1B24', textColor: '#ffffff', badge: 'PBKS',
+    players: [
+      { id: 'shreyas-pbks26',    name: 'Shreyas Iyer',        role: 'top-order',     nationality: 'India',        batting: 88, bowling: 0,  fielding: 80, overall: 85 },
+      { id: 'stoinis-pbks26',    name: 'Marcus Stoinis',      role: 'all-rounder',   nationality: 'Australia',    batting: 83, bowling: 74, fielding: 76, overall: 81 },
+      { id: 'jansen-pbks26',     name: 'Marco Jansen',        role: 'all-rounder',   nationality: 'S. Africa',    batting: 66, bowling: 86, fielding: 72, overall: 82 },
+      { id: 'prabhsimran-pbks26',name: 'Prabhsimran Singh',   role: 'wicket-keeper', nationality: 'India',        batting: 82, bowling: 0,  fielding: 78, overall: 79 },
+      { id: 'shashank-pbks26',   name: 'Shashank Singh',      role: 'middle-order',  nationality: 'India',        batting: 82, bowling: 0,  fielding: 74, overall: 79 },
+      { id: 'priyansh-pbks26',   name: 'Priyansh Arya',       role: 'opener',        nationality: 'India',        batting: 80, bowling: 0,  fielding: 74, overall: 76 },
+      { id: 'chahal-pbks26',     name: 'Yuzvendra Chahal',    role: 'spin-bowler',   nationality: 'India',        batting: 12, bowling: 89, fielding: 68, overall: 84 },
+      { id: 'arshdeep-pbks26',   name: 'Arshdeep Singh',      role: 'pace-bowler',   nationality: 'India',        batting: 18, bowling: 88, fielding: 70, overall: 83 },
+      { id: 'lockie-pbks26',     name: 'Lockie Ferguson',     role: 'pace-bowler',   nationality: 'New Zealand',  batting: 14, bowling: 86, fielding: 68, overall: 81 },
+      { id: 'nehal-pbks26',      name: 'Nehal Wadhera',       role: 'middle-order',  nationality: 'India',        batting: 79, bowling: 0,  fielding: 74, overall: 75 },
+      { id: 'musheer-pbks26',    name: 'Musheer Khan',        role: 'all-rounder',   nationality: 'India',        batting: 74, bowling: 66, fielding: 70, overall: 71 },
+    ]
+  },
+  {
+    id: 'rr-2026', teamName: 'Rajasthan Royals', season: '2026', competition: ['ipl'],
+    color: '#EA1A85', textColor: '#ffffff', badge: 'RR',
+    players: [
+      { id: 'yashasvi-rr26',  name: 'Yashasvi Jaiswal',      role: 'opener',        nationality: 'India',        batting: 93, bowling: 0,  fielding: 84, overall: 91 },
+      { id: 'vaibhav-rr26',   name: 'Vaibhav Suryavanshi',   role: 'opener',        nationality: 'India',        batting: 85, bowling: 0,  fielding: 80, overall: 82 },
+      { id: 'jadeja-rr26',    name: 'Ravindra Jadeja',        role: 'all-rounder',   nationality: 'India',        batting: 80, bowling: 88, fielding: 88, overall: 88 },
+      { id: 'riyan-rr26',     name: 'Riyan Parag',            role: 'all-rounder',   nationality: 'India',        batting: 84, bowling: 68, fielding: 80, overall: 81 },
+      { id: 'archer-rr26',    name: 'Jofra Archer',           role: 'pace-bowler',   nationality: 'England',      batting: 18, bowling: 90, fielding: 70, overall: 85 },
+      { id: 'hetmyer-rr26',   name: 'Shimron Hetmyer',        role: 'middle-order',  nationality: 'W. Indies',    batting: 84, bowling: 0,  fielding: 74, overall: 81 },
+      { id: 'jurel-rr26',     name: 'Dhruv Jurel',            role: 'wicket-keeper', nationality: 'India',        batting: 80, bowling: 0,  fielding: 80, overall: 78 },
+      { id: 'bishnoi-rr26',   name: 'Ravi Bishnoi',           role: 'spin-bowler',   nationality: 'India',        batting: 14, bowling: 85, fielding: 68, overall: 80 },
+      { id: 'tushar-rr26',    name: 'Tushar Deshpande',       role: 'pace-bowler',   nationality: 'India',        batting: 14, bowling: 82, fielding: 68, overall: 77 },
+      { id: 'sandeep-rr26',   name: 'Sandeep Sharma',         role: 'pace-bowler',   nationality: 'India',        batting: 10, bowling: 80, fielding: 66, overall: 75 },
+      { id: 'shanaka-rr26',   name: 'Dasun Shanaka',          role: 'all-rounder',   nationality: 'Sri Lanka',    batting: 73, bowling: 72, fielding: 72, overall: 72 },
+    ]
+  },
+  {
+    id: 'rcb-2026', teamName: 'Royal Challengers Bengaluru', season: '2026', competition: ['ipl'],
+    color: '#EC1C24', textColor: '#ffffff', badge: 'RCB',
+    players: [
+      { id: 'kohli-rcb26',     name: 'Virat Kohli',        role: 'top-order',     nationality: 'India',        batting: 96, bowling: 8,  fielding: 88, overall: 95 },
+      { id: 'salt-rcb26',      name: 'Phil Salt',          role: 'wicket-keeper', nationality: 'England',      batting: 88, bowling: 0,  fielding: 80, overall: 86 },
+      { id: 'patidar-rcb26',   name: 'Rajat Patidar',      role: 'opener',        nationality: 'India',        batting: 87, bowling: 0,  fielding: 80, overall: 84 },
+      { id: 'tim-rcb26',       name: 'Tim David',          role: 'middle-order',  nationality: 'Singapore',    batting: 87, bowling: 0,  fielding: 76, overall: 84 },
+      { id: 'venkatesh-rcb26', name: 'Venkatesh Iyer',     role: 'all-rounder',   nationality: 'India',        batting: 81, bowling: 42, fielding: 76, overall: 80 },
+      { id: 'bethell-rcb26',   name: 'Jacob Bethell',      role: 'all-rounder',   nationality: 'England',      batting: 78, bowling: 72, fielding: 74, overall: 76 },
+      { id: 'krunal-rcb26',    name: 'Krunal Pandya',      role: 'all-rounder',   nationality: 'India',        batting: 74, bowling: 78, fielding: 74, overall: 76 },
+      { id: 'hazlewood-rcb26', name: 'Josh Hazlewood',     role: 'pace-bowler',   nationality: 'Australia',    batting: 12, bowling: 90, fielding: 72, overall: 86 },
+      { id: 'bhuvi-rcb26',     name: 'Bhuvneshwar Kumar',  role: 'pace-bowler',   nationality: 'India',        batting: 28, bowling: 85, fielding: 72, overall: 80 },
+      { id: 'romario-rcb26',   name: 'Romario Shepherd',   role: 'all-rounder',   nationality: 'W. Indies',    batting: 71, bowling: 78, fielding: 72, overall: 75 },
+      { id: 'yash-rcb26',      name: 'Yash Dayal',         role: 'pace-bowler',   nationality: 'India',        batting: 10, bowling: 80, fielding: 66, overall: 75 },
+    ]
+  },
+  {
+    id: 'srh-2026', teamName: 'Sunrisers Hyderabad', season: '2026', competition: ['ipl'],
+    color: '#F7A721', textColor: '#000000', badge: 'SRH',
+    players: [
+      { id: 'head-srh26',      name: 'Travis Head',         role: 'opener',        nationality: 'Australia',    batting: 92, bowling: 22, fielding: 82, overall: 89 },
+      { id: 'klaasen-srh26',   name: 'Heinrich Klaasen',    role: 'wicket-keeper', nationality: 'S. Africa',    batting: 90, bowling: 0,  fielding: 82, overall: 87 },
+      { id: 'cummins-srh26',   name: 'Pat Cummins',         role: 'all-rounder',   nationality: 'Australia',    batting: 66, bowling: 93, fielding: 76, overall: 89 },
+      { id: 'liam-srh26',      name: 'Liam Livingstone',    role: 'all-rounder',   nationality: 'England',      batting: 85, bowling: 72, fielding: 78, overall: 83 },
+      { id: 'ishan-srh26',     name: 'Ishan Kishan',        role: 'wicket-keeper', nationality: 'India',        batting: 83, bowling: 0,  fielding: 80, overall: 82 },
+      { id: 'abhishek-srh26',  name: 'Abhishek Sharma',     role: 'all-rounder',   nationality: 'India',        batting: 83, bowling: 68, fielding: 76, overall: 80 },
+      { id: 'kamindu-srh26',   name: 'Kamindu Mendis',      role: 'all-rounder',   nationality: 'Sri Lanka',    batting: 80, bowling: 72, fielding: 74, overall: 77 },
+      { id: 'harshal-srh26',   name: 'Harshal Patel',       role: 'pace-bowler',   nationality: 'India',        batting: 24, bowling: 84, fielding: 68, overall: 79 },
+      { id: 'coetzee-srh26',   name: 'Gerald Coetzee',      role: 'pace-bowler',   nationality: 'S. Africa',    batting: 14, bowling: 84, fielding: 68, overall: 79 },
+      { id: 'madushanka-srh26',name: 'Dilshan Madushanka',  role: 'pace-bowler',   nationality: 'Sri Lanka',    batting: 10, bowling: 82, fielding: 66, overall: 77 },
+      { id: 'nitesh-srh26',    name: 'Nitesh Kumar Reddy',  role: 'all-rounder',   nationality: 'India',        batting: 74, bowling: 72, fielding: 72, overall: 72 },
+    ]
+  },
+
 {
     id: 'eng-1975-odi', teamName: 'England', season: '1975 ODI WC', competition: ['odi-wc'],
     color: '#1C4F9C', textColor: '#ffffff', badge: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
