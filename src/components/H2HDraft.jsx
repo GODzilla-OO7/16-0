@@ -214,6 +214,8 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
   const oppName  = isHost ? room.guest_name : room.host_name
   const myBudget  = isHost ? room.host_budget  : room.guest_budget
   const oppBudget = isHost ? room.guest_budget : room.host_budget
+  // bp must be declared here (before any useEffects) to avoid TDZ ReferenceError
+  const bp = room.auction_bid?.base_price ?? 0
 
   // ── Countdown helper (auction bidding) ───────────────────────────────────────
   function startCountdown() {
@@ -621,8 +623,6 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
   const snakePlayers = currentEntry
     ? getEligiblePlayers(currentEntry.players.filter(p => !allPickedSet.has(p.name)), myTeam)
     : []
-
-  const bp = room.auction_bid?.base_price ?? 0
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', display: 'flex', flexDirection: 'column' }}>

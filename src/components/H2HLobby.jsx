@@ -66,7 +66,7 @@ function getUserName() {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 export default function H2HLobby({ onClose, onStartDraft }) {
-  const [screen, setScreen]       = useState('home')   // home | create | join | waiting | mode
+  const [screen, setScreen]       = useState('home')   // home | join | waiting
   const [roomId, setRoomId]       = useState('')
   const [joinCode, setJoinCode]   = useState('')
   const [room, setRoom]           = useState(null)
@@ -193,9 +193,8 @@ export default function H2HLobby({ onClose, onStartDraft }) {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>
-            {screen === 'home'    ? '⚔️ Head to Head' :
-             screen === 'waiting' ? '🔗 Room ' + roomId :
-             screen === 'create'  ? '🏠 Create Room' : '🚪 Join Room'}
+            {screen === 'waiting' ? '🔗 Room ' + roomId :
+             screen === 'join'    ? '🚪 Join Room' : '⚔️ Head to Head'}
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#475569', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
         </div>
@@ -252,11 +251,11 @@ export default function H2HLobby({ onClose, onStartDraft }) {
             </div>
 
             <button
-              onClick={() => { setScreen('create'); createRoom() }}
+              onClick={createRoom}
               disabled={!nameSet || loading}
-              style={{ padding: '0.875rem', background: nameSet ? 'linear-gradient(135deg, #1F6FEB, #0047CC)' : 'var(--border2)', color: nameSet ? 'var(--bg)' : '#475569', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: nameSet ? 'pointer' : 'not-allowed' }}
+              style={{ padding: '0.875rem', background: nameSet ? 'linear-gradient(135deg, #1F6FEB, #0047CC)' : 'var(--border2)', color: nameSet ? 'var(--bg)' : '#475569', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: nameSet && !loading ? 'pointer' : 'not-allowed' }}
             >
-              🏠 Create Room
+              {loading ? '🔄 Creating room…' : '🏠 Create Room'}
             </button>
             <button
               onClick={() => setScreen('join')}
@@ -342,8 +341,8 @@ function PlayerSlot({ name, label, ready }) {
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.75rem',
       padding: '0.75rem 0.875rem',
-      background: ready ? '#0d1a0d' : 'var(--card)',
-      border: `1px solid ${ready ? '#22c55e44' : 'var(--border)'}`,
+      background: ready ? 'var(--win-bg)' : 'var(--card)',
+      border: `1px solid ${ready ? 'var(--win-border)' : 'var(--border)'}`,
       borderRadius: '0.625rem',
     }}>
       <span style={{ fontSize: '1.2rem' }}>{ready ? '✅' : '⏳'}</span>
