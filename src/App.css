@@ -23,6 +23,15 @@
   --text-muted: #64748b;
   --text-dim:   #475569;
   --blue:    #3b82f6;
+  /* semantic game colors */
+  --win-bg:      #0d2418;
+  --win-border:  #0047CC44;
+  --loss-bg:     #1a0d0d;
+  --loss-border: #7f1d1d44;
+  --warn-bg:     #1a1200;
+  --warn-border: #f59e0b33;
+  --elim-bg:     #1a0d0d;
+  --elim-border: #ef444444;
 }
 
 body.light {
@@ -39,6 +48,15 @@ body.light {
   --bg3:     #e8edf7;
   --text-muted: #64748b;
   --text-dim:   #475569;
+  /* semantic game colors — light overrides */
+  --win-bg:      #f0fdf4;
+  --win-border:  #16a34a33;
+  --loss-bg:     #fef2f2;
+  --loss-border: #dc262633;
+  --warn-bg:     #fffbeb;
+  --warn-border: #d9770644;
+  --elim-bg:     #fef2f2;
+  --elim-border: #dc262644;
 }
 
 body {

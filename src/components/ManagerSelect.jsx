@@ -191,17 +191,17 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
 
   const storyBlock = phase === 'landed' && storyData && (
     <div style={{
-      background: '#0e1820', border: '1px solid #1e3a2e',
+      background: 'var(--card2)', border: '1px solid var(--border)',
       borderRadius: '0.75rem', padding: '1.1rem 1.25rem',
       marginBottom: '1rem', animation: 'fade-in 0.4s ease both',
     }}>
       <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
         📖 Season Outlook
       </div>
-      <p style={{ fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.6, margin: '0 0 0.75rem', fontStyle: 'italic' }}>
+      <p style={{ fontSize: '0.82rem', color: 'var(--muted)', lineHeight: 1.6, margin: '0 0 0.75rem', fontStyle: 'italic' }}>
         {storyData.narrative}
       </p>
-      <div style={{ borderTop: '1px solid #1e3a2e', paddingTop: '0.625rem', textAlign: 'center' }}>
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.625rem', textAlign: 'center' }}>
         <div style={{ fontSize: '0.58rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>
           Predicted Finish
         </div>
@@ -276,7 +276,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
         {/* Compact reel */}
         <div style={{
           position: 'relative',
-          background: '#0d0d16',
+          background: 'var(--bg)',
           border: `1.5px solid ${phase === 'landed' ? '#1F6FEB66' : 'var(--border2)'}`,
           borderRadius: '0.625rem',
           overflow: 'hidden',
@@ -287,7 +287,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
           transition: 'border-color 0.3s',
         }}>
           {isSpinning && (
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #0d0d16, transparent 20%, transparent 80%, #0d0d16)', zIndex: 2, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, var(--bg), transparent 20%, transparent 80%, var(--bg))', zIndex: 2, pointerEvents: 'none' }} />
           )}
           <span style={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0, filter: isSpinning ? 'blur(1px)' : 'none', transition: 'filter 0.08s', zIndex: 3 }}>
             {displayed?.icon ?? '🎽'}
@@ -302,7 +302,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
             </div>
           </div>
           {phase === 'idle' && (
-            <span style={{ fontSize: '0.6rem', color: 'var(--border)', flexShrink: 0, zIndex: 3 }}>spin →</span>
+            <span style={{ fontSize: '0.6rem', color: 'var(--muted)', flexShrink: 0, zIndex: 3 }}>spin →</span>
           )}
         </div>
 
@@ -338,7 +338,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
           {phase !== 'confirmed' && (
             <button
               onClick={() => { setPhase('confirmed'); onSelect(null) }}
-              style={{ background: 'none', border: 'none', color: '#334155', fontSize: '0.68rem', cursor: 'pointer', fontWeight: 600, padding: '0.2rem' }}
+              style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '0.68rem', cursor: 'pointer', fontWeight: 600, padding: '0.2rem' }}
             >
               Skip coach
             </button>

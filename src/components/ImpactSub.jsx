@@ -132,24 +132,53 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
   function spinPlayer() {
     setPhase('player-spin')
 
-    // Build pool respecting overseas quota
-    const rawPool = getReplacementPool(team, eventEntry.id === 'best-is-lost'
-      ? pickOutgoing(team, eventEntry, null)?.role ?? 'opener'
-      : undefined, mode)
-
-    // We'll pick the outgoing player once we know who's coming in
-    // For now build the broadest possible pool
-    const fullPool = []
     const teamIds   = new Set(team.map(p => p.id))
     const teamNames = new Set(team.map(p => p.name))
+
+    // For "best-is-lost": determine who walks out FIRST (highest overall in team),
+    // then restrict incoming to the same role.
+    let requiredRole = null
+    let preOut = null
+    if (eventEntry.id === 'best-is-lost') {
+      preOut = [...team].sort((a, b) => b.overall - a.overall)[0] ?? null
+      requiredRole = preOut?.role ?? null
+      if (preOut) setOutgoing(preOut)
+    }
+
+    // Build filtered candidate pool based on event rules:
+    //   team-raid   → quality acquisition  (overall ≥ 78 scaled)
+    //   rising-star → breakthrough player  (overall ≤ 80 scaled)
+    //   rival-sends → fringe/backup player (overall ≤ 76 scaled)
+    //   best-is-lost→ same role as outgoing (no rating restriction)
+    //   wildcard    → no restriction
     const seen = new Set()
+    const fullPool = []
     for (const entry of WHEEL_ENTRIES) {
       if (!entry.competition?.includes(mode)) continue
       for (const p of entry.players) {
         if (teamIds.has(p.id) || teamNames.has(p.name)) continue
         if (seen.has(p.name)) continue
+        if (requiredRole && p.role !== requiredRole) continue
+        const scaled = scaleDisplay(p.overall)
+        if (eventEntry.id === 'rising-star' && scaled > 80) continue
+        if (eventEntry.id === 'team-raid'   && scaled < 78) continue
+        if (eventEntry.id === 'rival-sends' && scaled > 76) continue
         seen.add(p.name)
         fullPool.push(p)
+      }
+    }
+
+    // If filters yield nothing, fall back to full unfiltered pool (safety net)
+    if (!fullPool.length) {
+      const seen2 = new Set()
+      for (const entry of WHEEL_ENTRIES) {
+        if (!entry.competition?.includes(mode)) continue
+        for (const p of entry.players) {
+          if (teamIds.has(p.id) || teamNames.has(p.name)) continue
+          if (seen2.has(p.name)) continue
+          seen2.add(p.name)
+          fullPool.push(p)
+        }
       }
     }
 
@@ -169,9 +198,12 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
       setCyclePlayer(last ? chosen : shuffled[i % shuffled.length])
       if (last) {
         timerRef.current = setTimeout(() => {
-          // Determine outgoing player based on incoming role
-          const out = pickOutgoing(team, eventEntry, chosen.role)
-          setOutgoing(out)
+          // For best-is-lost: outgoing was already set to team's best player.
+          // For all others: outgoing is the weakest/best of same role as incoming.
+          if (eventEntry.id !== 'best-is-lost') {
+            const out = pickOutgoing(team, eventEntry, chosen.role)
+            setOutgoing(out)
+          }
           setPlayerEntry(chosen)
           setPool(shuffled)
           setPhase('player-landed')
@@ -205,7 +237,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
     }}>
       <div style={{
         width: '100%', maxWidth: 440,
-        background: '#0d0d16', border: '1px solid var(--border)',
+        background: 'var(--card)', border: '1px solid var(--border)',
         borderRadius: '1.25rem', padding: '1.75rem',
         animation: 'fade-in-up 0.3s ease both',
       }}>
@@ -335,7 +367,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
 
             {/* Who goes out */}
             {phase === 'player-landed' && outgoing && (
-              <div style={{ marginBottom: '1.25rem', padding: '0.75rem 1rem', background: '#1a0505', border: '1px solid #ef444433', borderRadius: '0.625rem', animation: 'fade-in 0.3s ease both' }}>
+              <div style={{ marginBottom: '1.25rem', padding: '0.75rem 1rem', background: 'var(--loss-bg)', border: '1px solid var(--loss-border)', borderRadius: '0.625rem', animation: 'fade-in 0.3s ease both' }}>
                 <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Out</div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>

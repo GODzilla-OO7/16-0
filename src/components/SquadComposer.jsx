@@ -79,7 +79,7 @@ export default function SquadComposer({ onDone, onBack }) {
 
           {/* Left — role steppers */}
           <div style={{
-            background: '#0d1229', border: '1px solid #1a2550',
+            background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '1rem', padding: '1.25rem',
             display: 'flex', flexDirection: 'column', gap: '0.625rem',
           }}>
@@ -92,12 +92,12 @@ export default function SquadComposer({ onDone, onBack }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '0.625rem 0.875rem',
                   background: count > 0 ? `rgba(${hexToRgb(def.color)},0.07)` : 'transparent',
-                  border: `1px solid ${count > 0 ? def.color + '33' : '#1a2550'}`,
+                  border: `1px solid ${count > 0 ? def.color + '33' : 'var(--border2)'}`,
                   borderRadius: '0.625rem', transition: 'all 0.15s',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                     <span style={{ fontSize: '1.1rem' }}>{def.icon}</span>
-                    <span style={{ fontSize: '0.875rem', fontWeight: 700, color: count > 0 ? 'var(--text)' : '#475569' }}>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 700, color: count > 0 ? 'var(--text)' : 'var(--muted)' }}>
                       {def.label}
                     </span>
                   </div>
@@ -107,32 +107,32 @@ export default function SquadComposer({ onDone, onBack }) {
                       disabled={atMin}
                       style={{
                         width: 28, height: 28, borderRadius: '50%', border: 'none',
-                        background: atMin ? '#1a2550' : '#1a2550',
-                        color: atMin ? '#334155' : '#94a3b8',
+                        background: 'var(--border2)',
+                        color: atMin ? 'var(--border)' : 'var(--muted)',
                         cursor: atMin ? 'default' : 'pointer', fontSize: '1rem',
                         fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'background 0.15s',
                       }}
                       onMouseEnter={e => { if (!atMin) e.currentTarget.style.background = '#1F6FEB33' }}
-                      onMouseLeave={e => { e.currentTarget.style.background = '#1a2550' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'var(--border2)' }}
                     >−</button>
                     <span style={{
                       fontSize: '1.1rem', fontWeight: 900, width: 20, textAlign: 'center',
-                      color: count > 0 ? def.color : '#334155',
+                      color: count > 0 ? def.color : 'var(--border)',
                     }}>{count}</span>
                     <button
                       onClick={() => adjust(def.key, 1)}
                       disabled={atMax}
                       style={{
                         width: 28, height: 28, borderRadius: '50%', border: 'none',
-                        background: atMax ? '#1a2550' : '#1a2550',
-                        color: atMax ? '#334155' : '#94a3b8',
+                        background: 'var(--border2)',
+                        color: atMax ? 'var(--border)' : 'var(--muted)',
                         cursor: atMax ? 'default' : 'pointer', fontSize: '1rem',
                         fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'background 0.15s',
                       }}
                       onMouseEnter={e => { if (!atMax) e.currentTarget.style.background = '#1F6FEB33' }}
-                      onMouseLeave={e => { e.currentTarget.style.background = '#1a2550' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'var(--border2)' }}
                     >+</button>
                   </div>
                 </div>
@@ -142,7 +142,7 @@ export default function SquadComposer({ onDone, onBack }) {
             {/* Total counter */}
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '0.75rem 0.875rem', borderTop: '1px solid #1a2550', marginTop: '0.25rem',
+              padding: '0.75rem 0.875rem', borderTop: '1px solid var(--border)', marginTop: '0.25rem',
             }}>
               <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total</span>
               <span style={{
@@ -154,10 +154,10 @@ export default function SquadComposer({ onDone, onBack }) {
 
           {/* Right — XI slots preview */}
           <div style={{
-            background: '#0d1229', border: '1px solid #1a2550',
+            background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '1rem', padding: '1.25rem',
           }}>
-            <div style={{ fontSize: '0.65rem', color: '#475569', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.875rem' }}>
+            <div style={{ fontSize: '0.65rem', color: 'var(--muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.875rem' }}>
               Your XI Preview
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
@@ -168,15 +168,15 @@ export default function SquadComposer({ onDone, onBack }) {
                   <div key={i} style={{
                     display: 'flex', alignItems: 'center', gap: '0.6rem',
                     padding: '0.45rem 0.75rem',
-                    background: def ? `rgba(${hexToRgb(def.color)},0.08)` : '#080d1f',
-                    border: `1px solid ${def ? def.color + '33' : '#1a2550'}`,
+                    background: def ? `rgba(${hexToRgb(def.color)},0.08)` : 'var(--bg)',
+                    border: `1px solid ${def ? def.color + '33' : 'var(--border2)'}`,
                     borderRadius: '0.4rem', transition: 'all 0.2s',
                   }}>
                     <span style={{
                       width: 20, height: 20, borderRadius: '50%',
-                      background: def ? def.color : '#1a2550',
+                      background: def ? def.color : 'var(--border2)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.6rem', fontWeight: 900, color: '#0a0f1a', flexShrink: 0,
+                      fontSize: '0.6rem', fontWeight: 900, color: def ? '#0a0f1a' : 'var(--muted)', flexShrink: 0,
                     }}>{i + 1}</span>
                     {def ? (
                       <>
@@ -184,7 +184,7 @@ export default function SquadComposer({ onDone, onBack }) {
                         <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text)' }}>{def.label.replace(/s$/, '')}</span>
                       </>
                     ) : (
-                      <span style={{ fontSize: '0.75rem', color: '#1a2550', fontStyle: 'italic' }}>— empty slot</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--border)', fontStyle: 'italic' }}>— empty slot</span>
                     )}
                   </div>
                 )
@@ -206,8 +206,8 @@ export default function SquadComposer({ onDone, onBack }) {
             onClick={onBack}
             style={{
               padding: '0.75rem 1.5rem', background: 'transparent',
-              border: '1px solid #1a2550', borderRadius: '0.625rem',
-              color: '#64748b', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
+              border: '1px solid var(--border)', borderRadius: '0.625rem',
+              color: 'var(--muted)', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
             }}
           >← Back</button>
           <button

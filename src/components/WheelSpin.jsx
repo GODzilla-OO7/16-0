@@ -407,7 +407,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
         <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700, marginBottom: '0.3rem' }}>
           Pick {slotIndex + 1} of {totalSlots}
         </div>
-        <div style={{ fontSize: '0.68rem', color: 'var(--border)', fontWeight: 600, marginBottom: '0.3rem' }}>
+        <div style={{ fontSize: '0.68rem', color: 'var(--muted)', fontWeight: 600, marginBottom: '0.3rem' }}>
           {rerollsLeft} reroll{rerollsLeft !== 1 ? 's' : ''} remaining
         </div>
         {mustPick && (
@@ -432,17 +432,17 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
         {cycleEntry ? (
           <>
             <div style={{ fontSize: '2rem', fontWeight: 900, color: cycleEntry.color, marginBottom: '0.15rem' }}>{cycleEntry.badge}</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#ffffff', textAlign: 'center', lineHeight: 1.2 }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', textAlign: 'center', lineHeight: 1.2 }}>
               {cycleEntry.teamName}
             </div>
             {year && (
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#ffffff', marginTop: '0.25rem', opacity: 0.75 }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', marginTop: '0.25rem' }}>
                 {year}
               </div>
             )}
           </>
         ) : (
-          <div style={{ fontSize: '0.9rem', color: 'var(--border)', fontWeight: 600 }}>Spin to land on a team</div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--muted)', fontWeight: 600 }}>Spin to land on a team</div>
         )}
       </div>
 
@@ -527,14 +527,14 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
             Pick {slotIndex + 1} of {totalSlots}
           </div>
           {/* Team + year as one combined prominent line */}
-          <div style={{ fontWeight: 900, fontSize: '1.1rem', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {entry.teamName}
             <span style={{
               padding: '0.15rem 0.6rem',
-              background: 'rgba(255,255,255,0.15)',
-              border: '1.5px solid rgba(255,255,255,0.35)',
+              background: 'var(--border2)',
+              border: '1.5px solid var(--border)',
               borderRadius: '999px',
-              fontSize: '0.8rem', fontWeight: 900, color: '#ffffff',
+              fontSize: '0.8rem', fontWeight: 900, color: 'var(--text)',
             }}>
               {year}
             </span>
@@ -547,7 +547,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
 
       {/* Budget bar */}
       {budget != null && (
-        <div style={{ padding: '0.5rem 1.25rem', background: '#0d1229', borderBottom: '1px solid #1a2550' }}>
+        <div style={{ padding: '0.5rem 1.25rem', background: 'var(--card2)', borderBottom: '1px solid var(--border2)' }}>
           <BudgetBar budget={budget} />
           {budgetExhausted && (
             <div style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 700, marginTop: '0.3rem', textAlign: 'center' }}>
@@ -574,7 +574,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
             ↺ Different team ({rerollsLeft} left)
           </button>
         ) : (
-          <span style={{ fontSize: '0.68rem', color: 'var(--border)', fontWeight: 600 }}>No rerolls left</span>
+          <span style={{ fontSize: '0.68rem', color: 'var(--muted)', fontWeight: 600 }}>No rerolls left</span>
         )}
       </div>
 

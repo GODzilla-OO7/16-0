@@ -500,7 +500,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
             {/* Playoff header */}
             {(iplPhase === 'playoffs' || (iplPhase === 'done' && playoffRevealed.length > 0)) && (
-              <SectionBadge color="#a78bfa" bg="#1a0f2e" border="#6d28d944">⚡ Playoffs</SectionBadge>
+              <SectionBadge color="#a78bfa" bg="var(--card2)" border="#6d28d944">⚡ Playoffs</SectionBadge>
             )}
 
             {/* Playoff match cards — newest first */}
@@ -513,7 +513,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
             {/* League section divider */}
             {playoffRevealed.length > 0 && revealed.length > 0 && (
-              <SectionBadge color="#1F6FEB" bg="#0d180d" border="#0047CC44">📋 League Stage</SectionBadge>
+              <SectionBadge color="#1F6FEB" bg="var(--card2)" border="#0047CC44">📋 League Stage</SectionBadge>
             )}
 
             {/* League match cards — newest first */}
@@ -603,8 +603,8 @@ function FinalGate({ result, phase, step, commentary, onPlay, onDone }) {
   return (
     <div style={{ marginBottom: '1.5rem', animation: 'final-entrance 0.5s ease both' }}>
       <div style={{
-        background: 'linear-gradient(135deg, #1a1200, #0d0900)',
-        border: '2px solid #f59e0b44',
+        background: 'var(--warn-bg)',
+        border: '2px solid var(--warn-border)',
         borderRadius: '1.25rem',
         padding: '2rem 1.5rem',
         textAlign: 'center',
@@ -647,8 +647,8 @@ function FinalGate({ result, phase, step, commentary, onPlay, onDone }) {
         {isDone && result && (
           <div style={{
             padding: '1.25rem',
-            background: result.won ? '#0d2418' : '#1a0d0d',
-            border: `2px solid ${result.won ? '#1F6FEB55' : '#ef444455'}`,
+            background: result.won ? 'var(--win-bg)' : 'var(--loss-bg)',
+            border: `2px solid ${result.won ? 'var(--win-border)' : 'var(--loss-border)'}`,
             borderRadius: '1rem',
             marginBottom: '1rem',
             animation: 'result-reveal 0.7s cubic-bezier(0.34,1.56,0.64,1) both',
@@ -698,10 +698,10 @@ function FinalGate({ result, phase, step, commentary, onPlay, onDone }) {
 
 function IPLResultBanner({ outcome, iplChampion, onDone }) {
   const cfg = {
-    champion:     { bg:'linear-gradient(135deg,#1a1200,#0f0d00)', border:'#f59e0b55', icon:'🏆', title:'IPL CHAMPIONS!',  color:'#f59e0b', sub:'You lifted the trophy. Legendary.' },
-    'runner-up':  { bg:'var(--border2)',  border:'#94a3b844', icon:'🥈', title:'Runners-Up',          color:'#94a3b8', sub:`Well played — you made the Final. ${iplChampion} won the IPL.` },
-    eliminated:   { bg:'#1a0d0d',  border:'#ef444444', icon:'❌', title:'Knocked Out',           color:'#ef4444', sub:`So close. ${iplChampion} went on to lift the trophy.` },
-    not_qualified:{ bg:'#1a0d0d',  border:'#7f1d1d44', icon:'📊', title:'Did Not Qualify',      color:'#ef4444', sub:`${iplChampion} won the IPL this season.` },
+    champion:     { bg:'var(--warn-bg)',  border:'var(--warn-border)', icon:'🏆', title:'IPL CHAMPIONS!',  color:'#f59e0b', sub:'You lifted the trophy. Legendary.' },
+    'runner-up':  { bg:'var(--card2)',    border:'var(--border)',       icon:'🥈', title:'Runners-Up',      color:'#94a3b8', sub:`Well played — you made the Final. ${iplChampion} won the IPL.` },
+    eliminated:   { bg:'var(--elim-bg)', border:'var(--elim-border)',  icon:'❌', title:'Knocked Out',     color:'#ef4444', sub:`So close. ${iplChampion} went on to lift the trophy.` },
+    not_qualified:{ bg:'var(--loss-bg)', border:'var(--loss-border)',  icon:'📊', title:'Did Not Qualify', color:'#ef4444', sub:`${iplChampion} won the IPL this season.` },
   }[outcome] ?? { bg:'var(--card)', border:'var(--border)', icon:'📊', title:'Season Complete', color:'#94a3b8', sub:'' }
 
   return (
@@ -727,7 +727,7 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
   const topTeam = table.find(t => !t.isUser)
   return (
     <div style={{ animation:'fade-in-up 0.4s ease both' }}>
-      <div style={{ textAlign:'center', marginBottom:'1.25rem', padding:'1.25rem', background: qualified ? '#0d2418' : '#1a0d0d', border:`1px solid ${qualified ? '#0047CC44' : '#7f1d1d44'}`, borderRadius:'1rem' }}>
+      <div style={{ textAlign:'center', marginBottom:'1.25rem', padding:'1.25rem', background: qualified ? 'var(--win-bg)' : 'var(--loss-bg)', border:`1px solid ${qualified ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius:'1rem' }}>
         <div style={{ fontSize:'2.5rem', marginBottom:'0.5rem' }}>{qualified ? '🎉' : '😔'}</div>
         <div style={{ fontSize:'1.2rem', fontWeight:900, color: qualified ? '#1F6FEB' : '#ef4444', marginBottom:'0.3rem' }}>
           {qualified ? `Qualified! (Finished ${ordinal(position)})` : `Missed Playoffs (Finished ${ordinal(position)})`}
@@ -754,7 +754,7 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
       </div>
 
       {!qualified && topTeam && (
-        <div style={{ padding:'1rem', background:'#1a1200', border:'1px solid #f59e0b33', borderRadius:'0.875rem', marginBottom:'1.25rem', textAlign:'center' }}>
+        <div style={{ padding:'1rem', background:'var(--warn-bg)', border:'1px solid var(--warn-border)', borderRadius:'0.875rem', marginBottom:'1.25rem', textAlign:'center' }}>
           <div style={{ fontSize:'0.62rem', color:'#f59e0b', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'0.3rem' }}>IPL Champions (Simulated)</div>
           <div style={{ fontSize:'1.1rem', fontWeight:900, color:'var(--text)' }}>🏆 {topTeam.team}</div>
         </div>
@@ -775,7 +775,7 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
   const stageClr = stage === 'Final' ? '#f59e0b' : (stage?.includes('Qualifier') || stage === 'Eliminator' || stage?.includes('Semi')) ? '#a78bfa' : '#64748b'
 
   return (
-    <div style={{ background: won ? '#0d2418' : '#1a0d0d', border:`1px solid ${won ? '#0047CC44' : '#7f1d1d44'}`, borderRadius:'0.75rem', overflow:'hidden', animation: isLatest ? 'slide-in-right 0.3s ease both' : 'none' }}>
+    <div style={{ background: won ? 'var(--win-bg)' : 'var(--loss-bg)', border:`1px solid ${won ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius:'0.75rem', overflow:'hidden', animation: isLatest ? 'slide-in-right 0.3s ease both' : 'none' }}>
       <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', padding:'0.75rem 1rem', cursor: hasHighlights ? 'pointer' : 'default' }} onClick={hasHighlights ? onToggle : undefined}>
         <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--border2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.62rem', fontWeight:800, color:'#64748b', flexShrink:0 }}>{matchNum}</div>
         <div style={{ flex:1, minWidth:0 }}>
@@ -793,7 +793,7 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
       </div>
 
       {expanded && hasHighlights && (
-        <div style={{ padding:'0.75rem 1rem 1rem', borderTop:`1px solid ${won ? '#0047CC22' : '#7f1d1d22'}`, display:'flex', flexDirection:'column', gap:'0.625rem', animation:'fade-in 0.15s ease both' }}>
+        <div style={{ padding:'0.75rem 1rem 1rem', borderTop:`1px solid ${won ? 'var(--win-border)' : 'var(--loss-border)'}`, display:'flex', flexDirection:'column', gap:'0.625rem', animation:'fade-in 0.15s ease both' }}>
           {eventResult && event && (
             <div style={{ display:'flex', gap:'0.75rem', alignItems:'flex-start' }}>
               <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background: eventResult.success ? '#f59e0b18' : '#ef444418', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem' }}>
