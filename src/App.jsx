@@ -178,23 +178,24 @@ export default function App() {
   }
 
   // Persistent challenge banner — shown across all phases while a daily challenge is active
+  const BANNER_H = 38
   const challengeBanner = activeChallenge ? (
     <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 900,
-      background: 'var(--card)',
-      borderBottom: '1px solid #1F6FEB44',
-      padding: '0.45rem 1.25rem',
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1100,
+      background: 'linear-gradient(90deg, #1a3a7a, #1F6FEB)',
+      padding: '0 1.25rem',
+      height: BANNER_H,
       display: 'flex', alignItems: 'center', gap: '0.625rem',
-      boxShadow: '0 2px 12px rgba(31,111,235,0.12)',
+      boxShadow: '0 2px 12px rgba(31,111,235,0.35)',
     }}>
-      <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>
+      <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.1em', flexShrink: 0 }}>
         🗓️ Daily Challenge
       </span>
-      <span style={{ width: 1, height: 14, background: '#1F6FEB33', flexShrink: 0 }} />
-      <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text)', flexShrink: 0 }}>
+      <span style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+      <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#ffffff', flexShrink: 0 }}>
         {activeChallenge.constraint_label}
       </span>
-      <span style={{ fontSize: '0.75rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         — {activeChallenge.constraint_desc}
       </span>
     </div>
@@ -324,27 +325,27 @@ export default function App() {
     </>
   )
   if (phase === 'settings') return (
-    <>
+    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0 }}>
       <DraftSettings mode={mode} onStart={handleSettingsStart} onBack={() => setPhase('menu')} />
       {profileBtn}
       {globalOverlays}
-    </>
+    </div>
   )
   if (phase === 'compose') return (
-    <>
+    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0 }}>
       <SquadComposer onDone={handleCompositionDone} onBack={() => setPhase('settings')} />
       {profileBtn}
       {globalOverlays}
-    </>
+    </div>
   )
 
   // Manager select now comes AFTER the draft is complete
   if (phase === 'manager')  return (
-    <>
+    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0 }}>
       <ManagerSelect mode={mode} team={team} onSelect={handleManagerSelect} onBack={() => setPhase('draft')} />
       {profileBtn}
       {globalOverlays}
-    </>
+    </div>
   )
 
   if (phase === 'draft') {
@@ -470,7 +471,7 @@ export default function App() {
   }
 
   if (phase === 'simulate') return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: activeChallenge ? BANNER_H : 0 }}>
       <MatchSimulator team={team} mode={mode} manager={manager} ratingType={settings?.ratingType} onDone={handleSimDone} />
       {profileBtn}
       {globalOverlays}
