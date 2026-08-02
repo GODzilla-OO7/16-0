@@ -128,10 +128,10 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
     fetchTotalPlays().then(n => { if (n != null) setTotalPlays(n) })
     // Realtime subscription (works when Supabase replication is enabled)
     const unsub = subscribeToPlays(n => { if (n != null) setTotalPlays(n) })
-    // Polling fallback every 20s so the counter always stays fresh
+    // Polling fallback every 8s so the counter stays fresh
     const poll = setInterval(() => {
       fetchTotalPlays().then(n => { if (n != null) setTotalPlays(n) })
-    }, 20000)
+    }, 8000)
     return () => { unsub(); clearInterval(poll) }
   }, [])
 

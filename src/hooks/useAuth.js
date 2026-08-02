@@ -82,16 +82,16 @@ export async function fetchTotalPlays() {
 export async function incrementTotalPlays() {
   const sb = await getSupabase()
   if (!sb) return
-  // Try atomic RPC first
-  const { error } = await sb.rpc('increment_plays')
-  if (error) {
-    // Fallback: fetch current value and increment manually
+  // Direct fetch + increment — works for anon users via existing RLS policies
+  // (select: true, update: true on global_stats)
+  try {
     const { data } = await sb.from('global_stats').select('total_plays').eq('id', 1).single()
-    if (data != null) {
-      await sb.from('global_stats')
-        .update({ total_plays: (data.total_plays ?? 0) + 1 })
-        .eq('id', 1)
-    }
+    if (data == null) return
+    await sb.from('global_stats')
+      .update({ total_plays: (data.total_plays ?? 0) + 1 })
+      .eq('id', 1)
+  } catch {
+    // Silently ignore — counter is best-effort
   }
 }
 
