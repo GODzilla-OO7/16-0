@@ -99,13 +99,29 @@ export default function UserProfile({ user, onClose, onSignOut }) {
     }}>
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '1.5rem 1rem 4rem' }}>
 
-        {/* Close */}
-        <button
-          onClick={onClose}
-          style={{ background: 'none', border: 'none', color: '#475569', fontSize: '0.85rem', cursor: 'pointer', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-        >
-          ← Back
-        </button>
+        {/* Header row: back + sign out */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: '#475569', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', padding: 0 }}
+          >
+            ← Back
+          </button>
+          <button
+            onClick={onSignOut}
+            style={{
+              background: 'none', border: '1px solid var(--border)',
+              borderRadius: '0.4rem', color: '#64748b',
+              fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+              padding: '0.3rem 0.65rem',
+              transition: 'border-color 0.15s, color 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = '#64748b' }}
+          >
+            Sign out
+          </button>
+        </div>
 
         {loading ? (
           <div style={{ textAlign: 'center', color: '#64748b', paddingTop: '4rem' }}>Loading...</div>
@@ -184,21 +200,6 @@ export default function UserProfile({ user, onClose, onSignOut }) {
               )}
             </div>
 
-            {/* Sign Out */}
-            <button
-              onClick={onSignOut}
-              style={{
-                width: '100%', padding: '0.75rem',
-                background: 'transparent', border: '1px solid var(--border)',
-                borderRadius: '0.625rem', color: '#64748b',
-                fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
-                transition: 'border-color 0.2s, color 0.2s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = '#64748b' }}
-            >
-              Sign Out
-            </button>
           </>
         )}
       </div>
