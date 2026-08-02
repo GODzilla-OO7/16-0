@@ -28,7 +28,7 @@ const CAT_COLOR = {
 
 // ─── Auction budget ───────────────────────────────────────────────────────
 
-export const STARTING_BUDGET = 80  // ₹80 cr
+export const STARTING_BUDGET = 100  // ₹100 cr
 
 // Price in crores based on display overall rating (1–99).
 // Quadratic curve: unknowns ≈ ₹0.5cr, stars ≈ ₹20-30cr.

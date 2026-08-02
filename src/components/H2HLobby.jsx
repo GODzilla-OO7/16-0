@@ -127,7 +127,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
     const { error: e } = await sb.from('h2h_rooms').insert({
       id, host_id: uid, host_name: myName, status: 'waiting', draft_mode: draftMode,
       current_turn: uid, pick_number: 0, host_team: [], guest_team: [],
-      host_budget: 80, guest_budget: 80,
+      host_budget: 100, guest_budget: 100,
     })
     if (e) { setError(e.message); setLoading(false); return }
     setRoomId(id)
