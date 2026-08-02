@@ -82,14 +82,17 @@ export async function fetchTotalPlays() {
 export async function incrementTotalPlays() {
   const sb = await getSupabase()
   if (!sb) return
-  // Use rpc for atomic increment; falls back silently if not set up yet
-  await sb.rpc('increment_plays').catch(() => {
-    // Fallback: plain update (non-atomic but fine for low concurrency)
-    sb.from('global_stats')
-      .update({ total_plays: sb.rpc('increment_plays') })
-      .eq('id', 1)
-      .then(() => {})
-  })
+  // Try atomic RPC first
+  const { error } = await sb.rpc('increment_plays')
+  if (error) {
+    // Fallback: fetch current value and increment manually
+    const { data } = await sb.from('global_stats').select('total_plays').eq('id', 1).single()
+    if (data != null) {
+      await sb.from('global_stats')
+        .update({ total_plays: (data.total_plays ?? 0) + 1 })
+        .eq('id', 1)
+    }
+  }
 }
 
 export function subscribeToPlays(onUpdate) {
