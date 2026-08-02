@@ -10,8 +10,9 @@
  */
 
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 3))) }
+function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 5))) }
 function scaledOverall(player, ratingType) {
-  if (ratingType === 'prime') return scaleDisplay(player.primeOverall ?? player.overall)
+  if (ratingType === 'prime') return scalePrime(player.primeOverall ?? player.overall)
   return scaleDisplay(player.overall)
 }
 

@@ -44,13 +44,14 @@ function fmtCr(cr) {
 // ─── Rating scaling + prime ───────────────────────────────────────────────
 
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 3))) }
-function primeVal(v)     { return Math.min(99, Math.round(scaleDisplay(v) * 1.055)) }
+// Prime uses a much more generous curve — elite legends hit 97-99, making prime feel truly special
+function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 5))) }
 
 function displayRating(player, ratingType) {
   if (ratingType === 'prime') return {
-    overall: scaleDisplay(player.primeOverall ?? player.overall),
-    batting: scaleDisplay(player.primeBatting ?? player.batting),
-    bowling: scaleDisplay(player.primeBowling ?? player.bowling),
+    overall: scalePrime(player.primeOverall ?? player.overall),
+    batting: scalePrime(player.primeBatting ?? player.batting),
+    bowling: scalePrime(player.primeBowling ?? player.bowling),
   }
   return { overall: scaleDisplay(player.overall), batting: scaleDisplay(player.batting), bowling: scaleDisplay(player.bowling) }
 }

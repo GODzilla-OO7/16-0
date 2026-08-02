@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 3))) }
+function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 5))) }
 
 const roleLabel = {
   'opener': 'OPN', 'top-order': 'BAT', 'middle-order': 'BAT',
@@ -222,7 +223,7 @@ export default function TeamSheet({
               {/* Overall rating */}
               {player && (
                 <span style={{ fontSize: '0.66rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>
-                  {scaleDisplay(ratingType === 'prime' ? (player.primeOverall ?? player.overall) : player.overall)}
+                  {ratingType === 'prime' ? scalePrime(player.primeOverall ?? player.overall) : scaleDisplay(player.overall)}
                 </span>
               )}
 

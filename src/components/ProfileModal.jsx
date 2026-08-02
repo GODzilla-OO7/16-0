@@ -8,21 +8,38 @@ function AwardBadge({ award, earned }) {
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.75rem',
       padding: '0.625rem 0.875rem',
-      background: earned ? '#0d2418' : 'var(--card)',
-      border: `1px solid ${earned ? '#1F6FEB33' : 'var(--border)'}`,
+      background: earned ? 'var(--win-bg)' : 'var(--card)',
+      border: `1px solid ${earned ? 'var(--win-border)' : 'var(--border)'}`,
       borderRadius: '0.75rem',
       opacity: earned ? 1 : 0.45,
       transition: 'all 0.2s',
     }}>
-      <div style={{
-        width: 38, height: 38, borderRadius: '50%',
-        background: earned ? '#1F6FEB18' : 'var(--border2)',
-        border: `2px solid ${earned ? '#1F6FEB55' : 'var(--border)'}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '1.2rem', flexShrink: 0,
-        filter: earned ? 'none' : 'grayscale(1)',
-      }}>
-        {award.icon}
+      {/* Icon circle — gold ring when earned */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%',
+          background: earned ? 'rgba(245,158,11,0.12)' : 'var(--border2)',
+          border: `2px solid ${earned ? '#f59e0b88' : 'var(--border)'}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '1.25rem',
+          filter: earned ? 'none' : 'grayscale(1)',
+          boxShadow: earned ? '0 0 10px rgba(245,158,11,0.2)' : 'none',
+        }}>
+          {award.icon}
+        </div>
+        {/* Gold medal badge */}
+        {earned && (
+          <div style={{
+            position: 'absolute', bottom: -2, right: -2,
+            width: 16, height: 16, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            border: '2px solid var(--card)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.55rem', lineHeight: 1,
+          }}>
+            ✓
+          </div>
+        )}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 800, color: earned ? 'var(--text)' : '#64748b' }}>
@@ -33,7 +50,7 @@ function AwardBadge({ award, earned }) {
         </div>
       </div>
       {earned && (
-        <div style={{ fontSize: '0.6rem', color: '#1F6FEB', fontWeight: 800, flexShrink: 0 }}>✓</div>
+        <div style={{ fontSize: '0.7rem', flexShrink: 0 }}>🥇</div>
       )}
     </div>
   )
@@ -112,8 +129,8 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
         {newlyEarned.length > 0 && (
           <div style={{
             padding: '0.875rem 1.5rem',
-            background: 'linear-gradient(135deg, #0d2010, var(--bg))',
-            borderBottom: '1px solid #1e3a2e',
+            background: 'var(--win-bg)',
+            borderBottom: '1px solid var(--win-border)',
             flexShrink: 0,
           }}>
             <div style={{ fontSize: '0.6rem', color: '#1F6FEB', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
