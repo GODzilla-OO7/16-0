@@ -1,6 +1,161 @@
 import { useState } from 'react'
 import { MODE_CONFIG } from '../data/players.js'
 
+// ─── Share card generator (Canvas) ───────────────────────────────────────────
+
+function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, modeLabel, matchResults, managerName, managerIcon, potm, topScorer, topWicketTaker, bestWinStreak, stageReached, iplOutcome }) {
+  const W = 1200, H = 630
+  const canvas = document.createElement('canvas')
+  canvas.width  = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+
+  // ── Background gradient ──────────────────────────────────────────────────
+  const bg = ctx.createLinearGradient(0, 0, W, H)
+  bg.addColorStop(0, '#060c1a')
+  bg.addColorStop(1, '#0d1a2e')
+  ctx.fillStyle = bg
+  ctx.fillRect(0, 0, W, H)
+
+  // Subtle grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)'
+  ctx.lineWidth = 1
+  for (let x = 0; x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke() }
+  for (let y = 0; y < H; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke() }
+
+  // ── Accent glow top-left ─────────────────────────────────────────────────
+  const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 500)
+  glow.addColorStop(0, 'rgba(31,111,235,0.12)')
+  glow.addColorStop(1, 'transparent')
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, W, H)
+
+  // ── Header bar ───────────────────────────────────────────────────────────
+  ctx.fillStyle = 'rgba(255,255,255,0.04)'
+  ctx.fillRect(0, 0, W, 72)
+
+  // Game title
+  ctx.font = '700 22px system-ui, -apple-system, sans-serif'
+  ctx.fillStyle = '#1F6FEB'
+  ctx.letterSpacing = '3px'
+  ctx.fillText('CRICKET 16-0', 48, 44)
+
+  // Mode label pill top-right
+  const modeText = modeLabel?.toUpperCase() || 'SEASON'
+  ctx.font = '700 18px system-ui, sans-serif'
+  const modeW = ctx.measureText(modeText).width + 32
+  ctx.fillStyle = 'rgba(31,111,235,0.25)'
+  roundRect(ctx, W - modeW - 40, 18, modeW, 36, 18)
+  ctx.fill()
+  ctx.fillStyle = '#60a5fa'
+  ctx.textAlign = 'right'
+  ctx.fillText(modeText, W - 56, 43)
+  ctx.textAlign = 'left'
+
+  // ── Main W-L record ──────────────────────────────────────────────────────
+  ctx.textAlign = 'center'
+  const rcColor = ratingColor || '#f59e0b'
+
+  // Rating label above W-L
+  ctx.font = '800 20px system-ui, sans-serif'
+  ctx.fillStyle = rcColor
+  ctx.letterSpacing = '4px'
+  ctx.fillText(ratingLabel?.toUpperCase() || '', W / 2, 145)
+  ctx.letterSpacing = '0px'
+
+  // Big W-L
+  ctx.font = `900 180px system-ui, sans-serif`
+  ctx.fillStyle = '#ffffff'
+  ctx.fillText(`${wins}-${losses}`, W / 2, 330)
+
+  // Subtitle
+  ctx.font = '500 20px system-ui, sans-serif'
+  ctx.fillStyle = 'rgba(148,163,184,0.8)'
+  ctx.fillText(`${total} match${total !== 1 ? 'es' : ''} played`, W / 2, 370)
+
+  // ── Match result blocks ───────────────────────────────────────────────────
+  if (matchResults?.length) {
+    const BLOCK = 28, GAP = 6, RADIUS = 5
+    const totalBlockW = matchResults.length * (BLOCK + GAP) - GAP
+    let bx = W / 2 - totalBlockW / 2
+    const by = 404
+    matchResults.forEach(r => {
+      ctx.fillStyle = r.won ? '#0047CC' : '#dc2626'
+      roundRect(ctx, bx, by, BLOCK, BLOCK, RADIUS)
+      ctx.fill()
+      bx += BLOCK + GAP
+    })
+  }
+
+  // ── Streak badge ────────────────────────────────────────────────────────
+  if (bestWinStreak >= 3) {
+    const streakText = `🔥 ${bestWinStreak} win streak`
+    ctx.font = '700 18px system-ui, sans-serif'
+    const sw = ctx.measureText(streakText).width + 28
+    ctx.fillStyle = 'rgba(31,111,235,0.2)'
+    roundRect(ctx, W / 2 - sw / 2, 448, sw, 32, 16)
+    ctx.fill()
+    ctx.fillStyle = '#60a5fa'
+    ctx.fillText(streakText, W / 2, 470)
+  }
+
+  // ── Bottom info strip ─────────────────────────────────────────────────────
+  ctx.fillStyle = 'rgba(255,255,255,0.04)'
+  ctx.fillRect(0, H - 110, W, 110)
+
+  // Left — manager
+  ctx.textAlign = 'left'
+  if (managerName) {
+    ctx.font = '600 15px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(148,163,184,0.7)'
+    ctx.fillText('COACH', 48, H - 76)
+    ctx.font = '800 22px system-ui, sans-serif'
+    ctx.fillStyle = '#f1f5f9'
+    ctx.fillText(`${managerIcon || ''} ${managerName}`, 48, H - 46)
+  }
+
+  // Center — POTM
+  if (potm) {
+    ctx.textAlign = 'center'
+    ctx.font = '600 15px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(148,163,184,0.7)'
+    ctx.fillText('PLAYER OF TOURNAMENT', W / 2, H - 76)
+    ctx.font = '800 20px system-ui, sans-serif'
+    ctx.fillStyle = '#f59e0b'
+    ctx.fillText(potm, W / 2, H - 46)
+  }
+
+  // Right — watermark
+  ctx.textAlign = 'right'
+  ctx.font = '600 17px system-ui, sans-serif'
+  ctx.fillStyle = 'rgba(148,163,184,0.45)'
+  ctx.fillText('cricket16-0.app', W - 48, H - 46)
+
+  // ── Download ──────────────────────────────────────────────────────────────
+  canvas.toBlob(blob => {
+    const url  = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href     = url
+    link.download = `cricket16-0-${wins}-${losses}.png`
+    link.click()
+    URL.revokeObjectURL(url)
+  }, 'image/png')
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.arcTo(x + w, y, x + w, y + r, r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+  ctx.lineTo(x + r, y + h)
+  ctx.arcTo(x, y + h, x, y + h - r, r)
+  ctx.lineTo(x, y + r)
+  ctx.arcTo(x, y, x + r, y, r)
+  ctx.closePath()
+}
+
 function getPredictedRank(str, mode) {
   if (mode === 'ipl') {
     if (str >= 85) return { pos: '1st–2nd', short: 'Champions contender' }
@@ -186,6 +341,22 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
   const copyShare = () => navigator.clipboard.writeText(shareText()).catch(() => {})
 
+  const downloadCard = () => generateShareCard({
+    wins, losses, total,
+    ratingLabel: rating.label,
+    ratingColor: rating.color,
+    modeLabel:   cfg.label,
+    matchResults,
+    managerName:  manager?.name ?? null,
+    managerIcon:  manager?.icon ?? null,
+    potm,
+    topScorer:     topScorers[0]?.name ?? null,
+    topWicketTaker: topWicketTakers[0]?.name ?? null,
+    bestWinStreak,
+    stageReached,
+    iplOutcome,
+  })
+
   // Best win streak from matchResults
   const bestWinStreak = (() => {
     let best = 0, cur = 0
@@ -303,6 +474,17 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               }}
             >
               Play Again
+            </button>
+            <button
+              onClick={downloadCard}
+              style={{
+                padding: '0.875rem 1.75rem',
+                background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                color: '#fff', border: 'none', borderRadius: '0.625rem',
+                fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
+              }}
+            >
+              📸 Save Card
             </button>
             <button
               onClick={copyShare}
