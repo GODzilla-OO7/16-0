@@ -20,8 +20,8 @@ const EVENT_DEFS = {
 
   'half-century': {
     icon: '🏏', badge: 'FIFTY ALERT', accentColor: '#f59e0b',
-    headline: (p) => `${p} is on 49 — one run from a fifty!`,
-    subline:  (p, opp) => `vs ${opp} — the crowd is buzzing`,
+    headline: (p) => `${p} on 49 — one more!`,
+    subline:  (p, opp) => `vs ${opp} · Middle overs, team needs this fifty to keep the innings alive`,
     choiceCount: 3,
     choicePool: [
       { label: 'Clip to leg',     icon: '✋', desc: 'Easy single to leg side',            successChance: 0.88 },
@@ -38,8 +38,8 @@ const EVENT_DEFS = {
 
   'century': {
     icon: '💯', badge: 'CENTURY BALL', accentColor: '#f59e0b',
-    headline: (p) => `${p} is on 99 — one run from a HUNDRED!`,
-    subline:  (p, opp) => `vs ${opp} — can they make history?`,
+    headline: (p) => `${p} on 99 — the hundred!`,
+    subline:  (p, opp) => `vs ${opp} · Team is building a big score — this ton could win the match`,
     choiceCount: 3,
     choicePool: [
       { label: 'Nudge to midwicket', icon: '🎯', desc: 'Rotate strike for the easy run',       successChance: 0.90 },
@@ -56,8 +56,8 @@ const EVENT_DEFS = {
 
   '150': {
     icon: '🔥', badge: 'RARE MOMENT', accentColor: '#ef4444',
-    headline: (p) => `${p} is on 149 — a massive 150 in sight!`,
-    subline:  (p, opp) => `vs ${opp} — this only happens once in a blue moon`,
+    headline: (p) => `${p} on 149 — extraordinary!`,
+    subline:  (p, opp) => `vs ${opp} · Dominating the attack — a 150 would be a career-defining knock`,
     choiceCount: 2,
     choicePool: [
       { label: 'Pick the gap',  icon: '🎯', desc: 'Thread the needle — one good shot',   successChance: 0.62 },
@@ -72,8 +72,8 @@ const EVENT_DEFS = {
 
   '200': {
     icon: '⚡', badge: 'HISTORIC MOMENT', accentColor: '#a855f7',
-    headline: (p) => `${p} is on 199 — A DOUBLE CENTURY!`,
-    subline:  (p, opp) => `vs ${opp} — this is legendary territory`,
+    headline: (p) => `${p} on 199 — all-time stuff!`,
+    subline:  (p, opp) => `vs ${opp} · One run from a double hundred — fewer than 10 ever done in Tests`,
     choiceCount: 2,
     choicePool: [
       { label: 'Steal a single', icon: '🏃', desc: 'Scamper through for the historic run',   successChance: 0.72 },
@@ -87,8 +87,8 @@ const EVENT_DEFS = {
 
   'hat-trick': {
     icon: '🎳', badge: 'HAT-TRICK BALL', accentColor: '#ef4444',
-    headline: (p) => `${p} needs ONE MORE wicket for a hat-trick!`,
-    subline:  (p, opp) => `vs ${opp} — the whole ground is holding its breath`,
+    headline: (p) => `Hat-trick ball — ${p}!`,
+    subline:  (p, opp) => `vs ${opp} · Two wickets in two balls — one more ends the innings`,
     choiceCount: 3,
     choicePool: [
       { label: 'Yorker',        icon: '🎯', desc: 'Aim for the blockhole — squeeze them out',  successChance: 0.50 },
@@ -105,8 +105,8 @@ const EVENT_DEFS = {
 
   'catch': {
     icon: '🙌', badge: 'CAUGHT IN THE FIELD', accentColor: '#22c55e',
-    headline: (p, opp) => `${p} has a sharp chance in the field!`,
-    subline:  (p, opp) => `vs ${opp} — the edge flies fast and low`,
+    headline: (p) => `Catch! Sharp chance — ${p}!`,
+    subline:  (p, opp) => `vs ${opp} · Edge flying low — take it, the batter's gone`,
     choiceCount: 3,
     choicePool: [
       { label: 'Dive full length', icon: '🙌', desc: 'Give everything — full-length dive',    successChance: 0.65 },
@@ -122,8 +122,8 @@ const EVENT_DEFS = {
 
   'run-out': {
     icon: '🏃', badge: 'RUN OUT CHANCE', accentColor: '#3b82f6',
-    headline: (p, opp) => `${p} has a run-out chance — the batter is stranded!`,
-    subline:  (p, opp) => `vs ${opp} — the batter is hopelessly out of the crease`,
+    headline: (p) => `Run out! ${p} — pick your end!`,
+    subline:  (p, opp) => `vs ${opp} · Batter stranded mid-pitch — direct hit wins the wicket`,
     choiceCount: 2,
     choicePool: [
       { label: 'Direct throw!', icon: '🏃', desc: 'Go for broke — aim at the stumps',              successChance: 0.60 },
@@ -139,8 +139,8 @@ const EVENT_DEFS = {
 
   'drs': {
     icon: '📺', badge: 'DRS REVIEW', accentColor: '#94a3b8',
-    headline: (p, opp) => `GIVEN OUT! — ${p}'s team wants a DRS review`,
-    subline:  (p, opp) => `vs ${opp} — umpire raised the finger, it looks close`,
+    headline: (p) => `OUT given — DRS or walk?`,
+    subline:  (p, opp) => `vs ${opp} · Umpire raised the finger — ball-tracking will decide ${p}'s fate`,
     choiceCount: 2,
     choicePool: [
       { label: 'Take DRS now!',    icon: '📺', desc: 'Challenge — burn a review, ball tracking will decide', successChance: 0.55 },
@@ -155,8 +155,8 @@ const EVENT_DEFS = {
 
   'stumping': {
     icon: '🧤', badge: 'STUMPING CHANCE', accentColor: '#f97316',
-    headline: (p, opp) => `${p} has the bails off — is the batter out of the crease?`,
-    subline:  (p, opp) => `vs ${opp} — keeper fumbles and recovers`,
+    headline: (p) => `Stumping chance — ${p}!`,
+    subline:  (p, opp) => `vs ${opp} · Batter danced down the track — bails are off, is the foot in?`,
     choiceCount: 3,
     choicePool: [
       { label: 'Whip the bails!',  icon: '⚡', desc: 'Lightning hands — go for it instantly',           successChance: 0.60 },
@@ -172,8 +172,8 @@ const EVENT_DEFS = {
 
   'no-ball': {
     icon: '⚠️', badge: 'NO-BALL CALL', accentColor: '#f59e0b',
-    headline: (p, opp) => `${p}'s foot looks close to the crease — no-ball appeal!`,
-    subline:  (p, opp) => `vs ${opp} — the square leg umpire is checking the replays`,
+    headline: (p) => `No-ball? ${p}'s foot is close!`,
+    subline:  (p, opp) => `vs ${opp} · Square leg checking replays — free hit on the line`,
     choiceCount: 3,
     choicePool: [
       { label: 'Appeal strongly', icon: '📢', desc: 'Captain pushes the umpire to check',             successChance: 0.50 },
@@ -189,8 +189,8 @@ const EVENT_DEFS = {
 
   'last-over': {
     icon: '🏁', badge: 'FINAL OVER', accentColor: '#a855f7',
-    headline: (p, opp) => `${p} has the ball for the final over — pressure situation!`,
-    subline:  (p, opp) => `vs ${opp} — this is where matches are won and lost`,
+    headline: (p) => `${p} — last over, hold it!`,
+    subline:  (p, opp) => `vs ${opp} · Death overs — every run saved here could win the match`,
     choiceCount: 3,
     choicePool: [
       { label: 'Attack with yorkers', icon: '🎯', desc: 'Bowl them out — aim for the blockhole every ball', successChance: 0.52 },
@@ -207,8 +207,8 @@ const EVENT_DEFS = {
 
   'powerplay': {
     icon: '⚡', badge: 'POWERPLAY TIME', accentColor: '#1F6FEB',
-    headline: (p, opp) => `${p} opens — 6 fielders in the ring for the powerplay!`,
-    subline:  (p, opp) => `vs ${opp} — the first 6 overs define the innings`,
+    headline: (p) => `Powerplay — ${p} opens up!`,
+    subline:  (p, opp) => `vs ${opp} · Fielding circle on — first 6 overs set the total`,
     choiceCount: 3,
     choicePool: [
       { label: 'Attack from ball 1',    icon: '💥', desc: 'Maximum intent — go hard from the start',          successChance: 0.58 },
@@ -224,8 +224,8 @@ const EVENT_DEFS = {
 
   'dropped-catch': {
     icon: '🌞', badge: 'DOLLY DROPPED!', accentColor: '#fbbf24',
-    headline: (p, opp) => `${p} has tracked a skier — it's swirling in the outfield!`,
-    subline:  (p, opp) => `vs ${opp} — catch it and you get a massive wicket`,
+    headline: (p) => `Skier! ${p} under the ball!`,
+    subline:  (p, opp) => `vs ${opp} · High and swirling — hold it and they lose a big batter`,
     choiceCount: 3,
     choicePool: [
       { label: 'Steady the nerves',  icon: '😤', desc: 'Block everything out — focus on the ball',       successChance: 0.72 },
@@ -242,8 +242,8 @@ const EVENT_DEFS = {
 
   'free-hit': {
     icon: '🆓', badge: 'FREE HIT!', accentColor: '#22c55e',
-    headline: (p, opp) => `FREE HIT! ${p} gets one swing — no wicket possible!`,
-    subline:  (p, opp) => `vs ${opp} — the fielding side can only concede runs`,
+    headline: (p) => `FREE HIT — swing it, ${p}!`,
+    subline:  (p, opp) => `vs ${opp} · No wicket possible — field is scrambled, boundary on`,
     choiceCount: 3,
     choicePool: [
       { label: 'Go downtown!',    icon: '💥', desc: 'Maximum power — swing for the stands',          successChance: 0.52 },
