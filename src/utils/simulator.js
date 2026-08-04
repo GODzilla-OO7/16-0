@@ -222,7 +222,8 @@ export function simulateMatch(myStrength, opponent, format, matchNum, team) {
   const stats    = team ? generateMatchStats(team, won, format) : null
   const oppStats = generateOppMatchStats(opponent.name, opponent.strength, format)
 
-  return { matchNum, opponent: opponent.name, won, ...result, stats, oppStats }
+  const runMargin = Math.abs(myScore.runs - oppScore.runs)
+  return { matchNum, opponent: opponent.name, won, ...result, stats, oppStats, runMargin }
 }
 
 // ─── Tournament structure ──────────────────────────────────────────────────
@@ -386,6 +387,15 @@ export function generateMatchEvent(team, matchIndex, eventIndices) {
   return { type, playerName: player.name }
 }
 
+// ─── Super Over ────────────────────────────────────────────────────────────
+// 6 balls, 2 wickets — a fresh mini-game independent of the main match result
+export function simulateSuperOver(myStr, oppStr) {
+  const myRuns  = Math.max(0, Math.round(8 + (myStr  / 100) * 18 + (Math.random() - 0.5) * 10))
+  const oppRuns = Math.max(0, Math.round(8 + (oppStr / 100) * 16 + (Math.random() - 0.5) * 10))
+  const won     = myRuns !== oppRuns ? myRuns > oppRuns : Math.random() < 0.5  // boundary count tiebreak
+  return { won, myRuns, oppRuns }
+}
+
 export function simulateFullSeason(team, mode, manager, options = {}) {
   const config      = MODE_CONFIG[mode]
   const myStr       = calcTeamStrength(team, manager, mode)
@@ -404,6 +414,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
 
   const results = []
   let wins = 0
+  let leagueSuperOverUsed = false  // max 1 Super Over per season in league matches
 
   // Stat accumulators — batting
   const runTotals = {}, ballTotals = {}
@@ -419,6 +430,15 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
     // Attach match event if this match index was selected
     const event = generateMatchEvent(team, results.length, eventIndices)
     if (event) result.event = event
+
+    // League Super Over: 0–1 per season, only for very close league matches
+    if (stage === 'League' && !leagueSuperOverUsed && result.runMargin <= 8 && Math.random() < 0.08) {
+      leagueSuperOverUsed = true
+      const so = simulateSuperOver(myStr, opp.strength)
+      result.superOver = so           // { won, myRuns, oppRuns }
+      result.won       = so.won       // override regular match result with SO result
+    }
+
     accumulateMatchStats(result, runTotals, ballTotals, wicketTotals, bowlBallTotals, bowlRunTotals, oppRunTotals, oppWicketTotals, oppRoleMap, oppTeamMap, format, opp.name, opp.strength)
     results.push(result)
     if (result.won) wins++
