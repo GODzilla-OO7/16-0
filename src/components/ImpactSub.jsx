@@ -2,11 +2,28 @@ import { useState, useRef, useEffect } from 'react'
 import { WHEEL_ENTRIES } from '../data/players.js'
 
 // ─── Legendary icon players — appear with 0.05% chance in player spin ────────
+// These are all-time greats NOT present in the regular WHEEL_ENTRIES pool.
 
 const ICON_PLAYERS = [
-  { id: 'icon-bradman',  name: 'Sir Donald Bradman', role: 'top-order',   nationality: 'Australia',  batting: 99, bowling: 20, fielding: 85, overall: 99, _isIcon: true },
-  { id: 'icon-sobers',   name: 'Sir Garfield Sobers', role: 'all-rounder', nationality: 'W. Indies',  batting: 97, bowling: 95, fielding: 90, overall: 99, _isIcon: true },
-  { id: 'icon-viv',      name: 'Sir Viv Richards',    role: 'top-order',   nationality: 'W. Indies',  batting: 98, bowling: 38, fielding: 88, overall: 98, _isIcon: true },
+  // Pre-modern era — England
+  { id: 'icon-hobbs',     name: 'Sir Jack Hobbs',      role: 'opener',       nationality: 'England',   batting: 99, bowling: 10, fielding: 82, overall: 98, _isIcon: true },
+  { id: 'icon-hutton',    name: 'Sir Len Hutton',       role: 'opener',       nationality: 'England',   batting: 96, bowling: 12, fielding: 80, overall: 95, _isIcon: true },
+  { id: 'icon-hammond',   name: 'Wally Hammond',        role: 'top-order',    nationality: 'England',   batting: 97, bowling: 70, fielding: 92, overall: 97, _isIcon: true },
+  // Pre-modern era — Australia
+  { id: 'icon-bradman',   name: 'Sir Donald Bradman',   role: 'top-order',    nationality: 'Australia', batting: 99, bowling: 20, fielding: 85, overall: 99, _isIcon: true },
+  { id: 'icon-miller',    name: 'Keith Miller',         role: 'all-rounder',  nationality: 'Australia', batting: 92, bowling: 92, fielding: 88, overall: 97, _isIcon: true },
+  { id: 'icon-lindwall',  name: 'Ray Lindwall',         role: 'pace-bowler',  nationality: 'Australia', batting: 60, bowling: 94, fielding: 78, overall: 93, _isIcon: true },
+  { id: 'icon-benaud',    name: 'Richie Benaud',        role: 'spin-bowler',  nationality: 'Australia', batting: 72, bowling: 92, fielding: 82, overall: 91, _isIcon: true },
+  // West Indies greats
+  { id: 'icon-sobers',    name: 'Sir Garfield Sobers',  role: 'all-rounder',  nationality: 'W. Indies', batting: 97, bowling: 95, fielding: 90, overall: 99, _isIcon: true },
+  { id: 'icon-viv',       name: 'Sir Viv Richards',     role: 'top-order',    nationality: 'W. Indies', batting: 98, bowling: 38, fielding: 88, overall: 98, _isIcon: true },
+  { id: 'icon-worrell',   name: 'Sir Frank Worrell',    role: 'all-rounder',  nationality: 'W. Indies', batting: 93, bowling: 72, fielding: 82, overall: 95, _isIcon: true },
+  { id: 'icon-weekes',    name: 'Sir Everton Weekes',   role: 'middle-order', nationality: 'W. Indies', batting: 96, bowling: 20, fielding: 82, overall: 95, _isIcon: true },
+  { id: 'icon-walcott',   name: 'Sir Clyde Walcott',    role: 'middle-order', nationality: 'W. Indies', batting: 95, bowling: 22, fielding: 80, overall: 94, _isIcon: true },
+  { id: 'icon-kanhai',    name: 'Rohan Kanhai',         role: 'top-order',    nationality: 'W. Indies', batting: 95, bowling: 15, fielding: 80, overall: 93, _isIcon: true },
+  // South African legends (limited Test careers due to apartheid)
+  { id: 'icon-gpollock',  name: 'Graeme Pollock',       role: 'top-order',    nationality: 'S. Africa', batting: 98, bowling: 28, fielding: 80, overall: 97, _isIcon: true },
+  { id: 'icon-brichards', name: 'Barry Richards',       role: 'opener',       nationality: 'S. Africa', batting: 97, bowling: 35, fielding: 82, overall: 96, _isIcon: true },
 ]
 
 // ─── Event types that can land on the wheel ──────────────────────────────────
