@@ -163,6 +163,32 @@ function buildResult(myScore, oppScore, won) {
   }
 }
 
+// ─── Opponent per-match stats (for MatchCard display) ──────────────────────
+
+function generateOppMatchStats(oppName, oppStrength, format) {
+  const stars = getOppStars(oppName)
+  const str   = oppStrength ?? 65
+
+  // Pick a batter star
+  const batStar  = stars.find(s => ['opener','top-order','middle-order','wicket-keeper','all-rounder'].includes(s.role)) || stars[0]
+  const batStar2 = stars.find(s => s !== batStar && ['opener','top-order','middle-order','wicket-keeper','all-rounder'].includes(s.role))
+  const bowlStar = stars.find(s => ['pace-bowler','spin-bowler','all-rounder'].includes(s.role))
+
+  const runsBase  = format === 't20' ? 14 : 28
+  const runsRange = format === 't20' ? 62 : 95
+  const runs  = Math.round(clamp(runsBase + (str / 100) * runsRange * rng(0.3, 1.0), runsBase, format === 't20' ? 100 : 165))
+  const balls = Math.round(runs / rng(110, 160) * 100)
+  const runs2 = batStar2 ? Math.round(clamp(8 + (str / 100) * 55 * rng(0.3, 0.8), 8, format === 't20' ? 60 : 90)) : null
+  const wickets = bowlStar ? Math.min(5, Math.floor(rng(0.5, 1) + (str / 100) * 4 * rng(0.4, 1.1))) : 0
+  const runsConceded = Math.round(rng(15, 35))
+
+  return {
+    topScorer:  { name: batStar.name, runs, balls },
+    topScorer2: batStar2 && runs2 ? { name: batStar2.name, runs: runs2 } : null,
+    topBowler:  bowlStar ? { name: bowlStar.name, wickets, runsConceded } : null,
+  }
+}
+
 // ─── Single Match ──────────────────────────────────────────────────────────
 
 export function simulateMatch(myStrength, opponent, format, matchNum, team) {
@@ -192,10 +218,11 @@ export function simulateMatch(myStrength, opponent, format, matchNum, team) {
     }
   }
 
-  const result = buildResult(myScore, oppScore, won)
-  const stats  = team ? generateMatchStats(team, won, format) : null
+  const result   = buildResult(myScore, oppScore, won)
+  const stats    = team ? generateMatchStats(team, won, format) : null
+  const oppStats = generateOppMatchStats(opponent.name, opponent.strength, format)
 
-  return { matchNum, opponent: opponent.name, won, ...result, stats }
+  return { matchNum, opponent: opponent.name, won, ...result, stats, oppStats }
 }
 
 // ─── Tournament structure ──────────────────────────────────────────────────
@@ -340,12 +367,12 @@ export function generateMatchEvent(team, matchIndex, eventIndices) {
   if (batters.length > 0) {
     const player  = batters[Math.floor(Math.random() * batters.length)]
     const batRand = Math.random()
-    if (batRand < 0.01) {
-      // 1% chance of 200
+    if (batRand < 0.005) {
+      // 0.5% chance of 200 — extremely rare
       return { type: '200', playerName: player.name }
     }
-    if (batRand < 0.06) {
-      // 5% chance of 150
+    if (batRand < 0.012) {
+      // 0.7% chance of 150 — very very rare
       return { type: '150', playerName: player.name }
     }
     if (batRand < 0.35) {
@@ -366,7 +393,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   const totalTarget = config.totalMatches
 
   // Pre-assign which match indices get events (avg ~10, max 2/match, total 6-14)
-  const eventCount    = 5 + Math.floor(Math.random() * 3)   // 5–7
+  const eventCount    = 4 + Math.floor(Math.random() * 3)   // 4–6 (max 6)
   const totalMatches  = config.totalMatches + 3             // approx upper bound inc. playoffs
   const eventIndices  = new Set()
   let attempts = 0

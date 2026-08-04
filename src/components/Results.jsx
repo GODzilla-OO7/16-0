@@ -720,7 +720,7 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
       {/* Best Overall Player */}
       {potm && (
         <div style={{
-          background: 'linear-gradient(135deg, #1a1200, #0f0d00)',
+          background: 'var(--warn-bg)',
           border: '2px solid #f59e0b44',
           borderRadius: '1rem', padding: '1.25rem',
           display: 'flex', alignItems: 'center', gap: '1rem',
@@ -747,7 +747,7 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
                 <div key={p.name} style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.625rem 0.75rem',
-                  background: i === 0 ? '#0d2418' : 'var(--card)',
+                  background: i === 0 ? '#1F6FEB12' : 'var(--card)',
                   border: `1px solid ${i === 0 ? '#1F6FEB44' : 'var(--border)'}`,
                   borderRadius: '0.625rem',
                 }}>
@@ -773,7 +773,7 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
                 <div key={p.name} style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.625rem 0.75rem',
-                  background: i === 0 ? '#130d1f' : 'var(--card)',
+                  background: i === 0 ? '#a855f712' : 'var(--card)',
                   border: `1px solid ${i === 0 ? '#a855f744' : 'var(--border)'}`,
                   borderRadius: '0.625rem',
                 }}>
@@ -964,7 +964,7 @@ function PlayerStatsTab({ playerStats, team }) {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 340 }}>
             <thead>
-              <tr style={{ background: '#0e0e18' }}>
+              <tr style={{ background: 'var(--card2)' }}>
                 <th style={thLeft}>Player</th>
                 <th style={thStyle}>Role</th>
                 <th style={thStyle}>Runs</th>
@@ -980,7 +980,7 @@ function PlayerStatsTab({ playerStats, team }) {
                 const showBat  = isBatter(p.role) || isAllRndr(p.role)
                 const showBowl = isBowler(p.role) || isAllRndr(p.role)
                 return (
-                  <tr key={p.name} style={{ borderBottom: i < rows.length - 1 ? '1px solid var(--border2)' : 'none', background: i % 2 === 0 ? 'transparent' : '#0e0e1488' }}>
+                  <tr key={p.name} style={{ borderBottom: i < rows.length - 1 ? '1px solid var(--border2)' : 'none', background: i % 2 === 0 ? 'transparent' : 'var(--border2)' }}>
                     <td style={{ ...tdLeft, color: 'var(--text)', fontWeight: 700, whiteSpace: 'nowrap' }}>{p.name}</td>
                     <td style={tdStyle}>
                       <span style={{ padding: '0.1rem 0.35rem', borderRadius: '0.2rem', background: roleClr + '22', border: `1px solid ${roleClr}44`, fontSize: '0.48rem', fontWeight: 900, color: roleClr }}>
@@ -1019,8 +1019,8 @@ function MatchesTab({ matchResults }) {
         <div key={i} style={{
           display: 'flex', alignItems: 'center', gap: '0.75rem',
           padding: '0.75rem 1rem',
-          background: r.won ? '#0d2418' : '#1a0d0d',
-          border: `1px solid ${r.won ? '#0047CC44' : '#7f1d1d44'}`,
+          background: r.won ? 'var(--win-bg)' : 'var(--loss-bg)',
+          border: `1px solid ${r.won ? 'var(--win-border)' : 'var(--loss-border)'}`,
           borderRadius: '0.625rem',
         }}>
           <div style={{

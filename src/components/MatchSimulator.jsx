@@ -134,24 +134,28 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             opponent: match.opponent,
             resume: (success, choiceLabel) => {
               setPendingEvent(null)
-              const matchWithQTE = { ...match, eventResult: { success, choiceLabel } }
-              setRevealed(prev => [...prev, matchWithQTE])
-              addStats(matchWithQTE, setLiveRuns, setLiveWkts)
+              const BATTING_MILESTONES = { 'half-century': 50, 'century': 100, '150': 150, '200': 200 }
+              let finalMatch = { ...match, eventResult: { success, choiceLabel } }
+              // For successful QTE events: patch stats so the correct value is reflected
+              // instead of adding random base stats + milestone (which doubles the count)
+              if (success && match.event && finalMatch.stats) {
+                const evt = match.event
+                const milestone = BATTING_MILESTONES[evt.type]
+                if (milestone !== undefined) {
+                  // Replace topScorer with QTE player at exact milestone runs
+                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: milestone } } }
+                } else if (evt.type === 'hat-trick') {
+                  // Replace topBowler with QTE player at exactly 3 wickets
+                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topBowler: { name: evt.playerName, wickets: 3 } } }
+                }
+              }
+              setRevealed(prev => [...prev, finalMatch])
+              addStats(finalMatch, setLiveRuns, setLiveWkts)
               updateStreak(match.won, setCurrentStreak, setBestWinStreak)
-              // Update live leaderboard with QTE outcome
+              // Fielding events (catch/run-out) add a wicket not tracked in match stats
               if (success && match.event) {
                 const evt = match.event
-                if (evt.type === 'century') {
-                  setLiveRuns(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 100 }))
-                } else if (evt.type === 'half-century') {
-                  setLiveRuns(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 50 }))
-                } else if (evt.type === '150') {
-                  setLiveRuns(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 150 }))
-                } else if (evt.type === '200') {
-                  setLiveRuns(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 200 }))
-                } else if (evt.type === 'hat-trick') {
-                  setLiveWkts(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 3 }))
-                } else if (evt.type === 'catch' || evt.type === 'run-out') {
+                if (evt.type === 'catch' || evt.type === 'run-out') {
                   setLiveWkts(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 1 }))
                 }
               }
@@ -833,66 +837,164 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
 // ─── Match card ───────────────────────────────────────────────────────────────
 
 function MatchCard({ result, isLatest, expanded, onToggle }) {
-  const { won, matchNum, stage, opponent, summary, myScore, oppScore, stats, event, eventResult } = result
-  const hasHighlights = !!(stats?.topScorer || stats?.topBowler || eventResult)
+  const { won, matchNum, stage, opponent, summary, myScore, oppScore, stats, oppStats, event, eventResult } = result
   const stageClr = stage === 'Final' ? '#f59e0b' : (stage?.includes('Qualifier') || stage === 'Eliminator' || stage?.includes('Semi')) ? '#a78bfa' : '#64748b'
+
+  // Primary: always shown
+  const myScorer  = stats?.topScorer   || null
+  const myBowler  = stats?.topBowler   || null
+  const oppScorer = oppStats?.topScorer || null
+  const oppBowler = oppStats?.topBowler || null
+  const hasPrimary = !!(myScorer || myBowler || oppScorer || oppBowler)
+
+  // Secondary: shown on click
+  const myScorer2  = stats?.topScorer2   || null
+  const oppScorer2 = oppStats?.topScorer2 || null
+  const hasSecondary = !!(myScorer2 || oppScorer2 || eventResult)
+
+  const divBorder = `1px solid ${won ? 'var(--win-border)' : 'var(--loss-border)'}`
+
+  function QTEChip() {
+    if (!eventResult || !event) return null
+    const icon = event.type === 'hat-trick' ? '🎳' : event.type === 'catch' || event.type === 'run-out' ? '🧤' : '🏏'
+    const label = eventResult.success ? '⚡ QTE' : '✗ QTE'
+    const color = eventResult.success ? '#f59e0b' : '#ef4444'
+    return (
+      <span style={{ display:'inline-flex', alignItems:'center', gap:'0.2rem', padding:'0.1rem 0.4rem', borderRadius:'999px', background: color + '18', border:`1px solid ${color}44`, fontSize:'0.52rem', fontWeight:800, color, marginLeft:'0.4rem' }}>
+        {icon} {label}
+      </span>
+    )
+  }
 
   return (
     <div style={{ background: won ? 'var(--win-bg)' : 'var(--loss-bg)', border:`1px solid ${won ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius:'0.75rem', overflow:'hidden', animation: isLatest ? 'slide-in-right 0.3s ease both' : 'none' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', padding:'0.75rem 1rem', cursor: hasHighlights ? 'pointer' : 'default' }} onClick={hasHighlights ? onToggle : undefined}>
-        <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--border2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.62rem', fontWeight:800, color:'#64748b', flexShrink:0 }}>{matchNum}</div>
+
+      {/* Header row */}
+      <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', padding:'0.65rem 1rem' }}>
+        <div style={{ width:26, height:26, borderRadius:'50%', background:'var(--border2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:800, color:'#64748b', flexShrink:0 }}>{matchNum}</div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:'0.58rem', color:stageClr, textTransform:'uppercase', letterSpacing:'0.07em', fontWeight:700 }}>{stage}</div>
-          <div style={{ fontSize:'0.875rem', fontWeight:700, color:'var(--text)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>vs {opponent}</div>
+          <div style={{ fontSize:'0.55rem', color:stageClr, textTransform:'uppercase', letterSpacing:'0.07em', fontWeight:700 }}>{stage}</div>
+          <div style={{ fontSize:'0.82rem', fontWeight:700, color:'var(--text)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+            vs {opponent}
+            <QTEChip />
+          </div>
         </div>
         <div style={{ textAlign:'right', flexShrink:0 }}>
-          <div style={{ fontSize:'0.7rem', color: won ? '#0047CC' : '#dc2626', fontWeight:700 }}>{summary}</div>
-          <div style={{ fontSize:'0.62rem', color:'#64748b' }}>{myScore} · {oppScore}</div>
+          <div style={{ fontSize:'0.68rem', color: won ? '#0047CC' : '#dc2626', fontWeight:700 }}>{summary}</div>
+          <div style={{ fontSize:'0.58rem', color:'#64748b' }}>{myScore} · {oppScore}</div>
         </div>
-        <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background: won ? '#1F6FEB22' : '#ef444422', border:`1px solid ${won ? '#1F6FEB66' : '#ef444466'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.62rem', fontWeight:900, color: won ? '#1F6FEB' : '#ef4444' }}>
+        <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, background: won ? '#1F6FEB22' : '#ef444422', border:`1px solid ${won ? '#1F6FEB66' : '#ef444466'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:900, color: won ? '#1F6FEB' : '#ef4444' }}>
           {won ? 'W' : 'L'}
         </div>
-        {hasHighlights && <div style={{ fontSize:'0.58rem', color:'var(--border)', flexShrink:0 }}>{expanded ? '▲' : '▼'}</div>}
       </div>
 
-      {expanded && hasHighlights && (
-        <div style={{ padding:'0.75rem 1rem 1rem', borderTop:`1px solid ${won ? 'var(--win-border)' : 'var(--loss-border)'}`, display:'flex', flexDirection:'column', gap:'0.625rem', animation:'fade-in 0.15s ease both' }}>
+      {/* Primary stats — always visible once match is revealed */}
+      {hasPrimary && (
+        <div style={{ borderTop: divBorder, display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
+          {/* My team column */}
+          <div style={{ padding:'0.45rem 0.75rem', borderRight: divBorder }}>
+            <div style={{ fontSize:'0.48rem', color:'#1F6FEB', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.3rem' }}>Your XI</div>
+            {myScorer && (
+              <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', marginBottom:'0.2rem' }}>
+                <span style={{ fontSize:'0.7rem' }}>🏏</span>
+                <div>
+                  <div style={{ fontSize:'0.72rem', fontWeight:700, color:'var(--text)', lineHeight:1.2 }}>{myScorer.name}</div>
+                  <div style={{ fontSize:'0.65rem', color:'#1F6FEB', fontWeight:700 }}>{myScorer.runs} runs</div>
+                </div>
+              </div>
+            )}
+            {myBowler && (
+              <div style={{ display:'flex', alignItems:'center', gap:'0.3rem' }}>
+                <span style={{ fontSize:'0.7rem' }}>🎯</span>
+                <div>
+                  <div style={{ fontSize:'0.72rem', fontWeight:700, color:'var(--text)', lineHeight:1.2 }}>{myBowler.name}</div>
+                  <div style={{ fontSize:'0.65rem', color:'#a855f7', fontWeight:700 }}>{myBowler.wickets}/{myBowler.runsConceded}</div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Opponent column */}
+          <div style={{ padding:'0.45rem 0.75rem' }}>
+            <div style={{ fontSize:'0.48rem', color:'#ef4444', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.3rem' }}>{opponent}</div>
+            {oppScorer && (
+              <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', marginBottom:'0.2rem' }}>
+                <span style={{ fontSize:'0.7rem' }}>🏏</span>
+                <div>
+                  <div style={{ fontSize:'0.72rem', fontWeight:700, color:'var(--text)', lineHeight:1.2 }}>{oppScorer.name}</div>
+                  <div style={{ fontSize:'0.65rem', color:'#ef4444', fontWeight:700 }}>{oppScorer.runs} runs</div>
+                </div>
+              </div>
+            )}
+            {oppBowler && (
+              <div style={{ display:'flex', alignItems:'center', gap:'0.3rem' }}>
+                <span style={{ fontSize:'0.7rem' }}>🎯</span>
+                <div>
+                  <div style={{ fontSize:'0.72rem', fontWeight:700, color:'var(--text)', lineHeight:1.2 }}>{oppBowler.name}</div>
+                  <div style={{ fontSize:'0.65rem', color:'#a855f7', fontWeight:700 }}>{oppBowler.wickets}/{oppBowler.runsConceded}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tap for 2nd scorer/bowler hint + toggle */}
+      {hasSecondary && (
+        <div
+          onClick={onToggle}
+          style={{ borderTop: divBorder, padding:'0.3rem 0.75rem', display:'flex', justifyContent:'center', alignItems:'center', gap:'0.3rem', cursor:'pointer', background: expanded ? 'transparent' : 'transparent' }}
+        >
+          <span style={{ fontSize:'0.52rem', color:'var(--border)', fontWeight:700 }}>
+            {expanded ? '▲ Hide 2nd scorer / bowler' : '▼ Tap for 2nd scorer & more'}
+          </span>
+        </div>
+      )}
+
+      {/* Secondary stats — revealed on tap */}
+      {expanded && hasSecondary && (
+        <div style={{ borderTop: divBorder, padding:'0.6rem 0.75rem', display:'flex', flexDirection:'column', gap:'0.5rem', animation:'fade-in 0.15s ease both' }}>
+          {/* 2nd scorers side by side */}
+          {(myScorer2 || oppScorer2) && (
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.5rem' }}>
+              {myScorer2 && (
+                <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', padding:'0.35rem 0.5rem', background:'#1F6FEB10', borderRadius:'0.4rem' }}>
+                  <span style={{ fontSize:'0.65rem' }}>🏏</span>
+                  <div>
+                    <div style={{ fontSize:'0.6rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:700 }}>2nd scorer</div>
+                    <div style={{ fontSize:'0.7rem', fontWeight:700, color:'var(--text)' }}>{myScorer2.name}</div>
+                    <div style={{ fontSize:'0.62rem', color:'#1F6FEB', fontWeight:700 }}>{myScorer2.runs} runs</div>
+                  </div>
+                </div>
+              )}
+              {oppScorer2 && (
+                <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', padding:'0.35rem 0.5rem', background:'#ef444410', borderRadius:'0.4rem' }}>
+                  <span style={{ fontSize:'0.65rem' }}>🏏</span>
+                  <div>
+                    <div style={{ fontSize:'0.6rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:700 }}>2nd scorer</div>
+                    <div style={{ fontSize:'0.7rem', fontWeight:700, color:'var(--text)' }}>{oppScorer2.name}</div>
+                    <div style={{ fontSize:'0.62rem', color:'#ef4444', fontWeight:700 }}>{oppScorer2.runs} runs</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {/* QTE event result */}
           {eventResult && event && (
-            <div style={{ display:'flex', gap:'0.75rem', alignItems:'flex-start' }}>
-              <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background: eventResult.success ? '#f59e0b18' : '#ef444418', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem' }}>
-                {event.type === 'hat-trick' ? '🎳' : '🏏'}
-              </div>
+            <div style={{ display:'flex', gap:'0.6rem', alignItems:'flex-start', padding:'0.4rem 0.5rem', background: eventResult.success ? '#f59e0b10' : '#ef444410', borderRadius:'0.4rem' }}>
+              <div style={{ fontSize:'1rem' }}>{event.type === 'hat-trick' ? '🎳' : event.type === 'catch' ? '🧤' : event.type === 'run-out' ? '💨' : event.type === 'drs' ? '📺' : '🏏'}</div>
               <div>
-                <div style={{ fontSize:'0.58rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.07em' }}>
-                  {event.type === 'century' ? 'Century Moment' : event.type === 'half-century' ? 'Fifty Moment' : 'Hat-Trick Ball'}
-                </div>
-                <div style={{ fontSize:'0.9rem', fontWeight:800, color:'var(--text)' }}>{event.playerName}</div>
-                <div style={{ fontSize:'0.75rem', fontWeight:700, color: eventResult.success ? '#f59e0b' : '#ef4444' }}>
-                  {eventResult.success
-                    ? (event.type === 'hat-trick' ? 'Hat-trick! 🔥' : event.type === 'century' ? 'Hundred! 🏆' : 'Fifty! 🎉')
-                    : `Out for ${event.milestone ?? '—'} · played: ${eventResult.choiceLabel}`}
+                <div style={{ fontSize:'0.55rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.07em' }}>QTE — {event.type.replace(/-/g,' ')}</div>
+                <div style={{ fontSize:'0.82rem', fontWeight:800, color:'var(--text)' }}>{event.playerName}</div>
+                <div style={{ fontSize:'0.7rem', fontWeight:700, color: eventResult.success ? '#f59e0b' : '#ef4444' }}>
+                  {eventResult.success ? '✓ Success!' : `✗ Failed · ${eventResult.choiceLabel}`}
                 </div>
               </div>
             </div>
           )}
-          {stats?.topScorer && (
-            <div style={{ display:'flex', gap:'0.75rem', alignItems:'flex-start' }}>
-              <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background:'#1F6FEB18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem' }}>🏏</div>
-              <div>
-                <div style={{ fontSize:'0.58rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.07em' }}>Top Scorer</div>
-                <div style={{ fontSize:'0.9rem', fontWeight:800, color:'var(--text)' }}>{stats.topScorer.name}</div>
-                <div style={{ fontSize:'0.75rem', color:'#1F6FEB', fontWeight:700 }}>{stats.topScorer.runs} runs off {stats.topScorer.balls}b · SR {stats.topScorer.sr}</div>
-              </div>
-            </div>
-          )}
-          {stats?.topBowler && (
-            <div style={{ display:'flex', gap:'0.75rem', alignItems:'flex-start' }}>
-              <div style={{ width:26, height:26, borderRadius:'50%', flexShrink:0, background:'#a855f718', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.8rem' }}>🎯</div>
-              <div>
-                <div style={{ fontSize:'0.58rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.07em' }}>Best Bowling</div>
-                <div style={{ fontSize:'0.9rem', fontWeight:800, color:'var(--text)' }}>{stats.topBowler.name}</div>
-                <div style={{ fontSize:'0.75rem', color:'#a855f7', fontWeight:700 }}>{stats.topBowler.wickets}/{stats.topBowler.runsConceded}</div>
-              </div>
+          {/* Top scorer detail */}
+          {myScorer && (
+            <div style={{ fontSize:'0.62rem', color:'#64748b' }}>
+              Your best: <span style={{ color:'var(--text)', fontWeight:700 }}>{myScorer.name}</span> — {myScorer.runs} runs off {myScorer.balls}b (SR {myScorer.sr}) · <span style={{ color:'#a855f7' }}>{myBowler?.name} {myBowler?.wickets}/{myBowler?.runsConceded}</span>
             </div>
           )}
         </div>

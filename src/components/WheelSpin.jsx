@@ -42,7 +42,7 @@ function spinRarity(entry) {
 
 // ─── Auction budget ───────────────────────────────────────────────────────
 
-export const STARTING_BUDGET = 100  // ₹100 cr
+export const STARTING_BUDGET = 125  // ₹125 cr
 
 // Price in crores based on display overall rating (1–99).
 // Quadratic curve: unknowns ≈ ₹0.5cr, stars ≈ ₹20-30cr.
@@ -304,7 +304,7 @@ export default function WheelSpin({
 
   function withBudget(p) {
     const price = budget != null ? calcPrice(displayRating(p, ratingType).overall) : null
-    const budgetBlocked = !budgetExhaustedDisplay && price != null && price > budget
+    const budgetBlocked = price != null && price > budget
     return { ...p, _price: price, _budgetBlocked: budgetBlocked }
   }
 
@@ -345,8 +345,8 @@ export default function WheelSpin({
     }
   }, [phase, landedEntry])  // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Budget truly stuck: exhausted AND no rerolls AND no affordable eligible players
-  const isBudgetStuck = budgetExhaustedDisplay && rerollsLeft === 0 &&
+  // Budget truly stuck: no rerolls AND no affordable eligible players
+  const isBudgetStuck = rerollsLeft === 0 &&
     squadPlayers.filter(p => p._eligible && !p._budgetBlocked).length === 0
 
   return (
@@ -500,11 +500,11 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
           animation: 'fade-in 0.3s ease both',
         }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>💸</div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.4rem' }}>
-            Team Incomplete
+          <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.6rem' }}>
+            Full team cannot be made.
           </div>
-          <div style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.6, marginBottom: '1.75rem', maxWidth: 280 }}>
-            Budget exhausted and no rerolls left. You can't field a full XI for this tournament.
+          <div style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: 1.6, marginBottom: '1.75rem', maxWidth: 280 }}>
+            Your remaining budget can't cover any available player. Pick a path forward.
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', width: '100%', maxWidth: 260 }}>
             <button
@@ -515,10 +515,10 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
                 fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
               }}
             >
-              🔄 Retry Bidding
+              🔄 Start team pick from scratch
             </button>
             <div style={{ fontSize: '0.65rem', color: '#475569', margin: '0.1rem 0' }}>
-              Keeps your settings &amp; composition — resets squad &amp; budget
+              Keeps your tournament &amp; mode — resets squad &amp; budget
             </div>
             <button
               onClick={onRetryFromBeginning}
@@ -528,10 +528,10 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
                 fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
               }}
             >
-              ↩ Start Over
+              🏠 Go to home page
             </button>
             <div style={{ fontSize: '0.65rem', color: '#475569', margin: '0.1rem 0' }}>
-              Back to edition select
+              Back to the beginning
             </div>
           </div>
         </div>
@@ -580,7 +580,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
           <BudgetBar budget={budget} />
           {budgetExhausted && (
             <div style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 700, marginTop: '0.3rem', textAlign: 'center' }}>
-              💸 Budget exhausted — auto-picking cheapest eligible player…
+              💸 Budget exhausted — only free agents available
             </div>
           )}
         </div>
