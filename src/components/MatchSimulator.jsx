@@ -53,6 +53,10 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   const [impactSubDone,   setImpactSubDone]   = useState(false)
   const [impactSubLog,    setImpactSubLog]    = useState(null)  // { out, in, event }
 
+  // Win streak tracker
+  const [currentStreak,   setCurrentStreak]   = useState({ type: null, count: 0 })
+  const [bestWinStreak,   setBestWinStreak]   = useState(0)
+
 
   // Group draw — WC modes show a group draw before simulation starts
   const cfg    = MODE_CONFIG[mode]
@@ -133,6 +137,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               const matchWithQTE = { ...match, eventResult: { success, choiceLabel } }
               setRevealed(prev => [...prev, matchWithQTE])
               addStats(matchWithQTE, setLiveRuns, setLiveWkts)
+              updateStreak(match.won, setCurrentStreak, setBestWinStreak)
               // Update live leaderboard with QTE outcome
               if (success && match.event) {
                 const evt = match.event
@@ -140,8 +145,14 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
                   setLiveRuns(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 100 }))
                 } else if (evt.type === 'half-century') {
                   setLiveRuns(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 50 }))
+                } else if (evt.type === '150') {
+                  setLiveRuns(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 150 }))
+                } else if (evt.type === '200') {
+                  setLiveRuns(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 200 }))
                 } else if (evt.type === 'hat-trick') {
                   setLiveWkts(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 3 }))
+                } else if (evt.type === 'catch' || evt.type === 'run-out') {
+                  setLiveWkts(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 1 }))
                 }
               }
               i++
@@ -152,6 +163,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         }
         setRevealed(prev => [...prev, match])
         addStats(match, setLiveRuns, setLiveWkts)
+        updateStreak(match.won, setCurrentStreak, setBestWinStreak)
         i++
         scheduleNext()
       }, getMatchDelay(match))
@@ -441,17 +453,40 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
         {/* Scoreboard */}
         {revealed.length > 0 && (
-          <div style={{ display: 'flex', gap: '0.875rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
-            {[
-              { label: 'Wins',   value: leagueWins,    color: '#1F6FEB' },
-              { label: 'Losses', value: leagueLosses,  color: '#ef4444' },
-              { label: 'Played', value: revealed.length, color: '#94a3b8' },
-            ].map(s => (
-              <div key={s.label} style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
-                <div style={{ fontSize: '1.75rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
-                <div style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.2rem' }}>{s.label}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.625rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.875rem', justifyContent: 'center' }}>
+              {[
+                { label: 'Wins',   value: leagueWins,    color: '#1F6FEB' },
+                { label: 'Losses', value: leagueLosses,  color: '#ef4444' },
+                { label: 'Played', value: revealed.length, color: '#94a3b8' },
+              ].map(s => (
+                <div key={s.label} style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.2rem' }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+            {/* Live streak badge */}
+            {currentStreak.count >= 2 && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                padding: '0.3rem 0.875rem',
+                background: currentStreak.type === 'W' ? '#1F6FEB18' : '#ef444418',
+                border: `1px solid ${currentStreak.type === 'W' ? '#1F6FEB44' : '#ef444444'}`,
+                borderRadius: '999px',
+                fontSize: '0.78rem', fontWeight: 800,
+                color: currentStreak.type === 'W' ? '#1F6FEB' : '#ef4444',
+                animation: 'fade-in 0.3s ease both',
+              }}>
+                {currentStreak.type === 'W' ? `🔥 ${currentStreak.count} in a row!` : `💀 ${currentStreak.count} losses in a row`}
               </div>
-            ))}
+            )}
+            {/* Streak broken — flash of previous streak */}
+            {currentStreak.type === 'L' && currentStreak.count === 1 && bestWinStreak >= 3 && (
+              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>
+                Win streak ended at {bestWinStreak} 🏆
+              </div>
+            )}
           </div>
         )}
 
@@ -529,8 +564,23 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
           {/* Right — leaderboard */}
           {revealed.length > 0 && (
             <div style={{ position: 'sticky', top: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <LeaderboardPanel title="🏏 Top Scorers"   entries={topRunScorers}   valueKey="runs"    unit="runs" color="#1F6FEB" />
-              <LeaderboardPanel title="🎯 Wicket Takers" entries={topWicketTakers} valueKey="wickets" unit="wkts" color="#a855f7" />
+              <LeaderboardPanel title="🟠 Orange Cap Race" entries={topRunScorers}   valueKey="runs"    unit="runs" color="#f97316" />
+              <LeaderboardPanel title="🟣 Purple Cap Race" entries={topWicketTakers} valueKey="wickets" unit="wkts" color="#a855f7" />
+              {/* Cap winner crowns — shown once season is complete */}
+              {iplPhase !== 'league' && topRunScorers.length > 0 && (
+                <div style={{ background: 'linear-gradient(135deg,#7c2d12,#1c1002)', border: '1px solid #f9731644', borderRadius: '0.875rem', padding: '0.875rem 1rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.35rem' }}>🧡 Orange Cap Winner</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#fff' }}>{topRunScorers[0].name}</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#f97316' }}>{topRunScorers[0].runs} <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>runs</span></div>
+                </div>
+              )}
+              {iplPhase !== 'league' && topWicketTakers.length > 0 && (
+                <div style={{ background: 'linear-gradient(135deg,#2e1065,#0f0520)', border: '1px solid #a855f744', borderRadius: '0.875rem', padding: '0.875rem 1rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.35rem' }}>💜 Purple Cap Winner</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#fff' }}>{topWicketTakers[0].name}</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#a855f7' }}>{topWicketTakers[0].wickets} <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>wkts</span></div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -541,10 +591,23 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+function updateStreak(won, setCurrentStreak, setBestWinStreak) {
+  setCurrentStreak(prev => {
+    if (won) {
+      const newCount = prev.type === 'W' ? prev.count + 1 : 1
+      setBestWinStreak(best => Math.max(best, newCount))
+      return { type: 'W', count: newCount }
+    }
+    return { type: 'L', count: prev.type === 'L' ? prev.count + 1 : 1 }
+  })
+}
+
 function addStats(match, setRuns, setWkts) {
   if (!match?.stats) return
-  const { topScorer, topBowler } = match.stats
+  const { topScorer, topScorer2, topBowler } = match.stats
   if (topScorer) setRuns(prev => ({ ...prev, [topScorer.name]: (prev[topScorer.name] || 0) + topScorer.runs }))
+  // Include the 2nd batter so the race has more names
+  if (topScorer2) setRuns(prev => ({ ...prev, [topScorer2.name]: (prev[topScorer2.name] || 0) + topScorer2.runs }))
   if (topBowler) setWkts(prev => ({ ...prev, [topBowler.name]: (prev[topBowler.name] || 0) + topBowler.wickets }))
 }
 

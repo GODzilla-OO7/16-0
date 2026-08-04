@@ -26,6 +26,20 @@ const CAT_COLOR = {
   'SPIN':    '#a855f7',
 }
 
+// ─── Spin rarity ─────────────────────────────────────────────────────────
+
+function spinRarity(entry) {
+  if (!entry?.players?.length) return null
+  const sorted = [...entry.players].map(p => scaleDisplay(p.overall)).sort((a, b) => b - a)
+  const top5   = sorted.slice(0, Math.min(5, sorted.length))
+  const avg    = top5.reduce((s, v) => s + v, 0) / top5.length
+  if (avg >= 91) return { label: '⚡ GOD TIER',     color: '#f59e0b', bg: '#f59e0b18', border: '#f59e0b55' }
+  if (avg >= 84) return { label: '🔥 Top 5% pick',  color: '#ef4444', bg: '#ef444418', border: '#ef444455' }
+  if (avg >= 77) return { label: '✨ Rare squad',    color: '#a855f7', bg: '#a855f718', border: '#a855f755' }
+  if (avg >= 70) return { label: '💫 Solid pull',   color: '#3b82f6', bg: '#3b82f618', border: '#3b82f655' }
+  return null
+}
+
 // ─── Auction budget ───────────────────────────────────────────────────────
 
 export const STARTING_BUDGET = 100  // ₹100 cr
@@ -43,9 +57,9 @@ function fmtCr(cr) {
 
 // ─── Rating scaling + prime ───────────────────────────────────────────────
 
-function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 3))) }
+function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
 // Prime uses a much more generous curve — elite legends hit 97-99, making prime feel truly special
-function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 5))) }
+function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 14))) }
 
 function displayRating(player, ratingType) {
   if (ratingType === 'prime') return {
@@ -222,13 +236,13 @@ export default function WheelSpin({
     if (pool.length === 0) pool = entries  // absolute last resort
     const shuffled = shuffle(pool)
     const chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
-    const TOTAL_TICKS = 33
+    const TOTAL_TICKS = 18
     let i = 0
 
-    // Cubic ease-out: starts at 30ms, smoothly decelerates to 300ms over TOTAL_TICKS
+    // Cubic ease-out: starts at 30ms, smoothly decelerates to 220ms over TOTAL_TICKS
     function getInterval(tick) {
       const t = tick / TOTAL_TICKS
-      return Math.round(30 + 270 * (t * t * t))
+      return Math.round(30 + 190 * (t * t * t))
     }
 
     function tick() {
@@ -241,7 +255,7 @@ export default function WheelSpin({
         cycleRef.current = setTimeout(() => {
           setLandedEntry(chosen)
           setPhase('selecting')
-        }, 550)
+        }, 350)
       } else {
         cycleRef.current = setTimeout(tick, getInterval(i))
       }
@@ -470,7 +484,8 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
 
 function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetExhausted, budgetStuck, hardMode, ratingType, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, isIPLMode, budget, onPick, onSpinAgain, onRetryFromBeginning, onRetryBidding }) {
   const canReroll = rerollsLeft > 0
-  const year = extractYear(entry.season)
+  const year      = extractYear(entry.season)
+  const rarity    = spinRarity(entry)
 
   return (
     <div style={{ animation: 'fade-in 0.2s ease both', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -541,8 +556,21 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
             </span>
           </div>
         </div>
-        <div style={{ width: 40, height: 40, borderRadius: '50%', background: entry.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 900, color: entry.textColor }}>
-          {entry.badge}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem' }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: entry.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 900, color: entry.textColor }}>
+            {entry.badge}
+          </div>
+          {rarity && (
+            <div style={{
+              padding: '0.15rem 0.6rem',
+              background: rarity.bg, border: `1px solid ${rarity.border}`,
+              borderRadius: '999px', color: rarity.color,
+              fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.08em',
+              whiteSpace: 'nowrap',
+            }}>
+              {rarity.label}
+            </div>
+          )}
         </div>
       </div>
 

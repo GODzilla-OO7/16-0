@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
-function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 3))) }
-function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 5))) }
+function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
+function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 14))) }
 
 const roleLabel = {
   'opener': 'OPN', 'top-order': 'BAT', 'middle-order': 'BAT',

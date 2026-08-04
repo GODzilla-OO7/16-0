@@ -3,7 +3,7 @@ import { getInterleavedManagers } from '../data/managers.js'
 import { MODE_CONFIG } from '../data/players.js'
 import { calcTeamStrength } from '../utils/simulator.js'
 
-function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 3))) }
+function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
 
 function getPredictedRank(str, mode) {
   if (mode === 'ipl') {

@@ -313,25 +313,47 @@ export function generateMatchEvent(team, matchIndex, eventIndices) {
 
   const batters  = team.filter(p => ['opener','top-order','middle-order','wicket-keeper','all-rounder'].includes(p.role))
   const bowlers  = team.filter(p => ['pace-bowler','spin-bowler','all-rounder'].includes(p.role))
+  const fielders = team
 
-  const isBatEvent = batters.length > 0 && (bowlers.length === 0 || Math.random() < 0.6)
+  const rand = Math.random()
 
-  if (isBatEvent && batters.length > 0) {
-    const player   = batters[Math.floor(Math.random() * batters.length)]
-    const isCentury = Math.random() < 0.35
-    return {
-      type:        isCentury ? 'century' : 'half-century',
-      playerName:  player.name,
-      milestone:   isCentury ? 99 : 49,
-    }
+  // Fielding events (catch, run-out) — 25%
+  if (rand < 0.25 && fielders.length > 0) {
+    const player = fielders[Math.floor(Math.random() * fielders.length)]
+    const type   = Math.random() < 0.55 ? 'catch' : 'run-out'
+    return { type, playerName: player.name }
   }
 
-  if (!isBatEvent && bowlers.length > 0) {
+  // DRS event — 10%
+  if (rand < 0.35 && batters.length > 0) {
+    const player = batters[Math.floor(Math.random() * batters.length)]
+    return { type: 'drs', playerName: player.name }
+  }
+
+  // Bowling hat-trick — 15%
+  if (rand < 0.50 && bowlers.length > 0) {
     const player = bowlers[Math.floor(Math.random() * bowlers.length)]
-    return {
-      type:       'hat-trick',
-      playerName: player.name,
+    return { type: 'hat-trick', playerName: player.name }
+  }
+
+  // Batting milestones — 50%
+  if (batters.length > 0) {
+    const player  = batters[Math.floor(Math.random() * batters.length)]
+    const batRand = Math.random()
+    if (batRand < 0.01) {
+      // 1% chance of 200
+      return { type: '200', playerName: player.name }
     }
+    if (batRand < 0.06) {
+      // 5% chance of 150
+      return { type: '150', playerName: player.name }
+    }
+    if (batRand < 0.35) {
+      // 29% chance of century
+      return { type: 'century', playerName: player.name, milestone: 99 }
+    }
+    // 65% chance of half-century
+    return { type: 'half-century', playerName: player.name, milestone: 49 }
   }
 
   return null

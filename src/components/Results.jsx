@@ -186,10 +186,19 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
   const copyShare = () => navigator.clipboard.writeText(shareText()).catch(() => {})
 
+  // Best win streak from matchResults
+  const bestWinStreak = (() => {
+    let best = 0, cur = 0
+    for (const r of (matchResults || [])) {
+      if (r.won) { cur++; best = Math.max(best, cur) } else cur = 0
+    }
+    return best
+  })()
+
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'radial-gradient(ellipse at 50% 0%, #0f1a0f 0%, var(--bg) 60%)',
+      background: 'var(--bg)',
       padding: '2rem 1rem 4rem',
     }}>
       <div style={{ maxWidth: 700, margin: '0 auto' }}>
@@ -239,7 +248,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
           </div>
 
           {/* Match blocks */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, marginBottom: '0.875rem' }}>
             {(matchResults || []).map((r, i) => (
               <div
                 key={i}
@@ -251,6 +260,19 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               />
             ))}
           </div>
+
+          {/* Season-best streak */}
+          {bestWinStreak >= 2 && (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+              padding: '0.3rem 0.875rem',
+              background: '#1F6FEB18', border: '1px solid #1F6FEB33',
+              borderRadius: '999px', marginBottom: '1.25rem',
+              fontSize: '0.78rem', fontWeight: 800, color: '#1F6FEB',
+            }}>
+              🔥 Season-best streak: {bestWinStreak} wins in a row
+            </div>
+          )}
 
           {/* Team strength bar */}
           <div style={{
@@ -395,7 +417,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
         </div>
 
         {/* Best Player / POTM */}
-        <div style={{ background: 'linear-gradient(135deg,#1a1200,#0d0900)', border: '1px solid #f59e0b33', borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid #f59e0b33', borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
           <div style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>🏅</div>
           <div style={{ fontSize: '0.55rem', color: '#f59e0b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.35rem' }}>Best Player</div>
           {potm ? (
@@ -444,8 +466,8 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
 
         return (
           <div style={{
-            background: 'linear-gradient(135deg, #0a0f1a 0%, #0d180d 100%)',
-            border: '1px solid #1e3a2e',
+            background: 'var(--card)',
+            border: '1px solid var(--border)',
             borderRadius: '1rem',
             padding: '1.25rem',
             animation: 'fade-in-up 0.3s ease both',
@@ -473,7 +495,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
               {/* Actual box */}
               <div style={{
                 flex: 1, textAlign: 'center',
-                background: isChampion ? 'linear-gradient(135deg, #1a1200, #0f0900)' : 'var(--card)',
+                background: 'var(--card)',
                 border: `2px solid ${actualColor}44`,
                 borderRadius: '0.75rem', padding: '0.875rem 0.5rem',
                 boxShadow: isChampion ? `0 0 20px ${actualColor}18` : 'none',
@@ -484,7 +506,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
             </div>
 
             {/* Color-coded narrative */}
-            <div style={{ fontSize: '0.82rem', lineHeight: 1.75, fontStyle: 'italic', borderTop: '1px solid #1e3a2e', paddingTop: '0.875rem' }}>
+            <div style={{ fontSize: '0.82rem', lineHeight: 1.75, fontStyle: 'italic', borderTop: '1px solid var(--border)', paddingTop: '0.875rem' }}>
               {perfWriteup.map((seg, i) => (
                 <span key={i} style={{
                   color: seg.tone === 'positive' ? '#4ade80' : seg.tone === 'negative' ? '#f87171' : '#94a3b8',

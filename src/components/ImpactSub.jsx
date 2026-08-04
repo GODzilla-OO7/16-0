@@ -46,7 +46,7 @@ const EVENTS = [
   },
 ]
 
-function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 3))) }
+function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
 const isOverseas = p => p.nationality !== 'India'
 
 // ─── Build candidate replacement pool ────────────────────────────────────────

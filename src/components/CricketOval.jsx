@@ -9,8 +9,8 @@
  *   onReorder   — (newTeam: player[]) => void   (undefined = read-only)
  */
 
-function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 3))) }
-function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 5))) }
+function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
+function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 14))) }
 function scaledOverall(player, ratingType) {
   if (ratingType === 'prime') return scalePrime(player.primeOverall ?? player.overall)
   return scaleDisplay(player.overall)
