@@ -248,8 +248,8 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   // ── Dramatic final ───────────────────────────────────────────────────────
 
   function startFinalDrama() {
-    // Go straight to live chase scorecard
-    setFinalPhase('chase')
+    // Show first innings first, then transition to live chase
+    setFinalPhase('bat')
   }
 
   function finishFinal(wonOverride) {
@@ -474,6 +474,15 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
           <FinalGate
             result={pendingFinal}
             onPlay={startFinalDrama}
+          />
+        )}
+
+        {/* ── First innings animation ─────────────────────────────────── */}
+        {finalPhase === 'bat' && pendingFinal && (
+          <FinalBat
+            result={pendingFinal}
+            format={format}
+            onComplete={() => setFinalPhase('chase')}
           />
         )}
 
@@ -752,6 +761,139 @@ function parseScoreStr(str) {
   return { runs: r || 0, wickets: w || 0 }
 }
 
+// ─── First innings score builder ──────────────────────────────────────────────
+
+function buildFirstInningsPoints(finalRuns, finalWickets, format) {
+  const totalOvers = format === 'odi' ? 50 : 20
+  const marks      = format === 'odi' ? [10, 20, 30, 40, 47, 50] : [6, 10, 14, 17, 19, 20]
+  return marks.map((over, i) => {
+    const isLast = i === marks.length - 1
+    let runs, wkts
+    if (isLast) {
+      runs = finalRuns
+      wkts = finalWickets
+    } else {
+      const frac = over / totalOvers
+      const pace = over < totalOvers * 0.3 ? 0.70 : over < totalOvers * 0.75 ? 0.95 : 1.15
+      const raw  = finalRuns * frac * pace + (Math.random() - 0.5) * 12
+      runs = Math.round(Math.max(4, Math.min(raw, finalRuns - 4)))
+      const rawW = finalWickets * frac * (0.3 + Math.random() * 0.8)
+      wkts = Math.round(Math.max(0, Math.min(rawW, Math.min(9, finalWickets - 1))))
+    }
+    const crr = over > 0 ? (runs / over).toFixed(1) : '0.0'
+    return { over, runs, wkts, crr }
+  })
+}
+
+// ─── FinalBat — opponent's first innings animation ────────────────────────────
+
+function FinalBat({ result, format, onComplete }) {
+  const oppParsed  = parseScoreStr(result.oppScore)
+  const [points]   = useState(() => buildFirstInningsPoints(oppParsed.runs, oppParsed.wickets, format))
+  const [step,     setStep]     = useState(0)
+  const [finished, setFinished] = useState(false)
+  const stepRef  = useRef(0)
+  const timerRef = useRef(null)
+
+  function advance() {
+    const next = stepRef.current + 1
+    if (next >= points.length) {
+      setFinished(true)
+      timerRef.current = setTimeout(onComplete, 2000)
+      return
+    }
+    stepRef.current = next
+    setStep(next)
+    timerRef.current = setTimeout(advance, 1700)
+  }
+
+  useEffect(() => {
+    timerRef.current = setTimeout(advance, 900)
+    return () => clearTimeout(timerRef.current)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const maxScore = format === 'odi' ? 380 : 220
+
+  return (
+    <div style={{ marginBottom: '1.5rem', animation: 'final-entrance 0.5s ease both' }}>
+      <div style={{
+        background: 'var(--card)', border: '2px solid var(--border)',
+        borderRadius: '1.25rem', padding: '1.5rem',
+      }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+          <div style={{ fontSize: '0.68rem', color: '#ef4444', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '0.4rem' }}>
+            🏆 THE FINAL · 1ST INNINGS
+          </div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>
+            {result.opponent}
+          </div>
+          <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Setting the target…</div>
+        </div>
+
+        {/* Over checkpoints */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.875rem' }}>
+          {points.slice(0, step + 1).map((pt, i) => {
+            const isLatest = i === step && !finished
+            const isLast   = i === points.length - 1
+            const pct      = Math.min(100, Math.round((pt.runs / maxScore) * 100))
+            const pace     = parseFloat(pt.crr)
+            const ref      = format === 'odi' ? 6.5 : 9.5
+            const barColor = pace > ref + 1.5 ? '#ef4444' : pace > ref - 0.5 ? '#f59e0b' : '#64748b'
+            return (
+              <div key={i} style={{
+                padding: '0.65rem 1rem',
+                background: isLatest ? 'rgba(239,68,68,0.06)' : 'var(--border2)',
+                border: `1px solid ${isLatest ? '#ef444455' : 'var(--border)'}`,
+                borderRadius: '0.625rem',
+                borderLeft: `3px solid ${isLast ? '#ef4444' : isLatest ? '#ef444488' : 'var(--border)'}`,
+                animation: 'commentary-in 0.35s ease both',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                  <span style={{ fontSize: '0.68rem', fontWeight: 800, color: isLatest ? '#ef4444' : '#64748b', textTransform: 'uppercase' }}>
+                    Over {pt.over}{isLast ? ' 🏏' : ''}
+                  </span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 900, color: isLast ? '#ef4444' : 'var(--text)' }}>
+                    {pt.runs}<span style={{ color: '#64748b', fontWeight: 600 }}>/{pt.wkts}</span>
+                    <span style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 600 }}> · CRR {pt.crr}</span>
+                  </span>
+                </div>
+                <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 2, transition: 'width 0.8s ease' }} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Status */}
+        {!finished && (
+          <div style={{ textAlign: 'center', color: '#ef4444', fontSize: '0.8rem', fontWeight: 700 }}>
+            {result.opponent} batting…
+          </div>
+        )}
+        {finished && (
+          <div style={{
+            textAlign: 'center', padding: '0.875rem 1rem',
+            background: '#ef444410', border: '1px solid #ef444433',
+            borderRadius: '0.75rem', animation: 'fade-in 0.4s ease both',
+          }}>
+            <div style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>
+              Target set
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: 900, color: '#ef4444', lineHeight: 1 }}>
+              {oppParsed.runs + 1}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+              Your chase begins in a moment…
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function buildChasePoints(targetRuns, finalRuns, finalWickets, format) {
   const totalOvers = format === 'odi' ? 50 : 20
   const marks      = format === 'odi' ? [10, 20, 30, 40, 47, 50] : [6, 10, 14, 17, 19, 20]
@@ -806,10 +948,10 @@ function FinalChase({ result, format, team, myStr, onQTE, onComplete }) {
   function advance() {
     const next = stepRef.current + 1
     if (next >= points.length) {
-      // Chase done — check for Super Over
+      // Chase done — Super Over only when pre-simulated result is a narrow win
       setPhase('result')
       const margin = Math.abs(myParsed.runs - oppParsed.runs)
-      if (margin <= 15 && Math.random() < 0.35) {
+      if (result.won && margin <= 15 && Math.random() < 0.35) {
         const so = simulateSuperOver(myStr, 70)
         timerRef.current = setTimeout(() => setSoData(so), 2000)
       } else {
@@ -895,10 +1037,15 @@ function FinalChase({ result, format, team, myStr, onQTE, onComplete }) {
         {/* Over checkpoints */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.875rem' }}>
           {points.slice(0, step + 1).map((pt, i) => {
-            const isLatest = i === step && phase !== 'result'
-            const pct      = Math.min(100, Math.round((pt.runs / target) * 100))
-            const statusColor = pt.onTrack ? '#22c55e' : parseFloat(pt.rrr) > parseFloat(pt.crr) + 2 ? '#ef4444' : '#f59e0b'
-            const isResult = i === points.length - 1 && phase === 'result'
+            const isLatest    = i === step && phase !== 'result'
+            const pct         = Math.min(100, Math.round((pt.runs / target) * 100))
+            const rrr         = parseFloat(pt.rrr)
+            const statusColor = pt.onTrack ? '#22c55e' : rrr > parseFloat(pt.crr) + 2 ? '#ef4444' : '#f59e0b'
+            const isResult    = i === points.length - 1 && phase === 'result'
+            // Pressure levels for live nail-biting display
+            const pressureColor = rrr > 15 ? '#ef4444' : rrr > 12 ? '#f97316' : rrr > 9 ? '#f59e0b' : '#22c55e'
+            const pressureBg    = rrr > 15 ? '#ef444418' : rrr > 12 ? '#f9731618' : rrr > 9 ? '#f59e0b15' : '#22c55e18'
+            const isDeathCrunch = isLatest && pt.ballsLeft <= 18 && pt.needed > 0
             return (
               <div key={i} style={{
                 padding: '0.7rem 1rem',
@@ -914,21 +1061,64 @@ function FinalChase({ result, format, team, myStr, onQTE, onComplete }) {
                   </span>
                   <span style={{ fontSize: '0.82rem', fontWeight: 900, color: 'var(--text)' }}>
                     {pt.runs}<span style={{ color: '#64748b', fontWeight: 600 }}>/{pt.wkts}</span>
-                    {pt.needed > 0
+                    {!isLatest && (pt.needed > 0
                       ? <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600 }}> · need {pt.needed} off {pt.ballsLeft}b</span>
                       : <span style={{ fontSize: '0.65rem', color: '#22c55e', fontWeight: 700 }}> · target reached!</span>
-                    }
+                    )}
                   </span>
                 </div>
-                {/* Progress bar toward target */}
-                <div style={{ height: 5, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${pct}%`, background: statusColor, borderRadius: 3, transition: 'width 0.9s ease' }} />
+                {/* Progress bar — taller when active */}
+                <div style={{ height: isLatest ? 7 : 5, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: isLatest ? pressureColor : statusColor, borderRadius: 3, transition: 'width 0.9s ease' }} />
                 </div>
+
+                {/* ── Nail-biting live meter for the active checkpoint ── */}
                 {isLatest && pt.needed > 0 && (
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.35rem' }}>
-                    <span style={{ fontSize: '0.6rem', color: '#64748b' }}>CRR <span style={{ color: 'var(--text)', fontWeight: 700 }}>{pt.crr}</span></span>
-                    <span style={{ fontSize: '0.6rem', color: '#64748b' }}>RRR <span style={{ color: statusColor, fontWeight: 700 }}>{pt.rrr}</span></span>
-                    <span style={{ fontSize: '0.6rem', color: '#64748b' }}>{pt.wkts} wkt{pt.wkts !== 1 ? 's' : ''} down</span>
+                  <div style={{ marginTop: '0.625rem', display: 'flex', gap: '0.5rem' }}>
+                    {/* NEEDED */}
+                    <div style={{
+                      flex: 1, padding: '0.5rem 0.25rem', textAlign: 'center',
+                      background: pressureBg, border: `1px solid ${pressureColor}44`,
+                      borderRadius: '0.5rem',
+                      animation: isDeathCrunch ? 'pulse-glow 1.1s ease-in-out infinite' : 'none',
+                    }}>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 900, color: pressureColor, lineHeight: 1 }}>{pt.needed}</div>
+                      <div style={{ fontSize: '0.5rem', color: pressureColor, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.1rem' }}>needed</div>
+                    </div>
+                    {/* BALLS */}
+                    <div style={{
+                      flex: 1, padding: '0.5rem 0.25rem', textAlign: 'center',
+                      background: isDeathCrunch ? '#ef444412' : 'var(--border2)',
+                      border: `1px solid ${isDeathCrunch ? '#ef444433' : 'var(--border)'}`,
+                      borderRadius: '0.5rem',
+                    }}>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 900, color: isDeathCrunch ? '#ef4444' : 'var(--text)', lineHeight: 1 }}>{pt.ballsLeft}</div>
+                      <div style={{ fontSize: '0.5rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.1rem' }}>balls</div>
+                    </div>
+                    {/* REQ RR */}
+                    <div style={{
+                      flex: 1, padding: '0.5rem 0.25rem', textAlign: 'center',
+                      background: 'var(--border2)', border: '1px solid var(--border)',
+                      borderRadius: '0.5rem',
+                    }}>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 900, color: pressureColor, lineHeight: 1 }}>{pt.rrr}</div>
+                      <div style={{ fontSize: '0.5rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.1rem' }}>req rr</div>
+                    </div>
+                    {/* WICKETS */}
+                    <div style={{
+                      flex: 1, padding: '0.5rem 0.25rem', textAlign: 'center',
+                      background: pt.wkts >= 7 ? '#ef444412' : 'var(--border2)',
+                      border: `1px solid ${pt.wkts >= 7 ? '#ef444433' : 'var(--border)'}`,
+                      borderRadius: '0.5rem',
+                    }}>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 900, color: pt.wkts >= 7 ? '#ef4444' : 'var(--text)', lineHeight: 1 }}>{pt.wkts}</div>
+                      <div style={{ fontSize: '0.5rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.1rem' }}>wkts</div>
+                    </div>
+                  </div>
+                )}
+                {isLatest && pt.needed === 0 && (
+                  <div style={{ marginTop: '0.4rem', textAlign: 'center', fontSize: '0.7rem', color: '#22c55e', fontWeight: 800 }}>
+                    🎉 Target reached!
                   </div>
                 )}
               </div>

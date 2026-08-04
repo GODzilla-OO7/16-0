@@ -298,9 +298,21 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
                 background: 'linear-gradient(135deg, #f59e0b, #d97706)',
                 color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
                 fontSize: '1rem', fontWeight: 800, cursor: 'pointer',
+                marginBottom: '0.625rem',
               }}
             >
               🎰 Spin the Impact Sub Wheel
+            </button>
+            <button
+              onClick={onSkip}
+              style={{
+                width: '100%', padding: '0.65rem',
+                background: 'transparent', color: '#64748b',
+                border: '1px solid var(--border)', borderRadius: '0.625rem',
+                fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              Skip — go straight to playoffs
             </button>
           </>
         )}
