@@ -1,142 +1,319 @@
 import { useState } from 'react'
 import { MODE_CONFIG } from '../data/players.js'
 
-// ─── Share card generator (Canvas) ───────────────────────────────────────────
+// ─── Share card generator (Canvas) — 38-0.app style ──────────────────────────
 
-function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, modeLabel, matchResults, managerName, managerIcon, potm, topScorer, topWicketTaker, bestWinStreak, stageReached, iplOutcome }) {
-  const W = 1200, H = 630
+function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, modeLabel, matchResults, potm, topScorer, topScorerRuns, topWicketTaker, topWicketTakerWkts, bestWinStreak, stageReached, iplOutcome, team, myStr }) {
+  const W = 630, H = 920
   const canvas = document.createElement('canvas')
   canvas.width  = W
   canvas.height = H
   const ctx = canvas.getContext('2d')
 
-  // ── Background gradient ──────────────────────────────────────────────────
-  const bg = ctx.createLinearGradient(0, 0, W, H)
-  bg.addColorStop(0, '#060c1a')
-  bg.addColorStop(1, '#0d1a2e')
-  ctx.fillStyle = bg
+  // ── Role definitions ──────────────────────────────────────────────────────
+  const ROLE_TAGS = {
+    'opener':        ['OPN',  '#1F6FEB'],
+    'top-order':     ['TOP',  '#3b82f6'],
+    'middle-order':  ['MID',  '#60a5fa'],
+    'wicket-keeper': ['WK',   '#93c5fd'],
+    'all-rounder':   ['AR',   '#bfdbfe'],
+    'pace-bowler':   ['PACE', '#ffffff'],
+    'spin-bowler':   ['SPIN', '#dbeafe'],
+  }
+  function scaleDisp(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
+
+  // ── Background ────────────────────────────────────────────────────────────
+  ctx.fillStyle = '#060d1a'
   ctx.fillRect(0, 0, W, H)
 
-  // Subtle grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.03)'
-  ctx.lineWidth = 1
-  for (let x = 0; x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke() }
-  for (let y = 0; y < H; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke() }
-
-  // ── Accent glow top-left ─────────────────────────────────────────────────
-  const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 500)
-  glow.addColorStop(0, 'rgba(31,111,235,0.12)')
+  // Blue glow top-center
+  const glow = ctx.createRadialGradient(W / 2, 0, 0, W / 2, 0, 380)
+  glow.addColorStop(0, 'rgba(31,111,235,0.18)')
   glow.addColorStop(1, 'transparent')
   ctx.fillStyle = glow
   ctx.fillRect(0, 0, W, H)
 
-  // ── Header bar ───────────────────────────────────────────────────────────
-  ctx.fillStyle = 'rgba(255,255,255,0.04)'
-  ctx.fillRect(0, 0, W, 72)
+  // Bottom glow
+  const glow2 = ctx.createRadialGradient(W / 2, H, 0, W / 2, H, 300)
+  glow2.addColorStop(0, 'rgba(31,111,235,0.08)')
+  glow2.addColorStop(1, 'transparent')
+  ctx.fillStyle = glow2
+  ctx.fillRect(0, 0, W, H)
 
-  // Game title
-  ctx.font = '700 22px system-ui, -apple-system, sans-serif'
-  ctx.fillStyle = '#1F6FEB'
-  ctx.letterSpacing = '3px'
-  ctx.fillText('CRICKET 16-0', 48, 44)
+  // ── HEADER ────────────────────────────────────────────────────────────────
+  // App logo
+  ctx.font = '900 30px system-ui, -apple-system, sans-serif'
+  ctx.fillStyle = '#ffffff'
+  ctx.textAlign = 'left'
+  ctx.fillText('Cricket 16-0', 28, 52)
 
-  // Mode label pill top-right
-  const modeText = modeLabel?.toUpperCase() || 'SEASON'
-  ctx.font = '700 18px system-ui, sans-serif'
-  const modeW = ctx.measureText(modeText).width + 32
-  ctx.fillStyle = 'rgba(31,111,235,0.25)'
-  roundRect(ctx, W - modeW - 40, 18, modeW, 36, 18)
-  ctx.fill()
-  ctx.fillStyle = '#60a5fa'
-  ctx.textAlign = 'right'
-  ctx.fillText(modeText, W - 56, 43)
+  // Badges — right side
+  const badgeH = 26, badgeY = 24, badgeR = 13
+  let nextRight = W - 28
+
+  // OVR badge (blue)
+  if (myStr) {
+    ctx.font = '700 12px system-ui, sans-serif'
+    const ovrLabel = `OVR ${myStr}`
+    const ovrW = ctx.measureText(ovrLabel).width + 18
+    ctx.fillStyle = '#1F6FEB'
+    roundRect(ctx, nextRight - ovrW, badgeY, ovrW, badgeH, badgeR)
+    ctx.fill()
+    ctx.fillStyle = '#ffffff'
+    ctx.textAlign = 'right'
+    ctx.fillText(ovrLabel, nextRight - 9, 41)
+    nextRight -= ovrW + 7
+  }
+
+  // Mode badge (dark)
+  {
+    ctx.font = '700 11px system-ui, sans-serif'
+    const modeLabel2 = (modeLabel || 'SEASON').toUpperCase()
+    const modeW = ctx.measureText(modeLabel2).width + 18
+    ctx.fillStyle = 'rgba(255,255,255,0.1)'
+    roundRect(ctx, nextRight - modeW, badgeY, modeW, badgeH, badgeR)
+    ctx.fill()
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)'
+    ctx.lineWidth = 1
+    ctx.stroke()
+    ctx.fillStyle = '#93c5fd'
+    ctx.textAlign = 'right'
+    ctx.fillText(modeLabel2, nextRight - 9, 41)
+  }
   ctx.textAlign = 'left'
 
-  // ── Main W-L record ──────────────────────────────────────────────────────
-  ctx.textAlign = 'center'
-  const rcColor = ratingColor || '#f59e0b'
+  // Separator
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)'
+  ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(28, 70); ctx.lineTo(W - 28, 70); ctx.stroke()
 
-  // Rating label above W-L
-  ctx.font = '800 20px system-ui, sans-serif'
-  ctx.fillStyle = rcColor
-  ctx.letterSpacing = '4px'
-  ctx.fillText(ratingLabel?.toUpperCase() || '', W / 2, 145)
+  // ── BIG RECORD ────────────────────────────────────────────────────────────
+  ctx.textAlign = 'center'
+
+  // Rating label
+  if (ratingLabel) {
+    ctx.font = '800 12px system-ui, sans-serif'
+    ctx.fillStyle = ratingColor || '#1F6FEB'
+    ctx.letterSpacing = '3px'
+    ctx.fillText(ratingLabel.toUpperCase(), W / 2, 108)
+    ctx.letterSpacing = '0px'
+  }
+
+  // Big W-L (app blue glow)
+  ctx.save()
+  ctx.shadowColor = '#1F6FEB'
+  ctx.shadowBlur = 32
+  ctx.font = '900 92px system-ui, sans-serif'
+  ctx.fillStyle = '#ffffff'
+  ctx.fillText(`${wins}-${losses}`, W / 2, 208)
+  ctx.restore()
+
+  // WON · LOST subtitle
+  ctx.font = '700 11px system-ui, sans-serif'
+  ctx.fillStyle = 'rgba(147,197,253,0.6)'
+  ctx.letterSpacing = '2.5px'
+  ctx.fillText('WON · LOST', W / 2, 232)
   ctx.letterSpacing = '0px'
 
-  // Big W-L
-  ctx.font = `900 180px system-ui, sans-serif`
-  ctx.fillStyle = '#ffffff'
-  ctx.fillText(`${wins}-${losses}`, W / 2, 330)
+  // Matches + stage
+  const isChampion = stageReached === 'Champions' || iplOutcome === 'champions'
+  const isRunnerUp = stageReached === 'Runner-up' || iplOutcome === 'runner-up'
+  const stageStr = isChampion ? `${total} matches · 1st place`
+    : isRunnerUp ? `${total} matches · 2nd place`
+    : stageReached ? `${total} matches · ${stageReached}`
+    : `${total} matches`
+  ctx.font = '500 12px system-ui, sans-serif'
+  ctx.fillStyle = 'rgba(148,163,184,0.55)'
+  ctx.fillText(stageStr, W / 2, 254)
 
-  // Subtitle
-  ctx.font = '500 20px system-ui, sans-serif'
-  ctx.fillStyle = 'rgba(148,163,184,0.8)'
-  ctx.fillText(`${total} match${total !== 1 ? 'es' : ''} played`, W / 2, 370)
+  // Champion / Result badge
+  if (isChampion || isRunnerUp) {
+    const badgeTxt = isChampion ? '🏆 CHAMPIONS' : '🥈 RUNNERS-UP'
+    ctx.font = '800 12px system-ui, sans-serif'
+    const bw = ctx.measureText(badgeTxt).width + 26
+    const bx = W / 2 - bw / 2
+    ctx.fillStyle = isChampion ? 'rgba(31,111,235,0.2)' : 'rgba(148,163,184,0.1)'
+    roundRect(ctx, bx, 268, bw, 28, 14)
+    ctx.fill()
+    ctx.strokeStyle = isChampion ? 'rgba(31,111,235,0.5)' : 'rgba(148,163,184,0.25)'
+    ctx.lineWidth = 1
+    ctx.stroke()
+    ctx.fillStyle = isChampion ? '#60a5fa' : '#94a3b8'
+    ctx.fillText(badgeTxt, W / 2, 288)
+  }
 
-  // ── Match result blocks ───────────────────────────────────────────────────
+  // Match result blocks (mini row)
   if (matchResults?.length) {
-    const BLOCK = 28, GAP = 6, RADIUS = 5
-    const totalBlockW = matchResults.length * (BLOCK + GAP) - GAP
-    let bx = W / 2 - totalBlockW / 2
-    const by = 404
+    const BLOCK = 14, GAP = 3, BRAD = 3
+    const totalBW = matchResults.length * (BLOCK + GAP) - GAP
+    let bx = W / 2 - totalBW / 2
+    const by = 310
     matchResults.forEach(r => {
-      ctx.fillStyle = r.won ? '#0047CC' : '#dc2626'
-      roundRect(ctx, bx, by, BLOCK, BLOCK, RADIUS)
+      ctx.fillStyle = r.won ? '#1F6FEB' : '#ef4444'
+      roundRect(ctx, bx, by, BLOCK, BLOCK, BRAD)
       ctx.fill()
       bx += BLOCK + GAP
     })
   }
 
-  // ── Streak badge ────────────────────────────────────────────────────────
-  if (bestWinStreak >= 3) {
-    const streakText = `🔥 ${bestWinStreak} win streak`
-    ctx.font = '700 18px system-ui, sans-serif'
-    const sw = ctx.measureText(streakText).width + 28
-    ctx.fillStyle = 'rgba(31,111,235,0.2)'
-    roundRect(ctx, W / 2 - sw / 2, 448, sw, 32, 16)
+  // ── PLAYER GRID ───────────────────────────────────────────────────────────
+  const GRID_Y   = 340
+  const ROW_H    = 34
+  const PAD_X    = 24
+  const COL_W    = (W - PAD_X * 2 - 12) / 2
+  const DIV_X    = PAD_X + COL_W + 6
+  const players  = (team || []).slice(0, 11)
+  const leftCol  = players.slice(0, 6)
+  const rightCol = players.slice(6, 11)
+
+  // Grid background
+  ctx.fillStyle = 'rgba(255,255,255,0.025)'
+  roundRect(ctx, PAD_X, GRID_Y, W - PAD_X * 2, players.length * ROW_H + 10, 10)
+  ctx.fill()
+
+  // Vertical divider
+  ctx.strokeStyle = 'rgba(31,111,235,0.15)'
+  ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(DIV_X, GRID_Y + 8); ctx.lineTo(DIV_X, GRID_Y + players.length * ROW_H + 2); ctx.stroke()
+
+  function drawPlayer(p, col, row) {
+    const x = col === 0 ? PAD_X + 6 : DIV_X + 6
+    const y = GRID_Y + 5 + row * ROW_H
+    const [tag, tagClr] = ROLE_TAGS[p.role] || ['BAT', '#3b82f6']
+    const rating = scaleDisp(p.overall)
+
+    // Row hover stripe (alternating)
+    if (row % 2 === 0) {
+      ctx.fillStyle = 'rgba(31,111,235,0.04)'
+      ctx.fillRect(col === 0 ? PAD_X : DIV_X, y - 2, COL_W, ROW_H)
+    }
+
+    // Role tag pill
+    const tagW = 38
+    ctx.fillStyle = 'rgba(31,111,235,0.22)'
+    roundRect(ctx, x, y + 7, tagW, 19, 4)
     ctx.fill()
-    ctx.fillStyle = '#60a5fa'
-    ctx.fillText(streakText, W / 2, 470)
-  }
-
-  // ── Bottom info strip ─────────────────────────────────────────────────────
-  ctx.fillStyle = 'rgba(255,255,255,0.04)'
-  ctx.fillRect(0, H - 110, W, 110)
-
-  // Left — manager
-  ctx.textAlign = 'left'
-  if (managerName) {
-    ctx.font = '600 15px system-ui, sans-serif'
-    ctx.fillStyle = 'rgba(148,163,184,0.7)'
-    ctx.fillText('COACH', 48, H - 76)
-    ctx.font = '800 22px system-ui, sans-serif'
-    ctx.fillStyle = '#f1f5f9'
-    ctx.fillText(`${managerIcon || ''} ${managerName}`, 48, H - 46)
-  }
-
-  // Center — POTM
-  if (potm) {
+    ctx.strokeStyle = 'rgba(31,111,235,0.35)'
+    ctx.lineWidth = 0.5
+    ctx.stroke()
+    ctx.font = '700 8.5px system-ui, sans-serif'
+    ctx.fillStyle = tagClr
     ctx.textAlign = 'center'
-    ctx.font = '600 15px system-ui, sans-serif'
-    ctx.fillStyle = 'rgba(148,163,184,0.7)'
-    ctx.fillText('PLAYER OF TOURNAMENT', W / 2, H - 76)
-    ctx.font = '800 20px system-ui, sans-serif'
-    ctx.fillStyle = '#f59e0b'
-    ctx.fillText(potm, W / 2, H - 46)
+    ctx.fillText(tag.slice(0, 4), x + tagW / 2, y + 19)
+
+    // Name (last name + initial)
+    ctx.textAlign = 'left'
+    ctx.font = '600 12.5px system-ui, sans-serif'
+    ctx.fillStyle = '#f1f5f9'
+    const parts = p.name.trim().split(/\s+/)
+    let displayName = parts.length > 1
+      ? parts.slice(0, -1).map(n => n[0] + '.').join(' ') + ' ' + parts[parts.length - 1]
+      : p.name
+    const maxW = COL_W - tagW - 10 - 28
+    while (ctx.measureText(displayName).width > maxW && displayName.length > 4) {
+      displayName = displayName.slice(0, -2) + '…'
+    }
+    ctx.fillText(displayName, x + tagW + 7, y + 20)
+
+    // Rating — right-aligned in column
+    const ratingX = (col === 0 ? DIV_X : W - PAD_X) - 7
+    ctx.textAlign = 'right'
+    ctx.font = '800 13px system-ui, sans-serif'
+    ctx.fillStyle = rating >= 88 ? '#60a5fa' : rating >= 78 ? '#ffffff' : 'rgba(255,255,255,0.55)'
+    ctx.fillText(String(rating), ratingX, y + 20)
+    ctx.textAlign = 'left'
   }
 
-  // Right — watermark
+  leftCol.forEach((p, i)  => drawPlayer(p, 0, i))
+  rightCol.forEach((p, i) => drawPlayer(p, 1, i))
+
+  // ── BOTTOM STATS ──────────────────────────────────────────────────────────
+  const STATS_Y = GRID_Y + 5 + players.length * ROW_H + 22
+
+  ctx.strokeStyle = 'rgba(31,111,235,0.2)'
+  ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(PAD_X, STATS_Y); ctx.lineTo(W - PAD_X, STATS_Y); ctx.stroke()
+
+  // Left — top scorer + wicket taker
+  let lineY = STATS_Y + 24
+  if (topScorer) {
+    ctx.font = '600 10px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(147,197,253,0.55)'
+    ctx.textAlign = 'left'
+    ctx.letterSpacing = '1.5px'
+    ctx.fillText('🏏 TOP SCORER', PAD_X, lineY)
+    ctx.letterSpacing = '0px'
+    ctx.font = '700 14px system-ui, sans-serif'
+    ctx.fillStyle = '#ffffff'
+    const scorerLine = topScorerRuns ? `${topScorer} · ${topScorerRuns} runs` : topScorer
+    ctx.fillText(scorerLine, PAD_X, lineY + 17)
+    lineY += 42
+  }
+  if (topWicketTaker) {
+    ctx.font = '600 10px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(147,197,253,0.55)'
+    ctx.letterSpacing = '1.5px'
+    ctx.fillText('🎯 TOP WICKET TAKER', PAD_X, lineY)
+    ctx.letterSpacing = '0px'
+    ctx.font = '700 14px system-ui, sans-serif'
+    ctx.fillStyle = '#ffffff'
+    const wktrLine = topWicketTakerWkts ? `${topWicketTaker} · ${topWicketTakerWkts} wkts` : topWicketTaker
+    ctx.fillText(wktrLine, PAD_X, lineY + 17)
+  }
+
+  // Right — POTM
+  if (potm) {
+    ctx.textAlign = 'right'
+    ctx.font = '600 10px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(147,197,253,0.55)'
+    ctx.letterSpacing = '1.5px'
+    ctx.fillText('PLAYER OF TOURNAMENT', W - PAD_X, STATS_Y + 24)
+    ctx.letterSpacing = '0px'
+    ctx.font = '800 14px system-ui, sans-serif'
+    ctx.fillStyle = '#60a5fa'
+    ctx.fillText(potm, W - PAD_X, STATS_Y + 41)
+    if (bestWinStreak >= 3) {
+      ctx.font = '600 11px system-ui, sans-serif'
+      ctx.fillStyle = 'rgba(147,197,253,0.6)'
+      ctx.fillText(`🔥 ${bestWinStreak}-win streak`, W - PAD_X, STATS_Y + 58)
+    }
+  }
+
+  // ── FOOTER ────────────────────────────────────────────────────────────────
+  const FOOT_Y = H - 74
+
+  ctx.fillStyle = 'rgba(31,111,235,0.08)'
+  ctx.fillRect(0, FOOT_Y, W, H - FOOT_Y)
+  ctx.strokeStyle = 'rgba(31,111,235,0.18)'
+  ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(0, FOOT_Y); ctx.lineTo(W, FOOT_Y); ctx.stroke()
+
+  // Verified
+  ctx.textAlign = 'left'
+  ctx.font = '600 11px system-ui, sans-serif'
+  ctx.fillStyle = 'rgba(147,197,253,0.5)'
+  ctx.fillText('✓ Verified result', PAD_X, FOOT_Y + 26)
+
+  // CTA
+  ctx.font = '600 12px system-ui, sans-serif'
+  ctx.fillStyle = 'rgba(241,245,249,0.5)'
+  ctx.fillText('Think you can beat this?', PAD_X, FOOT_Y + 50)
+  ctx.font = '800 12px system-ui, sans-serif'
+  ctx.fillStyle = '#60a5fa'
+  ctx.fillText(' 16zero.in', PAD_X + ctx.measureText('Think you can beat this?').width, FOOT_Y + 50)
+
+  // Win-loss tally right
   ctx.textAlign = 'right'
-  ctx.font = '600 17px system-ui, sans-serif'
-  ctx.fillStyle = 'rgba(148,163,184,0.45)'
-  ctx.fillText('cricket16-0.app', W - 48, H - 46)
+  ctx.font = '700 12px system-ui, sans-serif'
+  ctx.fillStyle = 'rgba(147,197,253,0.55)'
+  ctx.fillText(`${wins}W · ${losses}L · ${total} matches`, W - PAD_X, FOOT_Y + 50)
 
   // ── Download ──────────────────────────────────────────────────────────────
   canvas.toBlob(blob => {
     const url  = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href     = url
-    link.download = `cricket16-0-${wins}-${losses}.png`
+    link.download = `38-0-${wins}w-${losses}l.png`
     link.click()
     URL.revokeObjectURL(url)
   }, 'image/png')
@@ -336,7 +513,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
   const shareText = () => {
     const blocks = (matchResults || []).map(r => r.won ? '🟩' : '🟥').join('')
-    return `Cricket 16-0 — ${cfg.label ?? ''}\n\n${blocks}\n\n${wins}W - ${losses}L · ${rating.label}${potm ? `\nPlayer of Tournament: ${potm}` : ''}\n\nPlay at cricket16-0.app`
+    return `Cricket 16-0 — ${cfg.label ?? ''}\n\n${blocks}\n\n${wins}W - ${losses}L · ${rating.label}${potm ? `\nPlayer of Tournament: ${potm}` : ''}\n\nThink you can beat this? 16zero.in`
   }
 
   const copyShare = () => navigator.clipboard.writeText(shareText()).catch(() => {})
@@ -347,14 +524,16 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     ratingColor: rating.color,
     modeLabel:   cfg.label,
     matchResults,
-    managerName:  manager?.name ?? null,
-    managerIcon:  manager?.icon ?? null,
     potm,
-    topScorer:     topScorers[0]?.name ?? null,
-    topWicketTaker: topWicketTakers[0]?.name ?? null,
+    topScorer:          topScorers[0]?.name    ?? null,
+    topScorerRuns:      topScorers[0]?.runs    ?? null,
+    topWicketTaker:     topWicketTakers[0]?.name    ?? null,
+    topWicketTakerWkts: topWicketTakers[0]?.wickets ?? null,
     bestWinStreak,
     stageReached,
     iplOutcome,
+    team:  team  ?? [],
+    myStr: myStr ?? 0,
   })
 
   // Best win streak from matchResults
