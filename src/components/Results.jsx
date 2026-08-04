@@ -308,15 +308,10 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   ctx.fillStyle = 'rgba(147,197,253,0.55)'
   ctx.fillText(`${wins}W · ${losses}L · ${total} matches`, W - PAD_X, FOOT_Y + 50)
 
-  // ── Download ──────────────────────────────────────────────────────────────
-  canvas.toBlob(blob => {
-    const url  = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href     = url
-    link.download = `38-0-${wins}w-${losses}l.png`
-    link.click()
-    URL.revokeObjectURL(url)
-  }, 'image/png')
+  // ── Return as a Promise<Blob> so callers can download or copy ────────────
+  return new Promise(resolve => {
+    canvas.toBlob(blob => resolve(blob), 'image/png')
+  })
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -516,25 +511,50 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     return `Cricket 16-0 — ${cfg.label ?? ''}\n\n${blocks}\n\n${wins}W - ${losses}L · ${rating.label}${potm ? `\nPlayer of Tournament: ${potm}` : ''}\n\nThink you can beat this? 16zero.in`
   }
 
-  const copyShare = () => navigator.clipboard.writeText(shareText()).catch(() => {})
+  function cardParams() {
+    return {
+      wins, losses, total,
+      ratingLabel: rating.label,
+      ratingColor: rating.color,
+      modeLabel:   cfg.label,
+      matchResults,
+      potm,
+      topScorer:          topScorers[0]?.name    ?? null,
+      topScorerRuns:      topScorers[0]?.runs    ?? null,
+      topWicketTaker:     topWicketTakers[0]?.name    ?? null,
+      topWicketTakerWkts: topWicketTakers[0]?.wickets ?? null,
+      bestWinStreak,
+      stageReached,
+      iplOutcome,
+      team:  team  ?? [],
+      myStr: myStr ?? 0,
+    }
+  }
 
-  const downloadCard = () => generateShareCard({
-    wins, losses, total,
-    ratingLabel: rating.label,
-    ratingColor: rating.color,
-    modeLabel:   cfg.label,
-    matchResults,
-    potm,
-    topScorer:          topScorers[0]?.name    ?? null,
-    topScorerRuns:      topScorers[0]?.runs    ?? null,
-    topWicketTaker:     topWicketTakers[0]?.name    ?? null,
-    topWicketTakerWkts: topWicketTakers[0]?.wickets ?? null,
-    bestWinStreak,
-    stageReached,
-    iplOutcome,
-    team:  team  ?? [],
-    myStr: myStr ?? 0,
-  })
+  const downloadCard = async () => {
+    const blob = await generateShareCard(cardParams())
+    const url  = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href     = url
+    link.download = `cricket16-0-${wins}w-${losses}l.png`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const copyImage = async () => {
+    try {
+      const blob = await generateShareCard(cardParams())
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+    } catch {
+      // Fallback to download if clipboard write not supported
+      downloadCard()
+    }
+  }
+
+  const shareWhatsApp = () => {
+    const msg = encodeURIComponent('Think you can beat this? Come play Cricket 16-0 with me at 16zero.in')
+    window.open(`https://wa.me/?text=${msg}`, '_blank')
+  }
 
   // Best win streak from matchResults
   const bestWinStreak = (() => {
@@ -642,39 +662,61 @@ export default function Results({ team, mode, manager, summary, matchResults, on
           </div>
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '0.875rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {/* WhatsApp */}
             <button
-              onClick={onPlayAgain}
+              onClick={shareWhatsApp}
               style={{
-                padding: '0.875rem 1.75rem',
-                background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
-                color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
-                fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '0.45rem',
+                padding: '0.8rem 1.4rem',
+                background: '#25D366',
+                color: '#fff', border: 'none', borderRadius: '0.625rem',
+                fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer',
               }}
             >
-              Play Again
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              WhatsApp
             </button>
+            {/* Copy Image */}
+            <button
+              onClick={copyImage}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.45rem',
+                padding: '0.8rem 1.4rem',
+                background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                color: '#fff', border: 'none', borderRadius: '0.625rem',
+                fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer',
+              }}
+            >
+              📋 Copy Image
+            </button>
+            {/* Save Card (download) */}
             <button
               onClick={downloadCard}
               style={{
-                padding: '0.875rem 1.75rem',
-                background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
-                color: '#fff', border: 'none', borderRadius: '0.625rem',
-                fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '0.45rem',
+                padding: '0.8rem 1.4rem',
+                background: 'transparent',
+                color: '#94a3b8', border: '1px solid var(--border)', borderRadius: '0.625rem',
+                fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer',
               }}
             >
               📸 Save Card
             </button>
+            {/* Close / Play Again */}
             <button
-              onClick={copyShare}
+              onClick={onPlayAgain}
               style={{
-                padding: '0.875rem 1.75rem',
-                background: 'transparent', color: '#94a3b8',
-                border: '1px solid var(--border)', borderRadius: '0.625rem',
-                fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '0.45rem',
+                padding: '0.8rem 1.4rem',
+                background: 'transparent',
+                color: '#64748b', border: '1px solid var(--border)', borderRadius: '0.625rem',
+                fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer',
               }}
             >
-              Copy Result
+              ✕ Close
             </button>
           </div>
         </div>

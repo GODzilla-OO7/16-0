@@ -283,7 +283,13 @@ export default function WheelSpin({
       const price = calcPrice(displayRating(player, ratingType).overall)
       onSpend(Math.min(price, budget))   // never go below 0
     }
-    onResult(player)
+    // Attach the IPL squad they came from so TeamSheet can display it
+    const enriched = {
+      ...player,
+      iplTeam: landedEntry?.teamName ?? null,
+      iplYear: landedEntry?.season   ?? null,
+    }
+    onResult(enriched)
     setPhase('idle')
     setLandedEntry(null)
     setCycleEntry(null)

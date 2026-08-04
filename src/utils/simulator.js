@@ -340,50 +340,50 @@ export function generateMatchEvent(team, matchIndex, eventIndices) {
 
   const batters  = team.filter(p => ['opener','top-order','middle-order','wicket-keeper','all-rounder'].includes(p.role))
   const bowlers  = team.filter(p => ['pace-bowler','spin-bowler','all-rounder'].includes(p.role))
-  const fielders = team
+  const allField = team
 
-  const rand = Math.random()
-
-  // Fielding events (catch, run-out) — 25%
-  if (rand < 0.25 && fielders.length > 0) {
-    const player = fielders[Math.floor(Math.random() * fielders.length)]
-    const type   = Math.random() < 0.55 ? 'catch' : 'run-out'
-    return { type, playerName: player.name }
-  }
-
-  // DRS event — 10%
-  if (rand < 0.35 && batters.length > 0) {
-    const player = batters[Math.floor(Math.random() * batters.length)]
-    return { type: 'drs', playerName: player.name }
-  }
-
-  // Bowling hat-trick — 15%
-  if (rand < 0.50 && bowlers.length > 0) {
-    const player = bowlers[Math.floor(Math.random() * bowlers.length)]
-    return { type: 'hat-trick', playerName: player.name }
-  }
-
-  // Batting milestones — 50%
+  // ─── Rare batting milestone first (checked before type selection) ──────────
+  // 0.7% → 150, 0.5% → 200. Handled independently so they stay genuinely rare.
   if (batters.length > 0) {
-    const player  = batters[Math.floor(Math.random() * batters.length)]
-    const batRand = Math.random()
-    if (batRand < 0.005) {
-      // 0.5% chance of 200 — extremely rare
+    const rareRoll = Math.random()
+    if (rareRoll < 0.005) {
+      const player = batters[Math.floor(Math.random() * batters.length)]
       return { type: '200', playerName: player.name }
     }
-    if (batRand < 0.012) {
-      // 0.7% chance of 150 — very very rare
+    if (rareRoll < 0.012) {
+      const player = batters[Math.floor(Math.random() * batters.length)]
       return { type: '150', playerName: player.name }
     }
-    if (batRand < 0.35) {
-      // 29% chance of century
-      return { type: 'century', playerName: player.name, milestone: 99 }
-    }
-    // 65% chance of half-century
-    return { type: 'half-century', playerName: player.name, milestone: 49 }
   }
 
-  return null
+  // ─── Regular event types — all equally likely ─────────────────────────────
+  // Each type maps to a pool (batters / bowlers / fielders).
+  // We build a list of possible types based on who's in the squad, then pick one uniformly.
+  const BATTER_TYPES  = ['half-century', 'century', 'drs', 'powerplay', 'free-hit']
+  const BOWLER_TYPES  = ['hat-trick', 'no-ball', 'last-over', 'stumping']
+  const FIELDER_TYPES = ['catch', 'run-out', 'dropped-catch']
+
+  const candidates = [
+    ...( batters.length  > 0 ? BATTER_TYPES  : [] ),
+    ...( bowlers.length  > 0 ? BOWLER_TYPES  : [] ),
+    ...( allField.length > 0 ? FIELDER_TYPES : [] ),
+  ]
+
+  if (candidates.length === 0) return null
+
+  const type = candidates[Math.floor(Math.random() * candidates.length)]
+
+  // ─── Pick the relevant player ─────────────────────────────────────────────
+  let player
+  if (BATTER_TYPES.includes(type)) {
+    player = batters[Math.floor(Math.random() * batters.length)]
+  } else if (BOWLER_TYPES.includes(type)) {
+    player = bowlers[Math.floor(Math.random() * bowlers.length)]
+  } else {
+    player = allField[Math.floor(Math.random() * allField.length)]
+  }
+
+  return { type, playerName: player.name }
 }
 
 export function simulateFullSeason(team, mode, manager, options = {}) {

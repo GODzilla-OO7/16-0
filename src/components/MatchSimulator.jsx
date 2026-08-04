@@ -135,6 +135,11 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             resume: (success, choiceLabel) => {
               setPendingEvent(null)
               const BATTING_MILESTONES = { 'half-century': 50, 'century': 100, '150': 150, '200': 200 }
+              // Types that grant a bonus wicket to the bowling tally on success
+              const WICKET_EVENTS = new Set(['catch', 'run-out', 'stumping'])
+              // Types that grant bonus runs on success
+              const RUN_BONUS_EVENTS = { 'free-hit': 6, 'powerplay': 12 }
+
               let finalMatch = { ...match, eventResult: { success, choiceLabel } }
               // For successful QTE events: patch stats so the correct value is reflected
               // instead of adding random base stats + milestone (which doubles the count)
@@ -147,15 +152,20 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
                 } else if (evt.type === 'hat-trick') {
                   // Replace topBowler with QTE player at exactly 3 wickets
                   finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topBowler: { name: evt.playerName, wickets: 3 } } }
+                } else if (RUN_BONUS_EVENTS[evt.type] !== undefined) {
+                  // Add bonus runs to topScorer for powerplay/free-hit success
+                  const bonus = RUN_BONUS_EVENTS[evt.type]
+                  const existing = finalMatch.stats.topScorer
+                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: (existing?.runs ?? 0) + bonus } } }
                 }
               }
               setRevealed(prev => [...prev, finalMatch])
               addStats(finalMatch, setLiveRuns, setLiveWkts)
               updateStreak(match.won, setCurrentStreak, setBestWinStreak)
-              // Fielding events (catch/run-out) add a wicket not tracked in match stats
+              // Fielding/stumping events add a wicket not tracked in base match stats
               if (success && match.event) {
                 const evt = match.event
-                if (evt.type === 'catch' || evt.type === 'run-out') {
+                if (WICKET_EVENTS.has(evt.type)) {
                   setLiveWkts(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 1 }))
                 }
               }
