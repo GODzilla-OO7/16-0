@@ -146,7 +146,8 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
 
     penaltyPts = openerPenalty + batsmanPenalty
   }
-  const managerBonus = manager ? (manager.bonus?.strength ?? 0) : 0
+  // Bonus only applies if the coach has won this specific competition (matches simulator.js logic)
+  const managerBonus = (manager && manager.wcWinnerFor?.includes(mode)) ? (manager.bonus?.strength ?? 0) : 0
   const baseOvr = Math.round((avgBat + avgBowl) / 2)
   const avgOvr  = Math.max(1, Math.min(99, baseOvr - penaltyPts + managerBonus))
 
@@ -211,9 +212,11 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
         <div style={{ marginTop: '0.6rem', padding: '0.4rem 0.65rem', background: 'var(--border2)', borderRadius: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <span style={{ fontSize: '0.8rem' }}>{manager.icon}</span>
           <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600 }}>{manager.name}</span>
-          <span style={{ marginLeft: 'auto', fontSize: '0.62rem', color: '#1F6FEB', fontWeight: 700 }}>
-            +{manager.bonus?.strength ?? 0}
-            {manager.wcWinnerFor?.includes(mode) && <span style={{ color: '#f59e0b', marginLeft: '0.2rem' }}>🏆</span>}
+          <span style={{ marginLeft: 'auto', fontSize: '0.62rem', fontWeight: 700 }}>
+            {manager.wcWinnerFor?.includes(mode)
+              ? <span style={{ color: '#1F6FEB' }}>+{manager.bonus?.strength ?? 0} <span style={{ color: '#f59e0b' }}>🏆</span></span>
+              : <span style={{ color: '#64748b' }}>No mode bonus</span>
+            }
           </span>
         </div>
       )}
