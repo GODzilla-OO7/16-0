@@ -55,6 +55,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   const [showImpactSub,   setShowImpactSub]   = useState(false)
   const [impactSubDone,   setImpactSubDone]   = useState(false)
   const [impactSubLog,    setImpactSubLog]    = useState(null)  // { out, in, event }
+  const [iconSubPlayer,   setIconSubPlayer]   = useState(null)  // set if impact sub brought in a legend
 
   // Win streak tracker
   const [currentStreak,   setCurrentStreak]   = useState({ type: null, count: 0 })
@@ -150,16 +151,21 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
                 const evt = match.event
                 const milestone = BATTING_MILESTONES[evt.type]
                 if (milestone !== undefined) {
-                  // Replace topScorer with QTE player at exact milestone runs
-                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: milestone } } }
+                  // Cap milestone at team total so scorer can't exceed team score
+                  const teamTotal = parseScoreStr(match.myScore ?? '').runs
+                  const cappedRuns = teamTotal ? Math.min(milestone, teamTotal) : milestone
+                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: cappedRuns } } }
                 } else if (evt.type === 'hat-trick') {
                   // Replace topBowler with QTE player at exactly 3 wickets
                   finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topBowler: { name: evt.playerName, wickets: 3 } } }
                 } else if (RUN_BONUS_EVENTS[evt.type] !== undefined) {
-                  // Add bonus runs to topScorer for powerplay/free-hit success
+                  // Add bonus runs to topScorer for powerplay/free-hit success, capped at team total
                   const bonus = RUN_BONUS_EVENTS[evt.type]
                   const existing = finalMatch.stats.topScorer
-                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: (existing?.runs ?? 0) + bonus } } }
+                  const teamTotal = parseScoreStr(match.myScore ?? '').runs
+                  const rawRuns = (existing?.runs ?? 0) + bonus
+                  const cappedRuns = teamTotal ? Math.min(rawRuns, teamTotal) : rawRuns
+                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: cappedRuns } } }
                 }
               }
               setRevealed(prev => [...prev, finalMatch])
@@ -304,6 +310,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         iplOutcome,
         iplTable,
         iplPosition,
+        iconPlayer:      iconSubPlayer,   // legend via impact sub (null if none)
       },
       leagueSeason.results,
     )
@@ -373,6 +380,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
           onComplete={(newTeam, outPlayer, inPlayer, event) => {
             setActiveTeam(newTeam)
             setImpactSubLog({ out: outPlayer, in: inPlayer, event })
+            if (inPlayer._isIcon) setIconSubPlayer(inPlayer)
             setImpactSubDone(true)
             setShowImpactSub(false)
             startPlayoffs()
@@ -748,8 +756,10 @@ function buildChasePoints(targetRuns, finalRuns, finalWickets, format) {
   const totalOvers = format === 'odi' ? 50 : 20
   const marks      = format === 'odi' ? [10, 20, 30, 40, 47, 50] : [6, 10, 14, 17, 19, 20]
 
-  return marks.map((over, i) => {
-    const isLast = i === marks.length - 1
+  const pts = []
+  for (let idx = 0; idx < marks.length; idx++) {
+    const over   = marks[idx]
+    const isLast = idx === marks.length - 1
     let runs, wkts
     if (isLast) {
       runs = finalRuns
@@ -767,8 +777,11 @@ function buildChasePoints(targetRuns, finalRuns, finalWickets, format) {
     const crr       = over > 0 ? (runs / over).toFixed(1) : '0.0'
     const rrr       = ballsLeft > 0 ? (needed / ballsLeft * 6).toFixed(1) : '0.0'
     const onTrack   = parseFloat(crr) >= parseFloat(rrr) - 0.5
-    return { over, totalOvers, runs, wkts, ballsLeft, needed, crr, rrr, onTrack }
-  })
+    pts.push({ over, totalOvers, runs, wkts, ballsLeft, needed, crr, rrr, onTrack })
+    // Stop animating once target is reached — no more overs needed
+    if (needed === 0) break
+  }
+  return pts
 }
 
 // ─── FinalChase — live over-by-over chase scorecard ──────────────────────────

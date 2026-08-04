@@ -69,7 +69,7 @@ function weightedPick(players, key) {
 function clamp(v, min, max) { return Math.max(min, Math.min(max, v)) }
 function rng(min, max) { return min + Math.random() * (max - min) }
 
-export function generateMatchStats(team, won, format) {
+export function generateMatchStats(team, won, format, teamRuns = Infinity) {
   if (!team || team.length === 0) return null
 
   const batters = team.filter(p =>
@@ -81,24 +81,30 @@ export function generateMatchStats(team, won, format) {
 
   if (batters.length === 0) return null
 
-  // Top scorer
+  // Top scorer — always capped at team total so individual can't exceed team score
   const scorer = weightedPick(batters, 'batting')
   const runsBase  = format === 't20' ? 18 : 30
   const runsRange = format === 't20' ? (won ? 72 : 42) : (won ? 110 : 70)
   const rMin  = 0.45 + (scorer.batting / 100) * 0.25
   const rMax  = 0.70 + (scorer.batting / 100) * 0.40
-  const runs  = Math.round(clamp(runsBase + Math.pow(scorer.batting / 100, 1.3) * runsRange * rng(rMin, rMax), runsBase, format === 't20' ? 110 : 180))
+  const runs  = Math.min(
+    Math.round(clamp(runsBase + Math.pow(scorer.batting / 100, 1.3) * runsRange * rng(rMin, rMax), runsBase, format === 't20' ? 110 : 180)),
+    teamRuns
+  )
   const sr    = format === 't20' ? rng(110, 165) : rng(75, 120)
   const balls = Math.round(runs / sr * 100)
 
-  // Second batter highlight (occasionally)
+  // Second batter highlight (occasionally) — capped below top scorer's total
   let scorer2 = null
   if (Math.random() > 0.4 && batters.length > 1) {
     const remaining = batters.filter(p => p.id !== scorer.id)
     if (remaining.length > 0) {
       scorer2 = weightedPick(remaining, 'batting')
       const r2max = format === 't20' ? 60 : 90
-      const r2runs = Math.round(10 + (scorer2.batting / 100) * r2max * rng(0.3, 0.8))
+      const r2runs = Math.min(
+        Math.round(10 + (scorer2.batting / 100) * r2max * rng(0.3, 0.8)),
+        Math.floor(runs * 0.9)   // scorer2 must be < top scorer
+      )
       const r2balls = Math.round(r2runs / (sr * 0.85) * 100)
       scorer2 = { name: scorer2.name, runs: r2runs, balls: r2balls, role: scorer2.role }
     }
@@ -219,7 +225,7 @@ export function simulateMatch(myStrength, opponent, format, matchNum, team) {
   }
 
   const result   = buildResult(myScore, oppScore, won)
-  const stats    = team ? generateMatchStats(team, won, format) : null
+  const stats    = team ? generateMatchStats(team, won, format, myScore.runs) : null
   const oppStats = generateOppMatchStats(opponent.name, opponent.strength, format)
 
   const runMargin = Math.abs(myScore.runs - oppScore.runs)
@@ -344,10 +350,10 @@ export function generateMatchEvent(team, matchIndex, eventIndices) {
   const allField = team
 
   // ─── Rare batting milestone first (checked before type selection) ──────────
-  // 0.7% → 150, 0.5% → 200. Handled independently so they stay genuinely rare.
+  // 0.7% → 150, 0.05% → 200. Handled independently so they stay genuinely rare.
   if (batters.length > 0) {
     const rareRoll = Math.random()
-    if (rareRoll < 0.005) {
+    if (rareRoll < 0.0005) {  // 0.05% for double-century
       const player = batters[Math.floor(Math.random() * batters.length)]
       return { type: '200', playerName: player.name }
     }

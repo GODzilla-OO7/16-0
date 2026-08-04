@@ -1,6 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { WHEEL_ENTRIES } from '../data/players.js'
 
+// ─── Legendary icon players — appear with 0.05% chance in player spin ────────
+
+const ICON_PLAYERS = [
+  { id: 'icon-bradman',  name: 'Sir Donald Bradman', role: 'top-order',   nationality: 'Australia',  batting: 99, bowling: 20, fielding: 85, overall: 99, _isIcon: true },
+  { id: 'icon-sobers',   name: 'Sir Garfield Sobers', role: 'all-rounder', nationality: 'W. Indies',  batting: 97, bowling: 95, fielding: 90, overall: 99, _isIcon: true },
+  { id: 'icon-viv',      name: 'Sir Viv Richards',    role: 'top-order',   nationality: 'W. Indies',  batting: 98, bowling: 38, fielding: 88, overall: 98, _isIcon: true },
+]
+
 // ─── Event types that can land on the wheel ──────────────────────────────────
 
 const EVENTS = [
@@ -186,7 +194,18 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
 
     // Shuffle + pick
     const shuffled = [...fullPool].sort(() => Math.random() - 0.5)
-    const chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
+    let chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
+
+    // ── 0.05% chance of a legendary icon player appearing ─────────────────
+    if (Math.random() < 0.0005) {
+      const eligible = ICON_PLAYERS
+        .filter(ic => !teamIds.has(ic.id) && !teamNames.has(ic.name))
+        .filter(ic => !requiredRole || ic.role === requiredRole)
+      if (eligible.length > 0) {
+        chosen = eligible[Math.floor(Math.random() * eligible.length)]
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────────
 
     setPool(shuffled)
 
@@ -195,6 +214,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
     function tick() {
       i++
       const last = i >= TICKS
+      // Cycle through normal pool visually; land on chosen (could be icon)
       setCyclePlayer(last ? chosen : shuffled[i % shuffled.length])
       if (last) {
         timerRef.current = setTimeout(() => {
@@ -254,28 +274,17 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
                 The transfer window is open before the playoffs. Spin the wheel — fate decides who comes in and who goes out.
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-              <button
-                onClick={spinEvent}
-                style={{
-                  padding: '0.9rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                  color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
-                  fontSize: '1rem', fontWeight: 800, cursor: 'pointer',
-                }}
-              >
-                🎰 Spin the Impact Sub Wheel
-              </button>
-              <button
-                onClick={onSkip}
-                style={{
-                  padding: '0.75rem', background: 'transparent',
-                  color: '#64748b', border: '1px solid var(--border)', borderRadius: '0.625rem',
-                  fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
-                }}
-              >
-                Skip — go straight to playoffs
-              </button>
-            </div>
+            <button
+              onClick={spinEvent}
+              style={{
+                width: '100%', padding: '0.9rem',
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
+                fontSize: '1rem', fontWeight: 800, cursor: 'pointer',
+              }}
+            >
+              🎰 Spin the Impact Sub Wheel
+            </button>
           </>
         )}
 
@@ -388,30 +397,40 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
               </div>
             )}
 
-            {phase === 'player-landed' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <button
-                  onClick={confirmSub}
-                  style={{
-                    width: '100%', padding: '0.875rem',
-                    background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                    color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
-                    fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer',
-                  }}
-                >
-                  ✓ Confirm Impact Sub
-                </button>
-                <button
-                  onClick={onSkip}
-                  style={{
-                    padding: '0.625rem', background: 'transparent',
-                    color: '#475569', border: 'none', fontSize: '0.78rem',
-                    fontWeight: 600, cursor: 'pointer',
-                  }}
-                >
-                  Cancel — keep original squad
-                </button>
+            {/* Icon player special badge */}
+            {phase === 'player-landed' && playerEntry?._isIcon && (
+              <div style={{
+                marginBottom: '1rem', padding: '0.75rem 1rem',
+                background: 'linear-gradient(135deg, #78350f22, #92400e22)',
+                border: '2px solid #f59e0b66',
+                borderRadius: '0.75rem',
+                textAlign: 'center',
+                animation: 'fade-in 0.4s ease both',
+              }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.2rem' }}>⭐</div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  LEGEND APPEARED
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                  A once-in-a-lifetime signing. This player will be remembered.
+                </div>
               </div>
+            )}
+
+            {phase === 'player-landed' && (
+              <button
+                onClick={confirmSub}
+                style={{
+                  width: '100%', padding: '0.875rem',
+                  background: playerEntry?._isIcon
+                    ? 'linear-gradient(135deg, #f59e0b, #d97706)'
+                    : 'linear-gradient(135deg, #22c55e, #16a34a)',
+                  color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
+                  fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer',
+                }}
+              >
+                {playerEntry?._isIcon ? '⭐ Confirm Legend Sub' : '✓ Confirm Impact Sub'}
+              </button>
             )}
 
             {isPlayerSpinning && (

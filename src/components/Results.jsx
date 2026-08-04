@@ -3,7 +3,7 @@ import { MODE_CONFIG } from '../data/players.js'
 
 // ─── Share card generator (Canvas) — 38-0.app style ──────────────────────────
 
-function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, modeLabel, matchResults, potm, topScorer, topScorerRuns, topWicketTaker, topWicketTakerWkts, bestWinStreak, stageReached, iplOutcome, team, myStr }) {
+function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, modeLabel, matchResults, potm, topScorer, topScorerRuns, topWicketTaker, topWicketTakerWkts, bestWinStreak, stageReached, iplOutcome, team, myStr, iconPlayer }) {
   const W = 630, H = 920
   const canvas = document.createElement('canvas')
   canvas.width  = W
@@ -279,6 +279,34 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     }
   }
 
+  // ── ICON IN TEAM badge (only if a legend appeared via Impact Sub) ─────────
+  if (iconPlayer) {
+    const ICON_Y = H - 110
+    // Gold pill background
+    ctx.fillStyle = 'rgba(245,158,11,0.12)'
+    const rx = PAD_X, ry = ICON_Y, rw = W - PAD_X * 2, rh = 28
+    ctx.beginPath()
+    ctx.roundRect(rx, ry, rw, rh, 6)
+    ctx.fill()
+    ctx.strokeStyle = 'rgba(245,158,11,0.4)'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.roundRect(rx, ry, rw, rh, 6)
+    ctx.stroke()
+    // Label
+    ctx.textAlign = 'left'
+    ctx.font = '800 10px system-ui, sans-serif'
+    ctx.fillStyle = '#f59e0b'
+    ctx.letterSpacing = '1px'
+    ctx.fillText('⭐ ICON IN TEAM', rx + 10, ICON_Y + 18)
+    ctx.letterSpacing = '0px'
+    // Name
+    ctx.font = '700 11px system-ui, sans-serif'
+    ctx.fillStyle = '#fde68a'
+    ctx.textAlign = 'right'
+    ctx.fillText(iconPlayer.name, rx + rw - 10, ICON_Y + 18)
+  }
+
   // ── FOOTER ────────────────────────────────────────────────────────────────
   const FOOT_Y = H - 74
 
@@ -498,6 +526,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const iplPosition  = summary?.iplPosition  ?? null
   const stageReached = summary?.stageReached ?? null
   const actualWinner = summary?.actualWinner ?? null
+  const iconPlayer   = summary?.iconPlayer   ?? null
 
   // Show heartbreak for: IPL runner-up, WC Final loss, WC Semi-Final exit
   const isHeartbreak = iplOutcome === 'runner-up' || stageReached === 'Runner-up' || stageReached === 'Semi-Final'
@@ -526,8 +555,9 @@ export default function Results({ team, mode, manager, summary, matchResults, on
       bestWinStreak,
       stageReached,
       iplOutcome,
-      team:  team  ?? [],
-      myStr: myStr ?? 0,
+      team:       team       ?? [],
+      myStr:      myStr      ?? 0,
+      iconPlayer: iconPlayer ?? null,
     }
   }
 
@@ -660,6 +690,32 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               <div style={{ width: `${myStr}%`, height: '100%', background: 'linear-gradient(90deg, #1F6FEB, #f59e0b)', borderRadius: 4, transition: 'width 1s ease' }} />
             </div>
           </div>
+
+          {/* Icon in team — shown only if a legend appeared via Impact Sub */}
+          {iconPlayer && (
+            <div style={{
+              marginBottom: '1.25rem',
+              padding: '0.875rem 1.25rem',
+              background: 'linear-gradient(135deg, #78350f18, #92400e18)',
+              border: '2px solid #f59e0b55',
+              borderRadius: '0.875rem',
+              display: 'flex', alignItems: 'center', gap: '1rem',
+              animation: 'fade-in-up 0.4s ease both',
+            }}>
+              <div style={{ fontSize: '2rem', flexShrink: 0 }}>⭐</div>
+              <div style={{ textAlign: 'left', minWidth: 0 }}>
+                <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.2rem' }}>
+                  Icon in Team
+                </div>
+                <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {iconPlayer.name}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                  {iconPlayer.nationality} · {iconPlayer.role} · Legend signing via Impact Sub
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Action buttons */}
           <div className="share-btns" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
