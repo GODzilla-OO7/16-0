@@ -502,7 +502,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
                 { label: 'Losses', value: leagueLosses,  color: '#ef4444' },
                 { label: 'Played', value: revealed.length, color: '#94a3b8' },
               ].map(s => (
-                <div key={s.label} style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
+                <div key={s.label} className="score-box" style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
                   <div style={{ fontSize: '1.75rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
                   <div style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.2rem' }}>{s.label}</div>
                 </div>
@@ -533,7 +533,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         )}
 
         {/* Main two-column grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: revealed.length > 0 ? '1fr 260px' : '1fr', gap: '1.25rem', alignItems: 'start' }}>
+        <div className="sim-grid" style={{ display: 'grid', gridTemplateColumns: revealed.length > 0 ? '1fr 260px' : '1fr', gap: '1.25rem', alignItems: 'start' }}>
 
           {/* Left — phase UI + match cards */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -605,7 +605,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
           {/* Right — leaderboard */}
           {revealed.length > 0 && (
-            <div style={{ position: 'sticky', top: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="sim-right" style={{ position: 'sticky', top: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <LeaderboardPanel title="🟠 Orange Cap Race" entries={topRunScorers}   valueKey="runs"    unit="runs" color="#f97316" />
               <LeaderboardPanel title="🟣 Purple Cap Race" entries={topWicketTakers} valueKey="wickets" unit="wkts" color="#a855f7" />
               {/* Cap winner crowns — shown once season is complete */}

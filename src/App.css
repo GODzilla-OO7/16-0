@@ -151,3 +151,104 @@ button {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── Mobile responsive ─────────────────────────────────────────────────────
+   Targets portrait phones (≤ 640px).
+   Desktop / tablet (> 640px) layouts are completely unchanged.
+   Landscape phones are handled via the height query below.
+   All overrides use !important to beat inline styles.
+──────────────────────────────────────────────────────────────────────────── */
+@media screen and (max-width: 640px) {
+
+  /* ── Draft screen ── */
+  .draft-header {
+    padding: 0.6rem 0.875rem !important;
+  }
+  .draft-grid {
+    grid-template-columns: 1fr !important;
+    padding: 0.75rem !important;
+    gap: 0.75rem !important;
+  }
+  .draft-right-col {
+    position: static !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    top: auto !important;
+  }
+
+  /* ── Match simulator ── */
+  .sim-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.625rem !important;
+  }
+  .sim-right {
+    position: static !important;
+    top: auto !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 0.625rem !important;
+  }
+  .sim-right > * {
+    flex: 1 1 calc(50% - 0.4rem) !important;
+    min-width: 0 !important;
+  }
+  .score-box {
+    width: auto !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    padding: 0.625rem 0.25rem !important;
+  }
+
+  /* ── Wheel spin ── */
+  .player-row {
+    padding: 0.875rem 0.875rem !important;
+    min-height: 52px !important;
+  }
+  .wheel-ticker {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .spin-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 1rem !important;
+  }
+
+  /* ── Results share buttons ── */
+  .share-btns {
+    gap: 0.5rem !important;
+  }
+  .share-btns > button {
+    flex: 1 1 calc(50% - 0.25rem) !important;
+    min-width: 0 !important;
+    font-size: 0.78rem !important;
+    padding: 0.75rem 0.5rem !important;
+    justify-content: center !important;
+  }
+
+  /* ── Generic ── */
+  .mobile-pad {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
+
+/* ── Landscape phones — keep 2-column but compact header/padding ── */
+@media screen and (max-height: 500px) and (orientation: landscape) and (max-width: 1024px) {
+  .draft-header {
+    padding: 0.35rem 0.875rem !important;
+  }
+  .draft-grid {
+    padding: 0.5rem !important;
+    gap: 0.5rem !important;
+  }
+  /* Keep 2-column in landscape since there's enough width,
+     but let right col scroll with dynamic viewport height */
+  .draft-right-col {
+    height: calc(100dvh - 3.2rem) !important;
+    top: 3.2rem !important;
+    overflow-y: auto !important;
+  }
+}

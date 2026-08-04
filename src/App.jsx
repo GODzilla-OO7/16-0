@@ -387,7 +387,7 @@ export default function App() {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: activeChallenge ? 36 : 0 }}>
         {/* Sticky header */}
-        <div style={{
+        <div className="draft-header" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0.875rem 1.5rem', borderBottom: '1px solid var(--border)',
           position: 'sticky', top: activeChallenge ? 36 : 0, background: 'var(--card)',
@@ -414,7 +414,7 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 296px', gap: '1.25rem', maxWidth: 1100, margin: '0 auto', padding: '1.25rem', alignItems: 'start' }}>
+        <div className="draft-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 296px', gap: '1.25rem', maxWidth: 1100, margin: '0 auto', padding: '1.25rem', alignItems: 'start' }}>
 
           {/* Left column — wheel or done banner */}
           <div>
@@ -464,7 +464,7 @@ export default function App() {
           </div>
 
           {/* Right column — TeamSheet scrolls in its own space; ManagerSelect pinned below */}
-          <div style={{
+          <div className="draft-right-col" style={{
             position: 'sticky', top: activeChallenge ? 'calc(36px + 4.5rem)' : '4.5rem',
             height: activeChallenge ? 'calc(100vh - 5.5rem - 36px)' : 'calc(100vh - 5.5rem)',
             display: 'flex', flexDirection: 'column', gap: '0.625rem',

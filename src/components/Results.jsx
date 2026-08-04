@@ -662,7 +662,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
           </div>
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div className="share-btns" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             {/* WhatsApp */}
             <button
               onClick={shareWhatsApp}

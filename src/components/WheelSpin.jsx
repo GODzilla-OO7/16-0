@@ -442,7 +442,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
       </div>
 
       {/* Ticker — now shows "Team Year" prominently */}
-      <div style={{
+      <div className="wheel-ticker" style={{
         width: '100%', maxWidth: 360, minHeight: 110, borderRadius: '1rem',
         border: `2px solid ${cycleEntry ? cycleEntry.color + '88' : 'var(--border)'}`,
         background: cycleEntry ? cycleEntry.color + '14' : 'var(--card)',
@@ -468,6 +468,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
       </div>
 
       <button
+        className="spin-btn"
         onClick={onSpin}
         disabled={isSpinning}
         style={{
@@ -683,6 +684,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
 
   return (
     <div
+      className="player-row"
       onClick={blocked ? undefined : onPick}
       onMouseEnter={() => !blocked && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
