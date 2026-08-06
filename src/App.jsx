@@ -66,6 +66,18 @@ export default function App() {
     window.addEventListener('cricket-theme-change', sync)
     return () => window.removeEventListener('cricket-theme-change', sync)
   }, [])
+
+  // ── URL-encoded share view (#share=...) ─────────────────────────────────────
+  const [sharedResult, setSharedResult] = useState(null)
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash.startsWith('#share=')) return
+    try {
+      const encoded = hash.slice('#share='.length)
+      const decoded = JSON.parse(decodeURIComponent(escape(atob(encoded))))
+      setSharedResult(decoded)
+    } catch { /* ignore bad hashes */ }
+  }, [])
   const { user, signOut } = useAuth()
 
   const [mode, setMode]             = useState(null)
@@ -338,6 +350,9 @@ export default function App() {
     </>
   )
 
+  // ── Shared result view — shown when URL has #share=... ─────────────────────
+  if (sharedResult) return <SharedResultView data={sharedResult} onPlay={() => setSharedResult(null)} />
+
   if (phase === 'menu')     return (
     <>
       <ModeSelect
@@ -517,4 +532,92 @@ export default function App() {
   )
 
   return null
+}
+
+// ── Shared result view ─────────────────────────────────────────────────────────
+
+function SharedResultView({ data, onPlay }) {
+  const { wins, losses, total, rating, mode, potm, topScorer, topScorerRuns,
+          topWicketTaker, topWicketTakerWkts, manager, stage, team = [] } = data
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem 1rem' }}>
+      <div style={{ width: '100%', maxWidth: 480 }}>
+
+        {/* Badge */}
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'inline-block', padding: '0.25rem 0.75rem', background: 'rgba(31,111,235,0.12)', border: '1px solid rgba(31,111,235,0.25)', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700, color: '#1F6FEB', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
+            Cricket 16-0 · {mode || 'Season'}
+          </div>
+          <div style={{ fontSize: '3rem', lineHeight: 1 }}>🏆</div>
+        </div>
+
+        {/* Main card */}
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1.25rem', padding: '1.5rem', marginBottom: '1rem' }}>
+
+          {/* Record */}
+          <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+            <div style={{ fontSize: '2.75rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>
+              {wins}W <span style={{ color: '#64748b', fontSize: '1.8rem' }}>–</span> {losses}L
+            </div>
+            {stage && <div style={{ fontSize: '0.8rem', color: '#1F6FEB', fontWeight: 700, marginTop: '0.35rem' }}>{stage}</div>}
+            <div style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.2rem 0.75rem', background: '#1F6FEB18', border: '1px solid #1F6FEB33', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 800, color: '#1F6FEB' }}>{rating}</div>
+          </div>
+
+          {/* Stats row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem', marginBottom: '1.25rem' }}>
+            {potm && (
+              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
+                <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Player of Tournament</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>{potm}</div>
+              </div>
+            )}
+            {topScorer && (
+              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
+                <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Top Run Scorer</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>{topScorer}</div>
+                {topScorerRuns && <div style={{ fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 700 }}>{topScorerRuns} runs</div>}
+              </div>
+            )}
+            {topWicketTaker && (
+              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
+                <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Top Wicket Taker</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>{topWicketTaker}</div>
+                {topWicketTakerWkts && <div style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 700 }}>{topWicketTakerWkts} wickets</div>}
+              </div>
+            )}
+            {manager && (
+              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
+                <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Manager</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>{manager}</div>
+              </div>
+            )}
+          </div>
+
+          {/* Team names */}
+          {team.length > 0 && (
+            <div>
+              <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Their XI</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                {team.map((name, i) => (
+                  <span key={i} style={{ padding: '0.2rem 0.6rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 600, color: 'var(--text)' }}>
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* CTA */}
+        <button
+          onClick={onPlay}
+          style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#fff', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 20px rgba(31,111,235,0.35)', letterSpacing: '0.02em' }}
+        >
+          Can you go unbeaten? Play Cricket 16-0 →
+        </button>
+        <div style={{ textAlign: 'center', marginTop: '0.75rem', fontSize: '0.72rem', color: '#64748b' }}>16zero.in</div>
+      </div>
+    </div>
+  )
 }

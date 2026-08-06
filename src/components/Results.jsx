@@ -535,9 +535,32 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const perfWriteup = getPerformanceWriteup(wins, losses, total, iplOutcome, iplPosition, predicted.pos, potm, stageReached, mode)
   const rating = getRating(wins, losses, total, perfect, cfg.targetWins, iplOutcome)
 
+  const buildShareUrl = () => {
+    try {
+      const payload = {
+        wins, losses, total,
+        rating: rating.label,
+        mode: cfg.label ?? '',
+        potm: potm ?? null,
+        topScorer: topScorers[0]?.name ?? null,
+        topScorerRuns: topScorers[0]?.runs ?? null,
+        topWicketTaker: topWicketTakers[0]?.name ?? null,
+        topWicketTakerWkts: topWicketTakers[0]?.wickets ?? null,
+        manager: manager?.name ?? null,
+        stage: stageReached ?? iplOutcome ?? null,
+        team: (team ?? []).map(p => p.name),
+      }
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
+      return `https://16zero.in/#share=${encoded}`
+    } catch {
+      return 'https://16zero.in'
+    }
+  }
+
   const shareText = () => {
     const blocks = (matchResults || []).map(r => r.won ? '🟩' : '🟥').join('')
-    return `Cricket 16-0 — ${cfg.label ?? ''}\n\n${blocks}\n\n${wins}W - ${losses}L · ${rating.label}${potm ? `\nPlayer of Tournament: ${potm}` : ''}\n\nThink you can beat this? 16zero.in`
+    const potmLine = potm ? ` · ${potm} starred` : ''
+    return `Cricket 16-0 — ${cfg.label ?? ''}\n\n${blocks}\n\n${wins}W–${losses}L · ${rating.label}${potmLine}\n\nCan you go unbeaten? Check my squad & beat me:\n${buildShareUrl()}`
   }
 
   function cardParams() {
@@ -581,9 +604,24 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     }
   }
 
-  const shareWhatsApp = () => {
-    const msg = encodeURIComponent('Think you can beat this? Come play Cricket 16-0 with me at 16zero.in')
-    window.open(`https://wa.me/?text=${msg}`, '_blank')
+  const shareWhatsApp = async () => {
+    const text = shareText()
+    // Try Web Share API first (shares image + text on mobile/WhatsApp)
+    if (navigator.share) {
+      try {
+        const blob = await generateShareCard(cardParams())
+        const file = new File([blob], 'cricket16-result.png', { type: 'image/png' })
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], text })
+          return
+        }
+        // Share without image if files not supported
+        await navigator.share({ text })
+        return
+      } catch { /* fall through */ }
+    }
+    // Fallback: open WhatsApp deep link with text
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
   }
 
   // Best win streak from matchResults

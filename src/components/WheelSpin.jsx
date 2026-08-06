@@ -210,7 +210,7 @@ export default function WheelSpin({
           !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
           !isRoleFull(p, team, composition) &&
           !(overseasFull && isOverseas(p)) &&
-          (budgetExhausted || budget == null || calcPrice(displayRating(p, ratingType).overall) <= budget)
+          (budgetExhausted || budget == null || calcPrice(displayRating(p, 'season').overall) <= budget)
         )
       )
     }
@@ -220,7 +220,7 @@ export default function WheelSpin({
         entry.players.some(p =>
           !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
           !isRoleFull(p, team, composition) &&
-          (budgetExhausted || budget == null || calcPrice(displayRating(p, ratingType).overall) <= budget)
+          (budgetExhausted || budget == null || calcPrice(displayRating(p, 'season').overall) <= budget)
         )
       )
     }
@@ -280,7 +280,7 @@ export default function WheelSpin({
 
   function pickPlayer(player) {
     if (onSpend && budget != null) {
-      const price = calcPrice(displayRating(player, ratingType).overall)
+      const price = calcPrice(displayRating(player, 'season').overall)  // always season price regardless of rating type
       onSpend(Math.min(price, budget))   // never go below 0
     }
     // Attach the IPL squad they came from so TeamSheet can display it
@@ -309,7 +309,7 @@ export default function WheelSpin({
   const budgetExhaustedDisplay = budget != null && budget < 0.5
 
   function withBudget(p) {
-    const price = budget != null ? calcPrice(displayRating(p, ratingType).overall) : null
+    const price = budget != null ? calcPrice(displayRating(p, 'season').overall) : null
     const budgetBlocked = price != null && price > budget
     return { ...p, _price: price, _budgetBlocked: budgetBlocked }
   }

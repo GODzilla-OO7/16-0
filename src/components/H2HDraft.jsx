@@ -150,13 +150,13 @@ function XIPanel({ name, team, isMe }) {
           display: 'flex', alignItems: 'center', gap: '0.35rem',
           padding: '0.3rem 0.6rem',
           borderBottom: i < 10 ? '1px solid var(--card)' : 'none',
-          background: player ? 'transparent' : '#07070f',
+          background: player ? 'transparent' : 'var(--bg)',
           minHeight: 28,
         }}>
           <span style={{ fontSize: '0.52rem', fontWeight: 800, color: 'var(--border)', width: 24, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{label}</span>
           {player ? (
             <>
-              <span style={{ fontSize: '0.68rem', fontWeight: 600, color: '#d1d5db', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</span>
+              <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</span>
               <span style={{ fontSize: '0.6rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>{scaleDisplay(player.overall)}</span>
               {player.nationality !== 'India' && <span style={{ fontSize: '0.48rem', color: '#3b82f6', fontWeight: 800, flexShrink: 0 }}>OS</span>}
             </>
@@ -395,8 +395,9 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
     const lOppTeam = isHost ? (latestRoom.guest_team ?? []) : (latestRoom.host_team ?? [])
     const allPicked = new Set([...lMyTeam, ...lOppTeam].map(p => p.name))
     const available = latestRoom.current_pick.players.filter(p => !allPicked.has(p.name))
-    const eligible  = getEligiblePlayers(available, lMyTeam)
-    if (!eligible.length) return
+    if (!available.length) return  // all taken, host skip logic handles this
+    let eligible = getEligiblePlayers(available, lMyTeam)
+    if (!eligible.length) eligible = available  // relax role rules for auto-pick
     // Auto-pick lowest rated eligible player
     const pick = eligible.reduce((a, b) => (a.overall < b.overall ? a : b))
     await snakePickRef.current?.(pick)
@@ -417,6 +418,23 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
     const t = setTimeout(() => postNextPickRef.current?.(), 800)
     return () => clearTimeout(t)
   }, [room.pick_number, room.current_pick, room.current_turn, room.status])
+
+  // Host: if current squad has no players left for ANYONE, force-skip it
+  useEffect(() => {
+    if (!isSnake || !isHost || !room.current_pick) return
+    const allPicked = new Set([...(room.host_team ?? []), ...(room.guest_team ?? [])].map(p => p.name))
+    const remaining = room.current_pick.players.filter(p => !allPicked.has(p.name))
+    if (remaining.length > 0) return  // still has players — no need to skip
+    const t = setTimeout(async () => {
+      const sb = await getSupabase()
+      if (!sb) return
+      const newPick = (roomRef.current.pick_number ?? 0) + 1
+      const update = { pick_number: newPick, current_pick: null }
+      const { error } = await sb.from('h2h_rooms').update(update).eq('id', room.id)
+      if (!error) applyRoomUpdate({ ...roomRef.current, ...update })
+    }, 400)
+    return () => clearTimeout(t)
+  }, [room.current_pick, room.host_team?.length, room.guest_team?.length])
 
   // Snake pick timer — 20s countdown; auto-pick on timeout if it's my turn
   useEffect(() => {
@@ -592,6 +610,16 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
   const postNextPlayerRef = useRef(postNextPlayer)
   useEffect(() => { postNextPlayerRef.current = postNextPlayer })
 
+  // Resolve auction as soon as BOTH bids are in (don't wait for full countdown)
+  useEffect(() => {
+    if (isSnake || !isHost || !room.current_pick) return
+    const bid = room.auction_bid
+    if (!bid || bid.phase !== 'bidding') return
+    if (bid.host_bid === null || bid.host_bid === undefined) return
+    if (bid.guest_bid === null || bid.guest_bid === undefined) return
+    resolveAuctionRef.current?.()
+  }, [room.auction_bid?.host_bid, room.auction_bid?.guest_bid])
+
   // Auto-No if team is full or can't afford base price
   useEffect(() => {
     if (isSnake || !currentPlayer || auctionPhase !== 'interest' || myInterest !== null) return
@@ -735,7 +763,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
                 <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
 
                   {/* Player header */}
-                  <div style={{ padding: '1rem 1.25rem', background: '#0d1020', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ padding: '1rem 1.25rem', background: 'var(--card)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>{currentPlayer.name}</div>
                       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
