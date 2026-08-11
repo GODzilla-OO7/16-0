@@ -19,7 +19,7 @@ function roleCategory(role) {
 }
 
 const CAT_COLOR = {
-  'BATTER':  '#1F6FEB',
+  'BATTER':  '#4169E1',
   'WK':      '#f59e0b',
   'ALL-RDR': '#3b82f6',
   'PACE':    '#ef4444',
@@ -59,7 +59,7 @@ function fmtCr(cr) {
 
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
 // Prime uses a much more generous curve — elite legends hit 97-99, making prime feel truly special
-function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 14))) }
+function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 10))) }
 
 function displayRating(player, ratingType) {
   if (ratingType === 'prime') return {
@@ -140,7 +140,7 @@ function extractYear(season) {
 
 export default function WheelSpin({
   mode, settings, composition, slotIndex, totalSlots,
-  draftedIds, team, rerollsLeft, onReroll, onResult,
+  draftedIds, releasedPlayerIds, team, rerollsLeft, onReroll, onResult,
   budget, onSpend, onRetryFromBeginning, onRetryBidding,
 }) {
   const [phase, setPhase]             = useState('idle')
@@ -183,6 +183,8 @@ export default function WheelSpin({
     function playerIsPickable(p) {
       // Already drafted?
       if (draftedIds.has(p.id) || draftedNameSet.has(p.name)) return false
+      // Released in a previous season (cannot re-draft)?
+      if (releasedPlayerIds?.has(p.id)) return false
       // Role quota full?
       if (isRoleFull(p, team, composition)) return false
       // Mandatory role not satisfied?
@@ -367,6 +369,9 @@ export default function WheelSpin({
           mustPick={mustPick}
           rerollsLeft={rerollsLeft}
           budget={budget}
+          isIPLMode={isIPLMode}
+          overseasInTeam={overseasInTeam}
+          overseasLimitReached={overseasLimitReached}
           onSpin={spin}
         />
       ) : (
@@ -402,22 +407,85 @@ export default function WheelSpin({
 
 function BudgetBar({ budget }) {
   if (budget == null) return null
-  const pct = Math.max(0, Math.min(100, (budget / STARTING_BUDGET) * 100))
-  const color = budget < 20 ? '#ef4444' : budget < 40 ? '#f59e0b' : '#22c55e'
+  const spent = STARTING_BUDGET - budget
+  const pct   = Math.max(0, Math.min(100, (budget / STARTING_BUDGET) * 100))
+  const color  = budget < 20 ? '#ef4444' : budget < 40 ? '#f59e0b' : '#22c55e'
+  const label  = budget < 20 ? 'Low funds' : budget < 40 ? 'Spend wisely' : 'Healthy purse'
   return (
-    <div style={{ width: '100%', maxWidth: 360 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.3rem' }}>
-        <span style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>💰 Budget</span>
-        <span style={{ fontSize: '0.95rem', fontWeight: 900, color, transition: 'color 0.3s' }}>{fmtCr(budget)}</span>
+    <div style={{
+      width: '100%', maxWidth: 360,
+      background: 'var(--card2)',
+      border: `1.5px solid ${color}44`,
+      borderRadius: '0.75rem',
+      padding: '0.75rem 1rem',
+      boxShadow: `0 2px 12px ${color}18`,
+      transition: 'border-color 0.3s, box-shadow 0.3s',
+    }}>
+      {/* Top row: icon + label + remaining amount */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span style={{ fontSize: '1rem' }}>💰</span>
+          <div>
+            <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Auction Purse</div>
+            <div style={{ fontSize: '0.62rem', color, fontWeight: 700 }}>{label}</div>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '1.4rem', fontWeight: 900, color, lineHeight: 1, transition: 'color 0.3s', fontVariantNumeric: 'tabular-nums' }}>
+            {fmtCr(budget)}
+          </div>
+          <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 600 }}>of ₹{STARTING_BUDGET}cr · spent {fmtCr(spent)}</div>
+        </div>
       </div>
-      <div style={{ height: 6, background: 'var(--border2)', borderRadius: 3 }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 3, transition: 'width 0.4s, background 0.3s' }} />
+      {/* Bar */}
+      <div style={{ height: 7, background: 'var(--border2)', borderRadius: 4, overflow: 'hidden' }}>
+        <div style={{
+          width: `${pct}%`, height: '100%', borderRadius: 4,
+          background: `linear-gradient(90deg, ${color}cc, ${color})`,
+          transition: 'width 0.4s ease, background 0.3s',
+        }} />
       </div>
     </div>
   )
 }
 
-function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, rerollsLeft, budget, onSpin }) {
+function OverseasTracker({ overseasInTeam, limitReached }) {
+  const slots = [0, 1, 2, 3]
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '0.6rem',
+      padding: '0.5rem 0.875rem',
+      background: limitReached ? '#ef444410' : 'var(--card2)',
+      border: `1.5px solid ${limitReached ? '#ef444455' : 'var(--border)'}`,
+      borderRadius: '0.625rem',
+    }}>
+      <span style={{ fontSize: '0.75rem' }}>✈️</span>
+      <div>
+        <div style={{ fontSize: '0.55rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>
+          Overseas slots
+        </div>
+        <div style={{ display: 'flex', gap: '0.3rem' }}>
+          {slots.map(i => (
+            <div key={i} style={{
+              width: 16, height: 16, borderRadius: '50%',
+              background: i < overseasInTeam ? '#4169E1' : 'transparent',
+              border: `2px solid ${i < overseasInTeam ? '#4169E1' : 'var(--border)'}`,
+              transition: 'background 0.2s, border-color 0.2s',
+            }} />
+          ))}
+        </div>
+      </div>
+      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: limitReached ? '#ef4444' : 'var(--muted)', marginLeft: 'auto' }}>
+        {overseasInTeam}/4
+      </div>
+      {limitReached && (
+        <div style={{ fontSize: '0.6rem', color: '#ef4444', fontWeight: 700 }}>FULL</div>
+      )}
+    </div>
+  )
+}
+
+function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, rerollsLeft, budget, isIPLMode, overseasInTeam, overseasLimitReached, onSpin }) {
   const isSpinning = phase === 'spinning'
   const year = cycleEntry ? extractYear(cycleEntry.season) : null
 
@@ -473,7 +541,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
         disabled={isSpinning}
         style={{
           padding: '0.875rem 2.75rem',
-          background: isSpinning ? 'transparent' : 'linear-gradient(135deg, #1F6FEB, #0047CC)',
+          background: isSpinning ? 'transparent' : 'linear-gradient(135deg, #4169E1, #2952CC)',
           color: isSpinning ? '#64748b' : 'var(--bg)',
           border: isSpinning ? '1px solid var(--border)' : 'none',
           borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800,
@@ -517,7 +585,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
             <button
               onClick={onRetryBidding}
               style={{
-                padding: '0.875rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
+                padding: '0.875rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)',
                 color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
                 fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
               }}
@@ -593,6 +661,8 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
         </div>
       )}
 
+      {/* Overseas tracker (IPL only) */}
+
       {/* Info bar */}
       <div style={{ padding: '0.45rem 1.25rem', background: 'var(--card)', borderBottom: '1px solid var(--border2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '0.7rem', color: compositionUnlocked ? '#ef4444' : mustPick ? '#f59e0b' : '#64748b' }}>
@@ -603,7 +673,6 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
             : hardMode ? '🔒 Hard Mode'
             : `${players.filter(p => p._eligible && !p._budgetBlocked).length} affordable · ${ratingType === 'prime' ? '⚡ Prime' : '📅 Season'} ratings`
           }
-          {isIPLMode && <span style={{ marginLeft: '0.5rem', color: '#64748b', fontSize: '0.62rem' }}>✈ {overseasInTeam}/4 overseas</span>}
         </span>
         {canReroll ? (
           <button onClick={onSpinAgain} style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}>
@@ -677,7 +746,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
   const cat     = roleCategory(player.role)
   const catClr  = CAT_COLOR[cat]
   const ratings = displayRating(player, ratingType)
-  const highlight = isMustPick ? '#f59e0b' : isNeeded ? '#1F6FEB' : null
+  const highlight = isMustPick ? '#f59e0b' : isNeeded ? '#4169E1' : null
   const blocked = isIneligible || isOverseasBlocked || isBudgetBlocked
 
   const opacity = blocked ? 0.38 : 1
@@ -715,7 +784,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
           {player.name}
           {isOverseas && <span style={{ fontSize: '0.7rem' }} title="Overseas player">✈️</span>}
           {isMustPick && !blocked && <span style={{ marginLeft: '0.2rem', fontSize: '0.58rem', color: '#f59e0b', fontWeight: 800 }}>NEEDED</span>}
-          {isNeeded && !isMustPick && !blocked && <span style={{ marginLeft: '0.2rem', fontSize: '0.58rem', color: '#1F6FEB', fontWeight: 800 }}>NEED</span>}
+          {isNeeded && !isMustPick && !blocked && <span style={{ marginLeft: '0.2rem', fontSize: '0.58rem', color: '#4169E1', fontWeight: 800 }}>NEED</span>}
         </div>
         <div style={{ fontSize: '0.67rem', color: '#64748b' }}>
           {player.nationality}
@@ -729,7 +798,7 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
         <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--border)', letterSpacing: '0.1em' }}>???</div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', flexShrink: 0 }}>
-          <MiniBar label="Bat"  value={ratings.batting} color="#1F6FEB" />
+          <MiniBar label="Bat"  value={ratings.batting} color="#4169E1" />
           <MiniBar label="Bowl" value={ratings.bowling} color="#3b82f6" />
           <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#f59e0b', minWidth: 26, textAlign: 'right' }}>
             {ratings.overall}

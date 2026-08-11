@@ -122,8 +122,8 @@ export function generateMatchStats(team, won, format, teamRuns = Infinity) {
     topBowler = { name: bowler.name, wickets, runsConceded: rc, bowlBalls, role: bowler.role }
   }
 
-  // Fielding highlight
-  const fielder = team[Math.floor(Math.random() * team.length)].name
+  // Fielding highlight — weighted by fielding rating
+  const fielder = weightedPick(team, 'fielding').name
   const fieldHighlight = Math.random() > 0.5
     ? `${fielder} took a stunning catch`
     : `${fielder} pulled off a direct hit run-out`
@@ -204,21 +204,25 @@ export function simulateMatch(myStrength, opponent, format, matchNum, team) {
 
   const scoreFn = format === 'odi' ? odiScore : t20Score
 
-  let myScore, oppScore
+  let myScore, oppScore, myBatsFirst
   if (won) {
     if (Math.random() < 0.5) {
+      myBatsFirst = true
       myScore  = scoreFn(myStrength, opponent.strength)
       oppScore = { runs: clamp(myScore.runs - Math.round(rng(5, 50)), 50, myScore.runs - 1), wickets: Math.floor(rng(4, 10)) }
     } else {
+      myBatsFirst = false
       oppScore = scoreFn(opponent.strength, myStrength)
       const wl = Math.floor(rng(1, 8))
       myScore  = { runs: oppScore.runs + Math.round(rng(1, 10)), wickets: 10 - wl }
     }
   } else {
     if (Math.random() < 0.5) {
+      myBatsFirst = true
       myScore  = scoreFn(myStrength, opponent.strength)
       oppScore = { runs: myScore.runs + Math.round(rng(5, 40)), wickets: Math.floor(rng(2, 8)) }
     } else {
+      myBatsFirst = false
       oppScore = scoreFn(opponent.strength, myStrength)
       myScore  = { runs: clamp(oppScore.runs - Math.round(rng(5, 50)), 50, oppScore.runs - 1), wickets: Math.floor(rng(6, 10)) }
     }
@@ -229,7 +233,7 @@ export function simulateMatch(myStrength, opponent, format, matchNum, team) {
   const oppStats = generateOppMatchStats(opponent.name, opponent.strength, format)
 
   const runMargin = Math.abs(myScore.runs - oppScore.runs)
-  return { matchNum, opponent: opponent.name, won, ...result, stats, oppStats, runMargin }
+  return { matchNum, opponent: opponent.name, won, myBatsFirst, ...result, stats, oppStats, runMargin }
 }
 
 // ─── Tournament structure ──────────────────────────────────────────────────
@@ -274,7 +278,7 @@ const OPP_STARS = {
   'Delhi Capitals':                [{ name: 'Rishabh Pant', role: 'wicket-keeper' }, { name: 'Kuldeep Yadav', role: 'spin-bowler' }, { name: 'David Warner', role: 'opener' }],
   'Rajasthan Royals':              [{ name: 'Jos Buttler', role: 'opener' },     { name: 'Yashasvi Jaiswal', role: 'opener' },      { name: 'Trent Boult', role: 'pace-bowler' }],
   'Sunrisers Hyderabad':           [{ name: 'Travis Head', role: 'opener' },     { name: 'Heinrich Klaasen', role: 'wicket-keeper' },{ name: 'Pat Cummins', role: 'pace-bowler' }],
-  'Punjab Kings':                  [{ name: 'Shikhar Dhawan', role: 'opener' },  { name: 'Arshdeep Singh', role: 'pace-bowler' },   { name: 'Babar Azam', role: 'top-order' }],
+  'Punjab Kings':                  [{ name: 'Shreyas Iyer', role: 'top-order' }, { name: 'Arshdeep Singh', role: 'pace-bowler' },   { name: 'Sam Curran', role: 'all-rounder' }],
   'Lucknow Super Giants':          [{ name: 'KL Rahul', role: 'wicket-keeper' }, { name: 'Nicholas Pooran', role: 'middle-order' }, { name: 'Ravi Bishnoi', role: 'spin-bowler' }],
   'Gujarat Titans':                [{ name: 'Shubman Gill', role: 'opener' },    { name: 'Rashid Khan', role: 'all-rounder' },      { name: 'Mohammed Shami', role: 'pace-bowler' }],
   'Australia':                     [{ name: 'David Warner', role: 'opener' },    { name: 'Steve Smith', role: 'top-order' },        { name: 'Mitchell Starc', role: 'pace-bowler' }],
@@ -367,12 +371,14 @@ export function generateMatchEvent(team, matchIndex, eventIndices) {
   // Each type maps to a pool (batters / bowlers / fielders).
   // We build a list of possible types based on who's in the squad, then pick one uniformly.
   const BATTER_TYPES  = ['half-century', 'century', 'drs', 'powerplay', 'free-hit']
-  const BOWLER_TYPES  = ['hat-trick', 'no-ball', 'last-over', 'stumping']
+  const BOWLER_TYPES  = ['hat-trick', 'no-ball', 'last-over']
   const FIELDER_TYPES = ['catch', 'run-out', 'dropped-catch']
+  const wk            = team.find(p => p.role === 'wicket-keeper')
 
   const candidates = [
     ...( batters.length  > 0 ? BATTER_TYPES  : [] ),
     ...( bowlers.length  > 0 ? BOWLER_TYPES  : [] ),
+    ...( wk             ? ['stumping']        : [] ),
     ...( allField.length > 0 ? FIELDER_TYPES : [] ),
   ]
 
@@ -384,6 +390,8 @@ export function generateMatchEvent(team, matchIndex, eventIndices) {
   let player
   if (BATTER_TYPES.includes(type)) {
     player = batters[Math.floor(Math.random() * batters.length)]
+  } else if (type === 'stumping') {
+    player = wk  // always the wicket-keeper
   } else if (BOWLER_TYPES.includes(type)) {
     player = bowlers[Math.floor(Math.random() * bowlers.length)]
   } else {
@@ -420,7 +428,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
 
   const results = []
   let wins = 0
-  let leagueSuperOverUsed = false  // max 1 Super Over per season in league matches
+  let leagueSuperOverCount = 0  // max 2 Super Overs per season in league matches
 
   // Stat accumulators — batting
   const runTotals = {}, ballTotals = {}
@@ -437,9 +445,9 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
     const event = generateMatchEvent(team, results.length, eventIndices)
     if (event) result.event = event
 
-    // League Super Over: 0–1 per season, only for very close league matches
-    if (stage === 'League' && !leagueSuperOverUsed && result.runMargin <= 8 && Math.random() < 0.08) {
-      leagueSuperOverUsed = true
+    // League Super Over: 0–2 per season, only for very close league matches
+    if (stage === 'League' && leagueSuperOverCount < 2 && result.runMargin <= 8 && Math.random() < 0.09) {
+      leagueSuperOverCount++
       const so = simulateSuperOver(myStr, opp.strength)
       result.superOver = so           // { won, myRuns, oppRuns }
       result.won       = so.won       // override regular match result with SO result
@@ -557,7 +565,47 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
     return stageSlots[stageReached] ?? 2
   })()
 
-  // Build user-team leaderboards
+  // ── Fill baseline stats for players who never appeared as top performer ──
+  // This ensures every player has realistic numbers in the stats table and cap races
+  const numMatches = results.length
+  const BAT_ROLES_SET  = new Set(['opener','top-order','middle-order','wicket-keeper','all-rounder'])
+  const BOWL_ROLES_SET = new Set(['pace-bowler','spin-bowler','all-rounder'])
+
+  team.forEach(p => {
+    const isBatter = BAT_ROLES_SET.has(p.role)
+    const isBowler = BOWL_ROLES_SET.has(p.role)
+
+    if (isBatter && !runTotals[p.name]) {
+      // Background batting contribution — scales with batting rating and matches played
+      const baseRuns = Math.round((p.batting / 100) * numMatches * (6 + rng(4, 14)))
+      runTotals[p.name]  = Math.max(1, baseRuns)
+      const sr = rng(108, 152)
+      ballTotals[p.name] = Math.round(runTotals[p.name] / sr * 100)
+    }
+
+    if (isBowler) {
+      // Every bowler gets a realistic season tally, whether or not they had a QTE.
+      // For QTE bowlers who already have wickets, we top up so a full season's
+      // worth is reflected (QTE only gives 1-3 wickets per appearance).
+      const baseWkts = Math.max(2, Math.round((p.bowling / 100) * numMatches * rng(1.2, 2.8)))
+      if (!wicketTotals[p.name]) {
+        // Never appeared — full baseline
+        wicketTotals[p.name] = baseWkts
+      } else if (wicketTotals[p.name] < baseWkts) {
+        // Appeared in QTE but got fewer wickets than a full season would give — top up
+        const extra = Math.round((baseWkts - wicketTotals[p.name]) * rng(0.6, 1.0))
+        wicketTotals[p.name] += extra
+      }
+      if (!bowlBallTotals[p.name]) {
+        const overs = rng(2.5, 4) * numMatches
+        bowlBallTotals[p.name] = Math.round(overs * 6)
+        const econ = rng(7.2, 9.8)
+        bowlRunTotals[p.name] = Math.round(bowlBallTotals[p.name] * econ / 6)
+      }
+    }
+  })
+
+  // Build user-team leaderboards (now includes everyone via baseline fill above)
   const topScorers = Object.entries(runTotals)
     .map(([name, runs]) => ({ name, runs }))
     .sort((a, b) => b.runs - a.runs)

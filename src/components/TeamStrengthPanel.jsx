@@ -1,18 +1,27 @@
 import { calcTeamStrength } from '../utils/simulator.js'
 
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
+function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 10))) }
+function getRating(player, ratingType) {
+  if (ratingType === 'prime') return {
+    overall: scalePrime(player.primeOverall ?? player.overall),
+    batting: scalePrime(player.primeBatting ?? player.batting),
+    bowling: scalePrime(player.primeBowling ?? player.bowling),
+  }
+  return { overall: scaleDisplay(player.overall), batting: scaleDisplay(player.batting), bowling: scaleDisplay(player.bowling) }
+}
 const isOverseas = (p) => p.nationality !== 'India'
 
 function getPredictedRank(str, mode) {
   if (mode === 'ipl') {
     if (str >= 85) return { pos: '1st–2nd',  label: 'Champions contender', color: '#f59e0b' }
-    if (str >= 80) return { pos: 'Top 4',    label: 'Playoff favourite',   color: '#1F6FEB' }
+    if (str >= 80) return { pos: 'Top 4',    label: 'Playoff favourite',   color: '#4169E1' }
     if (str >= 75) return { pos: '5th–6th',  label: 'On the bubble',       color: '#3b82f6' }
     if (str >= 68) return { pos: '7th–8th',  label: 'Mid-table side',      color: '#94a3b8' }
     return               { pos: 'Bottom 3',  label: 'Uphill battle',        color: '#ef4444' }
   }
   if (str >= 84) return { pos: 'Champions',    label: 'Tournament favourite', color: '#f59e0b' }
-  if (str >= 78) return { pos: 'Semi-final',   label: 'Deep run expected',   color: '#1F6FEB' }
+  if (str >= 78) return { pos: 'Semi-final',   label: 'Deep run expected',   color: '#4169E1' }
   if (str >= 70) return { pos: 'Quarter-final',label: 'Competitive side',    color: '#3b82f6' }
   return               { pos: 'Group stage',   label: 'Underdog story',      color: '#94a3b8' }
 }
@@ -96,7 +105,7 @@ function OverseasTracker({ team }) {
 
 // ─── Main Panel ──────────────────────────────────────────────────────────────
 
-export default function TeamStrengthPanel({ team, manager, mode, showPenalty = false, onStart }) {
+export default function TeamStrengthPanel({ team, manager, mode, ratingType = 'season', showPenalty = false, onStart }) {
   if (!team || team.length === 0) return null
 
   const rawStr = calcTeamStrength(team, manager, mode)
@@ -111,14 +120,15 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
   let bowlSum = 0, bowlCount = 0
 
   team.forEach(p => {
-    const disp = scaleDisplay(p.overall)
+    const r = getRating(p, ratingType)
     if (p.role === 'all-rounder') {
-      batSum  += disp / 2;  batCount  += 0.5
-      bowlSum += disp / 2;  bowlCount += 0.5
+      const mid = (r.batting + r.bowling) / 2
+      batSum  += mid / 2;  batCount  += 0.5
+      bowlSum += mid / 2;  bowlCount += 0.5
     } else if (BAT_ROLES.has(p.role)) {
-      batSum  += disp;  batCount++
+      batSum  += r.batting;  batCount++
     } else if (BOWL_ROLES.has(p.role)) {
-      bowlSum += disp;  bowlCount++
+      bowlSum += r.bowling;  bowlCount++
     }
   })
 
@@ -176,7 +186,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
         <span style={{ fontSize: '0.65rem', color: 'var(--border)' }}>{team.length}/11</span>
       </div>
 
-      <Bar label="Batting avg"  value={avgBat}  color="#1F6FEB" />
+      <Bar label="Batting avg"  value={avgBat}  color="#4169E1" />
       <Bar label="Bowling avg"  value={avgBowl} color="#3b82f6" />
       {/* Overall bar — shows penalty/bonus adjustments inline when active */}
       <div style={{ marginBottom: (hasPenalty || hasBonus) ? '0.25rem' : '0.6rem' }}>
@@ -191,7 +201,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
               <span style={{ color: '#ef4444', fontSize: '0.6rem', fontWeight: 800 }}>−{penaltyPts}</span>
             )}
             {hasBonus && (
-              <span style={{ color: '#1F6FEB', fontSize: '0.6rem', fontWeight: 800 }}>+{managerBonus}</span>
+              <span style={{ color: '#4169E1', fontSize: '0.6rem', fontWeight: 800 }}>+{managerBonus}</span>
             )}
           </span>
         </div>
@@ -203,7 +213,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
         <div style={{ fontSize: '0.6rem', fontWeight: 700, marginBottom: '0.4rem', lineHeight: 1.5 }}>
           {openerPenalty > 0 && <div style={{ color: '#f59e0b' }}>⬇️ −3: openers not in positions 1–3</div>}
           {batsmanPenalty > 0 && <div style={{ color: '#f59e0b' }}>⬇️ −2: pure batsman below a bowler</div>}
-          {hasBonus && <div style={{ color: '#1F6FEB' }}>⬆️ +{managerBonus}: coach bonus</div>}
+          {hasBonus && <div style={{ color: '#4169E1' }}>⬆️ +{managerBonus}: coach bonus</div>}
         </div>
       )}
 
@@ -214,7 +224,7 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
           <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600 }}>{manager.name}</span>
           <span style={{ marginLeft: 'auto', fontSize: '0.62rem', fontWeight: 700 }}>
             {manager.wcWinnerFor?.includes(mode)
-              ? <span style={{ color: '#1F6FEB' }}>+{manager.bonus?.strength ?? 0} <span style={{ color: '#f59e0b' }}>🏆</span></span>
+              ? <span style={{ color: '#4169E1' }}>+{manager.bonus?.strength ?? 0} <span style={{ color: '#f59e0b' }}>🏆</span></span>
               : <span style={{ color: '#64748b' }}>No mode bonus</span>
             }
           </span>
@@ -236,9 +246,6 @@ export default function TeamStrengthPanel({ team, manager, mode, showPenalty = f
           </div>
         </>
       ) : null}
-
-      {/* Overseas tracker — IPL only */}
-      {mode === 'ipl' && <OverseasTracker team={team} />}
 
       {/* Start Season button — shown once coach is confirmed */}
       {onStart && manager && (

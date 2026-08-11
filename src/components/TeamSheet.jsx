@@ -9,7 +9,7 @@ const roleLabel = {
   'pace-bowler': 'PACE', 'spin-bowler': 'SPIN',
 }
 const roleColor = {
-  'opener': '#1F6FEB', 'top-order': '#1F6FEB', 'middle-order': '#0047CC',
+  'opener': '#4169E1', 'top-order': '#4169E1', 'middle-order': '#2952CC',
   'wicket-keeper': '#f59e0b', 'all-rounder': '#3b82f6',
   'pace-bowler': '#ef4444', 'spin-bowler': '#a855f7',
 }
@@ -139,7 +139,7 @@ export default function TeamSheet({
         <span style={{ fontWeight: 800, fontSize: compact ? '0.78rem' : '0.9rem', color: 'var(--text)' }}>
           Your XI
         </span>
-        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isDone ? '#1F6FEB' : '#64748b' }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isDone ? '#4169E1' : '#64748b' }}>
           {filled}/{total}
         </span>
       </div>
@@ -169,7 +169,7 @@ export default function TeamSheet({
                   : isActive ? '#ddeaff'
                   : player ? 'var(--border2)' : 'transparent',
                 border: `1px solid ${
-                  isActive ? '#1F6FEB44'
+                  isActive ? '#4169E144'
                   : isHighlit ? (roleColor[player?.role] ?? slotColor) + '44'
                   : 'transparent'
                 }`,
@@ -216,7 +216,7 @@ export default function TeamSheet({
                 ) : (
                   <div style={{
                     fontSize: compact ? '0.68rem' : '0.72rem',
-                    color: isActive ? '#1F6FEB' : slotColor,
+                    color: isActive ? '#4169E1' : slotColor,
                     fontWeight: isActive ? 700 : 500,
                   }}>
                     {role ? COMP_FULL_LABEL[role] : 'Player'}
@@ -276,7 +276,7 @@ export default function TeamSheet({
             onClick={onSimulate}
             style={{
               width: '100%', padding: '0.75rem',
-              background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
+              background: 'linear-gradient(135deg, #4169E1, #2952CC)',
               color: 'var(--bg)', border: 'none', borderRadius: '0.5rem',
               fontSize: '0.875rem', fontWeight: 800,
               cursor: 'pointer', letterSpacing: '0.05em', textTransform: 'uppercase',

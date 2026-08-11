@@ -64,7 +64,7 @@ function roleColor(role) {
   const map = {
     'opener': '#f59e0b', 'top-order': '#f59e0b',
     'middle-order': '#22c55e', 'wicket-keeper': '#a78bfa',
-    'all-rounder': '#1F6FEB', 'pace-bowler': '#ef4444', 'spin-bowler': '#f97316',
+    'all-rounder': '#4169E1', 'pace-bowler': '#ef4444', 'spin-bowler': '#f97316',
   }
   return map[role] ?? '#64748b'
 }
@@ -134,12 +134,12 @@ function XIPanel({ name, team, isMe }) {
   return (
     <div style={{
       background: 'var(--card2)',
-      border: `1px solid ${isMe ? '#1F6FEB44' : 'var(--border)'}`,
+      border: `1px solid ${isMe ? '#4169E144' : 'var(--border)'}`,
       borderRadius: '0.75rem', overflow: 'hidden',
       position: 'sticky', top: '4.5rem',
     }}>
       <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: '0.75rem', fontWeight: 900, color: isMe ? '#1F6FEB' : '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>{name}</div>
+        <div style={{ fontSize: '0.75rem', fontWeight: 900, color: isMe ? '#4169E1' : '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>{name}</div>
         <div style={{ display: 'flex', gap: '0.4rem', fontSize: '0.6rem', flexShrink: 0 }}>
           <span style={{ color: oc >= 4 ? '#ef4444' : '#475569', fontWeight: 700 }}>🌍{oc}/4</span>
           <span style={{ color: wkOk ? '#22c55e' : team.length > 4 ? '#f59e0b' : '#475569', fontWeight: 700 }}>🧤{wkOk ? '✓' : '?'}</span>
@@ -170,7 +170,7 @@ function XIPanel({ name, team, isMe }) {
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
+export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onInitSharedLeague, onSharedLeague }) {
   const isSnake = initialRoom.draft_mode === 'snake'
   const isHost  = uid === initialRoom.host_id
 
@@ -238,7 +238,11 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
       if ((updated.pick_number ?? 0) < (prev.pick_number ?? 0)) return prev
       return updated
     })
-    if (updated.status === 'done') { onDone(updated); return }
+    if (updated.status === 'done') {
+      // Shared league: don't auto-call onDone; DraftDone handles the transition
+      if (updated.league_mode !== 'shared') { onDone(updated); return }
+      return
+    }
 
     if (isSnake) {
       if (updated.current_pick) {
@@ -464,15 +468,16 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
     const available  = pool.filter(p => !allPicked.has(p.name))
     if (!available.length) return
 
-    const chosen  = pickFromPool(available)
-    const bp      = basePrice(chosen.overall)
-    const newBid  = { phase: 'interest', host_interest: null, guest_interest: null, host_bid: null, guest_bid: null, base_price: bp }
+    const chosen     = pickFromPool(available)
+    const bp         = basePrice(chosen.overall)
+    const newBid     = { phase: 'interest', host_interest: null, guest_interest: null, host_bid: null, guest_bid: null, base_price: bp }
+    const newPickNum = (latestRoom.pick_number ?? 0) + 1   // always bump so stale events get discarded
 
     const sb = await getSupabase()
     if (!sb) { spinRef.current = setTimeout(() => postNextPlayerRef.current?.(), 2000); return }
 
     const { error } = await sb.from('h2h_rooms')
-      .update({ current_pick: chosen, auction_bid: newBid })
+      .update({ current_pick: chosen, auction_bid: newBid, pick_number: newPickNum })
       .eq('id', latestRoom.id)
 
     if (error) {
@@ -481,18 +486,25 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
       return
     }
     // Apply locally immediately — don't wait for poll
-    applyRoomUpdate({ ...latestRoom, current_pick: chosen, auction_bid: newBid })
+    applyRoomUpdate({ ...latestRoom, current_pick: chosen, auction_bid: newBid, pick_number: newPickNum })
   }
 
   async function submitInterest(interested) {
     setMyInterest(interested)
+    const myField = isHost ? 'host_interest' : 'guest_interest'
     const sb = await getSupabase()
     if (!sb) return
-    const { data } = await sb.from('h2h_rooms').select('auction_bid').eq('id', room.id).single()
-    const cur = data?.auction_bid ?? {}
-    await sb.from('h2h_rooms').update({
-      auction_bid: { ...cur, [isHost ? 'host_interest' : 'guest_interest']: interested },
-    }).eq('id', room.id)
+    // Retry loop: guards against the race where two simultaneous read-modify-writes
+    // overwrite each other's field in the auction_bid JSON.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { data } = await sb.from('h2h_rooms').select('auction_bid').eq('id', room.id).single()
+      if (!data?.auction_bid || data.auction_bid.phase !== 'interest') return  // phase moved on
+      if (data.auction_bid[myField] === interested) return                      // already set
+      await sb.from('h2h_rooms').update({
+        auction_bid: { ...data.auction_bid, [myField]: interested },
+      }).eq('id', room.id)
+      await new Promise(r => setTimeout(r, 120 + attempt * 80))               // back off slightly
+    }
   }
 
   const resolvingRef = useRef(false)  // re-entrancy guard
@@ -511,9 +523,10 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
       const player = data.current_pick
 
       if (!host_interest && !guest_interest) {
-        // Both No — skip
-        const upd = { ...data, current_pick: null, auction_bid: null }
-        const { error } = await sb.from('h2h_rooms').update({ current_pick: null, auction_bid: null }).eq('id', room.id)
+        // Both No — skip; must increment pick_number so stale realtime events get discarded
+        const newPick = (data.pick_number ?? 0) + 1
+        const upd = { ...data, current_pick: null, auction_bid: null, pick_number: newPick }
+        const { error } = await sb.from('h2h_rooms').update({ current_pick: null, auction_bid: null, pick_number: newPick }).eq('id', room.id)
         if (!error) { applyRoomUpdate(upd); setLastResult({ player, skipped: true }) }
 
       } else if (host_interest && !guest_interest) {
@@ -560,12 +573,19 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
     const bp  = room.auction_bid?.base_price ?? 0
     const val = Math.max(bp, Math.min(myBudget, parseFloat(myBid) || bp))
     setBidSubmitted(true)
+    const myField = isHost ? 'host_bid' : 'guest_bid'
     const sb = await getSupabase()
-    const { data } = await sb.from('h2h_rooms').select('auction_bid').eq('id', room.id).single()
-    const cur = data?.auction_bid ?? {}
-    await sb.from('h2h_rooms').update({
-      auction_bid: { ...cur, [isHost ? 'host_bid' : 'guest_bid']: val },
-    }).eq('id', room.id)
+    if (!sb) return
+    // Same retry pattern as submitInterest to avoid overwriting the other player's bid
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { data } = await sb.from('h2h_rooms').select('auction_bid').eq('id', room.id).single()
+      if (!data?.auction_bid || data.auction_bid.phase !== 'bidding') return  // phase moved on
+      if (data.auction_bid[myField] !== null && data.auction_bid[myField] !== undefined) return  // already set
+      await sb.from('h2h_rooms').update({
+        auction_bid: { ...data.auction_bid, [myField]: val },
+      }).eq('id', room.id)
+      await new Promise(r => setTimeout(r, 120 + attempt * 80))
+    }
   }
 
   async function resolveAuction() {
@@ -645,7 +665,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
   // RENDER
   // ════════════════════════════════════════════════════════════════════════════
 
-  if (room.status === 'done') return <DraftDone room={room} uid={uid} onDone={onDone} />
+  if (room.status === 'done') return <DraftDone room={room} uid={uid} onDone={onDone} onInitSharedLeague={onInitSharedLeague} onSharedLeague={onSharedLeague} />
 
   const snakeMyTurn  = isSnake && room.current_turn === uid
   const allPickedSet = new Set([...myTeam, ...oppTeam].map(p => p.name))
@@ -701,7 +721,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
 
               {(spinning || cycleEntry) && !currentEntry && (
                 <div style={{ padding: '1.25rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', textAlign: 'center', marginBottom: '0.875rem' }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: cycleEntry?.color ?? '#1F6FEB' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: cycleEntry?.color ?? '#4169E1' }}>
                     {cycleEntry?.teamName ?? '—'}
                   </div>
                 </div>
@@ -880,7 +900,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
                         <button
                           onClick={submitBid}
                           disabled={bidSubmitted || !myBid || parseFloat(myBid) < bp}
-                          style={{ padding: '0.6rem 1rem', background: bidSubmitted ? 'var(--border2)' : 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: bidSubmitted ? '#475569' : '#fff', border: 'none', borderRadius: '0.4rem', fontWeight: 800, cursor: bidSubmitted ? 'not-allowed' : 'pointer', fontSize: '0.875rem', whiteSpace: 'nowrap' }}
+                          style={{ padding: '0.6rem 1rem', background: bidSubmitted ? 'var(--border2)' : 'linear-gradient(135deg, #4169E1, #2952CC)', color: bidSubmitted ? '#475569' : '#fff', border: 'none', borderRadius: '0.4rem', fontWeight: 800, cursor: bidSubmitted ? 'not-allowed' : 'pointer', fontSize: '0.875rem', whiteSpace: 'nowrap' }}
                         >
                           {bidSubmitted ? '✓ Bid placed' : 'Bid'}
                         </button>
@@ -930,9 +950,9 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack }) {
 
 function TeamColumn({ name, team, budget, highlight }) {
   return (
-    <div style={{ background: 'var(--card)', border: `1px solid ${highlight ? '#1F6FEB44' : 'var(--border)'}`, borderRadius: '0.75rem', overflow: 'hidden' }}>
+    <div style={{ background: 'var(--card)', border: `1px solid ${highlight ? '#4169E144' : 'var(--border)'}`, borderRadius: '0.75rem', overflow: 'hidden' }}>
       <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: '0.78rem', fontWeight: 800, color: highlight ? '#1F6FEB' : '#64748b' }}>{name} ({team.length}/11)</div>
+        <div style={{ fontSize: '0.78rem', fontWeight: 800, color: highlight ? '#4169E1' : '#64748b' }}>{name} ({team.length}/11)</div>
         {budget != null && <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#22c55e' }}>₹{budget}cr</div>}
       </div>
       {team.map((p, i) => (
@@ -945,19 +965,76 @@ function TeamColumn({ name, team, budget, highlight }) {
   )
 }
 
-function DraftDone({ room, uid, onDone }) {
+function DraftDone({ room, uid, onDone, onInitSharedLeague, onSharedLeague }) {
+  const [loading, setLoading] = useState(false)
+  const isHost   = room.host_id === uid
+  const isShared = room.league_mode === 'shared'
+
+  // Guest: poll until tournament appears, then transition
+  useEffect(() => {
+    if (!isShared || isHost) return
+    if (room.tournament) { onSharedLeague(room); return }
+    const poll = setInterval(async () => {
+      const sb = await getSupabase()
+      if (!sb) return
+      const { data } = await sb.from('h2h_rooms').select('*').eq('id', room.id).single()
+      if (data?.tournament) {
+        clearInterval(poll)
+        onSharedLeague(data)
+      }
+    }, 2000)
+    return () => clearInterval(poll)
+  }, [room.id, isShared, isHost])
+
+  // Classic mode
+  if (!isShared) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏏</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.5rem' }}>Draft Complete!</div>
+          <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '2rem' }}>Both squads are set. The IPL season begins now.</div>
+          <button
+            onClick={() => onDone(room)}
+            style={{ padding: '0.875rem 2rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'var(--bg)', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer' }}
+          >
+            🏏 Start Season →
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Shared league mode
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏏</div>
-        <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.5rem' }}>Draft Complete!</div>
-        <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '2rem' }}>Both squads are set. The IPL season begins now.</div>
-        <button
-          onClick={() => onDone(room)}
-          style={{ padding: '0.875rem 2rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'var(--bg)', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer' }}
-        >
-          🏏 Start Season →
-        </button>
+      <div style={{ textAlign: 'center', padding: '2rem', maxWidth: 360 }}>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏟️</div>
+        <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.5rem' }}>Draft Complete!</div>
+        <div style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '0.5rem', lineHeight: 1.6 }}>
+          Both squads locked in. You're about to compete in the same IPL together — one league, one trophy.
+        </div>
+        <div style={{ fontSize: '0.78rem', color: '#f59e0b', fontWeight: 700, marginBottom: '2rem' }}>
+          Your teams will clash head-to-head mid-season.
+        </div>
+
+        {isHost ? (
+          <button
+            onClick={async () => {
+              setLoading(true)
+              await onInitSharedLeague(room)
+              // transition handled by parent watching tournament field
+            }}
+            disabled={loading}
+            style={{ padding: '0.875rem 2rem', background: loading ? 'var(--border2)' : 'linear-gradient(135deg, #f59e0b, #d97706)', color: loading ? '#64748b' : 'var(--bg)', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: loading ? 'wait' : 'pointer', width: '100%' }}
+          >
+            {loading ? '⏳ Setting up league…' : '🏟️ Start Shared League →'}
+          </button>
+        ) : (
+          <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem', color: '#64748b', fontSize: '0.88rem', fontWeight: 600 }}>
+            ⏳ Waiting for host to start the league…
+          </div>
+        )}
       </div>
     </div>
   )

@@ -108,6 +108,15 @@ export function subscribeToPlays(onUpdate) {
   return () => { channel?.unsubscribe() }
 }
 
+export async function signInWithGoogle() {
+  const sb = await getSupabase()
+  if (!sb) return
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin },
+  })
+}
+
 export async function fetchProfile(userId) {
   const sb = await getSupabase()
   if (!sb) return { profile: null, results: [] }

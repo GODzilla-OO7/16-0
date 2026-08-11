@@ -10,6 +10,7 @@
  *     host_name text,
  *     guest_name text,
  *     draft_mode text default 'snake',   -- 'snake' | 'auction'
+ *     league_mode text default 'classic',-- 'classic' | 'shared'  ← ADD THIS COLUMN:
  *     status text default 'waiting',     -- 'waiting' | 'drafting' | 'simulating' | 'done'
  *     current_turn text,                 -- user_id whose turn it is
  *     host_team jsonb default '[]',
@@ -19,8 +20,13 @@
  *     current_pick jsonb,                -- { entry, player } for auction, null between turns
  *     auction_bid jsonb,                 -- { host: N, guest: N, deadline: iso }
  *     pick_number int default 0,
+ *     tournament jsonb,                  -- ← ADD THIS COLUMN (shared league state)
  *     created_at timestamptz default now()
  *   );
+ *
+ *   -- Run these in Supabase SQL editor if you created the table before this was added:
+ *   -- alter table h2h_rooms add column if not exists league_mode text default 'classic';
+ *   -- alter table h2h_rooms add column if not exists tournament jsonb;
  *   alter table h2h_rooms enable row level security;
  *   create policy "anyone can read" on h2h_rooms for select using (true);
  *   create policy "anyone can insert" on h2h_rooms for insert with check (true);
@@ -74,7 +80,8 @@ export default function H2HLobby({ onClose, onStartDraft }) {
   const [nameSet, setNameSet]     = useState(!!sessionStorage.getItem('h2h_name'))
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(false)
-  const [draftMode, setDraftMode] = useState('snake')
+  const [draftMode,  setDraftMode]  = useState('snake')
+  const [leagueMode, setLeagueMode] = useState('classic')
   const channelRef = useRef(null)
 
   const uid = getUserId()
@@ -126,6 +133,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
     const id = genRoomId()
     const { error: e } = await sb.from('h2h_rooms').insert({
       id, host_id: uid, host_name: myName, status: 'waiting', draft_mode: draftMode,
+      league_mode: leagueMode,
       current_turn: uid, pick_number: 0, host_team: [], guest_team: [],
       host_budget: 100, guest_budget: 100,
     })
@@ -205,7 +213,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
             <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Your display name</div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <input style={{ ...inp, flex: 1 }} value={myName} onChange={e => setMyName(e.target.value)} placeholder="Enter your name" onKeyDown={e => e.key === 'Enter' && saveName()} />
-              <button onClick={saveName} style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>✓</button>
+              <button onClick={saveName} style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>✓</button>
             </div>
           </div>
         )}
@@ -223,6 +231,33 @@ export default function H2HLobby({ onClose, onStartDraft }) {
               Draft teams in real-time with a friend. When your teams meet in the IPL, more intense QTEs decide the result.
             </p>
 
+            {/* League mode selector */}
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem', padding: '1rem' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.75rem' }}>League Mode</div>
+              {[
+                { id: 'classic',  icon: '⚔️', label: 'Classic H2H',    desc: 'Both run separate IPL seasons. Compare scores at the end.' },
+                { id: 'shared',   icon: '🏟️', label: 'Shared League',  desc: 'Both teams play in the SAME IPL. Live table, one H2H clash mid-season, shared playoffs.' },
+              ].map(m => (
+                <div
+                  key={m.id}
+                  onClick={() => setLeagueMode(m.id)}
+                  style={{
+                    display: 'flex', gap: '0.75rem', padding: '0.75rem',
+                    marginBottom: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
+                    border: `1.5px solid ${leagueMode === m.id ? '#f59e0b' : 'var(--border2)'}`,
+                    background: leagueMode === m.id ? '#f59e0b0e' : 'transparent',
+                    transition: 'border-color 0.15s, background 0.15s',
+                  }}
+                >
+                  <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>{m.icon}</span>
+                  <div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)', marginBottom: '0.15rem' }}>{m.label}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: 1.4 }}>{m.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             {/* Draft mode selector */}
             <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem', padding: '1rem' }}>
               <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.75rem' }}>Draft Mode</div>
@@ -236,8 +271,8 @@ export default function H2HLobby({ onClose, onStartDraft }) {
                   style={{
                     display: 'flex', gap: '0.75rem', padding: '0.75rem',
                     marginBottom: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
-                    border: `1.5px solid ${draftMode === m.id ? '#1F6FEB' : 'var(--border2)'}`,
-                    background: draftMode === m.id ? '#1F6FEB12' : 'transparent',
+                    border: `1.5px solid ${draftMode === m.id ? '#4169E1' : 'var(--border2)'}`,
+                    background: draftMode === m.id ? '#4169E112' : 'transparent',
                     transition: 'border-color 0.15s, background 0.15s',
                   }}
                 >
@@ -253,7 +288,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
             <button
               onClick={createRoom}
               disabled={!nameSet || loading}
-              style={{ padding: '0.875rem', background: nameSet ? 'linear-gradient(135deg, #1F6FEB, #0047CC)' : 'var(--border2)', color: nameSet ? 'var(--bg)' : '#475569', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: nameSet && !loading ? 'pointer' : 'not-allowed' }}
+              style={{ padding: '0.875rem', background: nameSet ? 'linear-gradient(135deg, #4169E1, #2952CC)' : 'var(--border2)', color: nameSet ? 'var(--bg)' : '#475569', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: nameSet && !loading ? 'pointer' : 'not-allowed' }}
             >
               {loading ? '🔄 Creating room…' : '🏠 Create Room'}
             </button>
@@ -283,7 +318,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
             <button
               onClick={joinRoom}
               disabled={loading || joinCode.length < 6}
-              style={{ padding: '0.875rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
+              style={{ padding: '0.875rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
             >
               {loading ? 'Joining…' : '🚪 Join'}
             </button>
@@ -296,7 +331,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem' }}>
               <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>Room Code</div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#1F6FEB', letterSpacing: '0.25em' }}>{roomId}</div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#4169E1', letterSpacing: '0.25em' }}>{roomId}</div>
               <div style={{ fontSize: '0.75rem', color: '#475569', marginTop: '0.3rem' }}>Share this with your opponent</div>
             </div>
 
@@ -305,9 +340,12 @@ export default function H2HLobby({ onClose, onStartDraft }) {
               <PlayerSlot name={room.guest_name} label="Guest" ready={!!room.guest_id} />
             </div>
 
-            <div style={{ padding: '0.6rem 0.875rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ padding: '0.6rem 0.875rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span>{room.draft_mode === 'snake' ? '🐍' : '🔨'}</span>
               <span style={{ fontWeight: 700, color: '#94a3b8' }}>{room.draft_mode === 'snake' ? 'Snake Draft' : 'Live Auction'}</span>
+              <span style={{ marginLeft: 'auto', fontSize: '0.68rem', fontWeight: 700, color: room.league_mode === 'shared' ? '#f59e0b' : '#64748b' }}>
+                {room.league_mode === 'shared' ? '🏟️ Shared League' : '⚔️ Classic H2H'}
+              </span>
             </div>
 
             {isHost && (

@@ -12,35 +12,35 @@ const HOW_TO_PLAY = [
 ]
 
 const LIGHT = {
-  bg:        '#f4f7ff',
-  cardBg:    '#ffffff',
-  cardBorder:'#dce6f7',
-  cardHover: '#eef3ff',
-  htpBg:     '#eef3ff',
-  accent:    '#1F6FEB',
-  accentHov: '#1a5fd4',
-  accentDim: 'rgba(31,111,235,0.08)',
-  accentBrd: 'rgba(31,111,235,0.3)',
-  text:      '#0f172a',
-  muted:     '#64748b',
-  dimText:   '#94a3b8',
-  sectionLbl:'#94a3b8',
+  bg:         '#f4f7ff',
+  cardBg:     '#ffffff',
+  cardBorder: '#dce6f7',
+  cardHover:  '#f0f4ff',
+  htpBg:      '#f8faff',
+  accent:     '#4169E1',
+  accentHov:  '#2952CC',
+  accentDim:  'rgba(65,105,225,0.1)',
+  accentBrd:  'rgba(65,105,225,0.3)',
+  text:       '#0f172a',
+  muted:      '#64748b',
+  dimText:    '#94a3b8',
+  sectionLbl: '#94a3b8',
 }
 
 const DARK = {
-  bg:        '#05080f',
-  cardBg:    '#0b1120',
-  cardBorder:'#1a2540',
-  cardHover: '#0f1a2e',
-  htpBg:     '#080e1c',
-  accent:    '#1F6FEB',
-  accentHov: '#1a5fd4',
-  accentDim: 'rgba(31,111,235,0.12)',
-  accentBrd: 'rgba(31,111,235,0.25)',
-  text:      '#e8eef8',
-  muted:     '#4b5a73',
-  dimText:   '#2a3855',
-  sectionLbl:'#2a3855',
+  bg:         '#0a0a0f',
+  cardBg:     '#12121a',
+  cardBorder: '#2a2a3a',
+  cardHover:  '#1a1a28',
+  htpBg:      '#0d0d18',
+  accent:     '#4169E1',
+  accentHov:  '#2952CC',
+  accentDim:  'rgba(65,105,225,0.12)',
+  accentBrd:  'rgba(65,105,225,0.25)',
+  text:       '#f1f5f9',
+  muted:      '#64748b',
+  dimText:    '#475569',
+  sectionLbl: '#475569',
 }
 
 const PLAY_COUNT_OFFSET = 103  // seed count — real plays add on top
@@ -101,7 +101,70 @@ function ModeCard({ icon, title, desc, onClick, disabled, comingSoon, C }) {
   )
 }
 
-export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, onSignIn, onAccount, onMedals, newAwards = [] }) {
+// ─── Cricket Facts ────────────────────────────────────────────────────────────
+const CRICKET_FACTS = [
+  "Sachin Tendulkar is the only player in history to score 100 international centuries — he finished with 100 exactly.",
+  "Virat Kohli scored 973 runs in a single IPL season (2016), the highest ever by any batter in one edition.",
+  "India won the 1983 World Cup as 66:1 outsiders. The squad was so underfunded that players paid for their own kits.",
+  "MS Dhoni's six off Nuwan Kulasekara to win the 2011 World Cup Final at Wankhede is the most-watched moment in Indian cricket history.",
+  "Yuvraj Singh hit 6 consecutive sixes off Stuart Broad in the 2007 T20 WC — then completed a T20 fifty in just 12 balls.",
+  "Rajasthan Royals won the very first IPL in 2008 under Shane Warne, despite being considered the weakest team on paper.",
+  "The IPL was valued at $16.4 billion in 2024, making it the most valuable cricket competition — and one of the richest sports leagues — in the world.",
+  "Mumbai Indians have won 5 IPL titles, more than any other franchise.",
+  "Rohit Sharma holds the ODI record for highest individual score: 264* vs Sri Lanka in 2014.",
+  "Harbhajan Singh took the IPL's first-ever hat-trick — against Deccan Chargers in 2008.",
+  "Jasprit Bumrah is entirely self-taught. He learnt his action bowling alone in his backyard in Ahmedabad.",
+  "AB de Villiers holds the records for the fastest ODI 50 (16 balls), 100 (31 balls), and 150 (64 balls) — all set in a single innings.",
+  "MS Dhoni was once dropped from India's ODI team for playing too slowly in 2005. He responded with a 123-ball 183* in his very next series.",
+  "The 2007 T20 WC final was so tense that India gave the last over to Joginder Sharma — an uncapped bowler — and it worked.",
+  "Lasith Malinga is the only bowler to take two hat-tricks in IPL history.",
+  "Chennai Super Kings reached the IPL Final in all 9 seasons they were eligible (they were banned for 2 years).",
+  "Eden Gardens in Kolkata can hold over 68,000 fans. It once hosted a Test where 100,000 fans had to be turned away.",
+  "Shane Warne was the first bowler to 700 Test wickets. He retired in 2007 with 708.",
+  "Anil Kumble is the only Indian to take all 10 wickets in a Test innings — 10/74 vs Pakistan in Delhi, 1999.",
+  "Virender Sehwag is the only Indian to score 300 in a Test match. He did it twice: 309 and 319.",
+  "Rohit Sharma has scored 5 centuries in World Cup history — the most by any player in the tournament's history.",
+  "Suresh Raina was the first Indian to score centuries in all three international formats.",
+  "The fastest T20I fifty by an Indian is Yuvraj Singh's 12-ball knock vs England — in the same over-of-sixes against Broad.",
+  "Sachin Tendulkar scored 618 runs in the 2010 IPL to win the Orange Cap — at the age of 36.",
+  "India's first-ever Test match win in Pakistan came in 2004. They had toured without a single Test win for the prior 15 years.",
+  "MS Dhoni has never been dismissed for a duck in an IPL final — across 10+ appearances.",
+  "Hardik Pandya holds the record for the most expensive player in an IPL auction (₹15.25 crore, 2023).",
+  "Muttiah Muralitharan's 800 Test wickets is a record that no active bowler is anywhere near breaking.",
+  "Mumbai Indians are the only IPL franchise to win back-to-back titles — they did it in 2019 and 2020.",
+  "India's 2023 World Test Championship win was their first-ever WTC title, defeating Australia in The Oval final.",
+  "Virat Kohli holds the record for most Test centuries while chasing — converting more 4th-innings run chases than any captain in history.",
+  "The Duckworth-Lewis-Stern method has been used in over 200 international matches since its introduction in 1997.",
+  "Gautam Gambhir scored 97 in the 2011 WC Final (the innings often overshadowed by Dhoni's six) — it was arguably the match-winning knock.",
+  "The IPL earned ₹48,390 crore in broadcast rights from 2023–2027 — more than the IPL's entire first decade combined.",
+  "Saurav Ganguly's captaincy from 2000–2005 transformed India from a home-only side to one of the world's best away teams.",
+  "India's record T20I score is 297/6 — set against Bangladesh in 2024. Rohit Sharma top-scored with 69 off 41 balls.",
+  "KL Rahul is the only IPL player to score an Orange Cap–winning number of runs without his team winning a single title.",
+  "Chris Gayle's 175* for RCB in 2013 remains the highest score in IPL history.",
+  "The first IPL match was played on April 18, 2008, between Kolkata Knight Riders and Royal Challengers Bangalore at the DY Patil Stadium.",
+  "Jasprit Bumrah is one of the few fast bowlers who can bowl a full yorker at 145 km/h consistently in the death overs — he calls it 'Plan A, B, and C'.",
+]
+
+function getDayFact() {
+  const now   = new Date()
+  const start = new Date(now.getFullYear(), 0, 0)
+  const doy   = Math.floor((now - start) / 86400000)
+  return CRICKET_FACTS[doy % CRICKET_FACTS.length]
+}
+
+// ─── Google G Logo ────────────────────────────────────────────────────────────
+function GoogleLogo({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+      <path d="M3.964 10.71C3.784 10.17 3.682 9.593 3.682 9s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+    </svg>
+  )
+}
+
+export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, onSignIn, onGoogleSignIn, onAccount, onMedals, newAwards = [] }) {
   const [showHTP, setShowHTP] = useState(false)
   const [totalPlays, setTotalPlays] = useState(null)
   const [htpHov, setHtpHov] = useState(false)
@@ -147,45 +210,29 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Faint cricket oval */}
-      <svg
-        viewBox="0 0 900 620"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{
-          position: 'absolute', top: '50%', left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '100%', maxWidth: 900,
-          opacity: 0.04,
-          pointerEvents: 'none',
-          userSelect: 'none',
-        }}
-        aria-hidden="true"
-      >
-        <ellipse cx="450" cy="310" rx="420" ry="285" fill="none" stroke={C.accent} strokeWidth="2.5" />
-        <ellipse cx="450" cy="310" rx="210" ry="175" fill="none" stroke={C.accent} strokeWidth="1.5" strokeDasharray="8 6" />
-        <rect x="432" y="165" width="36" height="290" rx="3" fill="none" stroke={C.accent} strokeWidth="2" />
-        <line x1="414" y1="200" x2="486" y2="200" stroke={C.accent} strokeWidth="1.5" />
-        <line x1="414" y1="420" x2="486" y2="420" stroke={C.accent} strokeWidth="1.5" />
-        <circle cx="450" cy="310" r="3" fill={C.accent} />
-      </svg>
 
       {/* Theme toggle — top right */}
       <button
         onClick={toggleTheme}
         title={dark ? 'Switch to light mode' : 'Switch to night mode'}
         style={{
-          position: 'absolute', top: '1.25rem', right: '1.25rem', zIndex: 10,
-          width: 36, height: 36, borderRadius: '50%',
-          background: C.cardBg, border: `1px solid ${C.cardBorder}`,
-          cursor: 'pointer', fontSize: '1rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'border-color 0.15s, background 0.15s',
-          boxShadow: dark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)',
+          position: 'absolute', top: '1rem', right: '1rem', zIndex: 10,
+          height: 40, borderRadius: '999px',
+          padding: '0 0.875rem',
+          background: dark ? '#1e2235' : C.cardBg,
+          border: `1.5px solid ${dark ? '#4169E155' : C.cardBorder}`,
+          cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
+          display: 'flex', alignItems: 'center', gap: '0.4rem',
+          color: C.muted,
+          transition: 'border-color 0.15s, background 0.15s, box-shadow 0.15s',
+          boxShadow: dark ? '0 0 12px #4169E118' : '0 1px 6px rgba(0,0,0,0.1)',
+          whiteSpace: 'nowrap',
         }}
-        onMouseEnter={e => e.currentTarget.style.borderColor = C.accentBrd}
-        onMouseLeave={e => e.currentTarget.style.borderColor = C.cardBorder}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#4169E155' : C.cardBorder; e.currentTarget.style.color = C.muted }}
       >
-        {dark ? '☀️' : '🌙'}
+        <span style={{ fontSize: '1rem' }}>{dark ? '☀️' : '🌙'}</span>
+        {dark ? 'Light' : 'Night'}
       </button>
 
       <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
@@ -239,6 +286,24 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
           </div>
         )}
 
+        {/* Cricket Fact of the Day */}
+        <div style={{
+          marginBottom: '1.5rem',
+          padding: '0.75rem 1rem',
+          background: C.accentDim,
+          border: `1px solid ${C.accentBrd}`,
+          borderRadius: '0.625rem',
+          display: 'flex',
+          gap: '0.625rem',
+          alignItems: 'flex-start',
+        }}>
+          <span style={{ fontSize: '1rem', flexShrink: 0, marginTop: '0.05rem' }}>🏏</span>
+          <div>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: C.accent, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Fact of the day</div>
+            <div style={{ fontSize: '0.78rem', color: C.text, lineHeight: 1.5, fontWeight: 500 }}>{getDayFact()}</div>
+          </div>
+        </div>
+
         {/* Primary CTA */}
         <button
           onClick={() => onSelect('ipl')}
@@ -264,6 +329,68 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
         >
           Play Cricket 16-0 <span style={{ fontSize: '1.1rem' }}>→</span>
         </button>
+
+        {/* Sign-in prompt — only for signed-out users */}
+        {!user && (
+          <div style={{
+            marginBottom: '0.625rem',
+            padding: '1rem',
+            background: dark ? '#0a1525' : '#f0f6ff',
+            border: `1px solid ${C.accentBrd}`,
+            borderRadius: '0.625rem',
+          }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: C.text, marginBottom: '0.2rem' }}>
+              🔐 Your progress isn't being saved
+            </div>
+            <div style={{ fontSize: '0.7rem', color: C.muted, marginBottom: '0.875rem', lineHeight: 1.4 }}>
+              Sign in to keep your medals and match history across sessions.
+            </div>
+            {/* Google button */}
+            <button
+              onClick={onGoogleSignIn}
+              style={{
+                width: '100%',
+                padding: '0.65rem 1rem',
+                background: dark ? '#fff' : '#fff',
+                border: '1px solid #dadce0',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.625rem',
+                fontSize: '0.88rem',
+                fontWeight: 700,
+                color: '#3c4043',
+                marginBottom: '0.5rem',
+                transition: 'box-shadow 0.15s, background 0.15s',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)'; e.currentTarget.style.background = '#f8f9fa' }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12)'; e.currentTarget.style.background = '#fff' }}
+            >
+              <GoogleLogo size={18} />
+              Sign in with Google
+            </button>
+            <button
+              onClick={onSignIn}
+              style={{
+                width: '100%',
+                padding: '0.45rem',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.72rem',
+                color: C.muted,
+                textAlign: 'center',
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = C.accent}
+              onMouseLeave={e => e.currentTarget.style.color = C.muted}
+            >
+              Or sign in with email →
+            </button>
+          </div>
+        )}
 
         {/* How it works */}
         <button
@@ -358,9 +485,9 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
           />
         </div>
 
-        {/* ACCOUNT */}
+        {/* ACCOUNT — only shown when signed in */}
+        {user && (
         <div style={{ marginTop: '1.75rem', borderTop: `1px solid ${C.cardBorder}`, paddingTop: '1.5rem' }}>
-          {user ? (
             <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center' }}>
               <button
                 onClick={onAccount}
@@ -379,7 +506,7 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
                 </span>
                 <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                   <div style={{ fontSize: '0.78rem', fontWeight: 700, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
-                  <div style={{ fontSize: '0.65rem', color: C.muted }}>Signed in · progress saved</div>
+                  <div style={{ fontSize: '0.65rem', color: C.heroMuted }}>Signed in · progress saved</div>
                 </div>
               </button>
               <button
@@ -404,32 +531,10 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
                 )}
               </button>
             </div>
-          ) : (
-            <div>
-              <button
-                onClick={onSignIn}
-                style={{
-                  width: '100%', padding: '0.75rem 1rem',
-                  background: C.cardBg, border: `1px solid ${C.cardBorder}`,
-                  borderRadius: '0.625rem', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: '0.75rem',
-                  transition: 'border-color 0.15s, background 0.15s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = C.accentBrd; e.currentTarget.style.background = C.cardHover }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = C.cardBorder; e.currentTarget.style.background = C.cardBg }}
-              >
-                <span style={{ fontSize: '1.1rem' }}>👤</span>
-                <div style={{ flex: 1, textAlign: 'left' }}>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 800, color: C.text }}>Sign in</div>
-                  <div style={{ fontSize: '0.68rem', color: C.muted }}>Save your progress, medals & awards across sessions</div>
-                </div>
-                <span style={{ color: C.muted, fontSize: '0.85rem' }}>→</span>
-              </button>
-            </div>
-          )}
         </div>
+        )}
 
-        <p style={{ marginTop: '1.5rem', fontSize: '0.72rem', color: C.dimText, textAlign: 'center' }}>
+        <p style={{ marginTop: '1.5rem', fontSize: '0.72rem', color: C.sectionLbl, textAlign: 'center' }}>
           Unofficial fan game · Not affiliated with any cricket board or league
         </p>
       </div>

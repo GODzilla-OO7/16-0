@@ -60,6 +60,10 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   // Win streak tracker
   const [currentStreak,   setCurrentStreak]   = useState({ type: null, count: 0 })
   const [bestWinStreak,   setBestWinStreak]   = useState(0)
+  const streakRef         = useRef({ type: null, count: 0 })  // stable read in timeouts — avoids nested-setState bug
+
+  // Guard: prevent double-calls to callOnDone (e.g. double-click on results button)
+  const onDoneCalledRef = useRef(false)
 
 
   // Group draw — WC modes show a group draw before simulation starts
@@ -146,18 +150,30 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
               let finalMatch = { ...match, eventResult: { success, choiceLabel } }
               // For successful QTE events: patch stats so the correct value is reflected
-              // instead of adding random base stats + milestone (which doubles the count)
               if (success && match.event && finalMatch.stats) {
                 const evt = match.event
                 const milestone = BATTING_MILESTONES[evt.type]
                 if (milestone !== undefined) {
-                  // Cap milestone at team total so scorer can't exceed team score
+                  // Player scored milestone + bonus runs (didn't stop exactly at 50/100/150)
+                  const bonus = Math.floor(Math.random() * 36)  // 0–35 extra runs
                   const teamTotal = parseScoreStr(match.myScore ?? '').runs
-                  const cappedRuns = teamTotal ? Math.min(milestone, teamTotal) : milestone
-                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: cappedRuns } } }
+                  const cappedRuns = teamTotal ? Math.min(milestone + bonus, teamTotal) : milestone + bonus
+                  const origScorer = finalMatch.stats.topScorer
+                  // Preserve original topScorer as topScorer2 so their runs aren't lost from cap table
+                  const preservedScorer2 = origScorer?.name !== evt.playerName ? origScorer : finalMatch.stats.topScorer2
+                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats,
+                    topScorer:  { name: evt.playerName, runs: cappedRuns },
+                    topScorer2: preservedScorer2,
+                  }}
                 } else if (evt.type === 'hat-trick') {
                   // Replace topBowler with QTE player at exactly 3 wickets
+                  // Also credit original topBowler's wickets separately if different player
+                  const origBowler = finalMatch.stats.topBowler
                   finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topBowler: { name: evt.playerName, wickets: 3 } } }
+                  // Credit original bowler's wickets to live table if they're a different player
+                  if (origBowler && origBowler.name !== evt.playerName) {
+                    setLiveWkts(prev => ({ ...prev, [origBowler.name]: (prev[origBowler.name] || 0) + origBowler.wickets }))
+                  }
                 } else if (RUN_BONUS_EVENTS[evt.type] !== undefined) {
                   // Add bonus runs to topScorer for powerplay/free-hit success, capped at team total
                   const bonus = RUN_BONUS_EVENTS[evt.type]
@@ -170,7 +186,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               }
               setRevealed(prev => [...prev, finalMatch])
               addStats(finalMatch, setLiveRuns, setLiveWkts)
-              updateStreak(match.won, setCurrentStreak, setBestWinStreak)
+              updateStreak(match.won, streakRef, setCurrentStreak, setBestWinStreak)
               // Fielding/stumping events add a wicket not tracked in base match stats
               if (success && match.event) {
                 const evt = match.event
@@ -193,7 +209,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               const finalM = { ...match, won: soWon }
               setRevealed(prev => [...prev, finalM])
               addStats(finalM, setLiveRuns, setLiveWkts)
-              updateStreak(soWon, setCurrentStreak, setBestWinStreak)
+              updateStreak(soWon, streakRef, setCurrentStreak, setBestWinStreak)
               i++
               scheduleNext()
             }
@@ -203,7 +219,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
         setRevealed(prev => [...prev, match])
         addStats(match, setLiveRuns, setLiveWkts)
-        updateStreak(match.won, setCurrentStreak, setBestWinStreak)
+        updateStreak(match.won, streakRef, setCurrentStreak, setBestWinStreak)
         i++
         scheduleNext()
       }, getMatchDelay(match))
@@ -293,7 +309,8 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   }
 
   function callOnDone() {
-    if (!leagueSeason) return
+    if (!leagueSeason || onDoneCalledRef.current) return
+    onDoneCalledRef.current = true
     const iplOutcome = isIPL
       ? (!iplTable?.qualified ? 'not_qualified' : (playoffData?.outcome || 'eliminated'))
       : null
@@ -449,7 +466,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
-          <div style={{ fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.3rem' }}>{cfg.icon} {cfg.label}</div>
+          <div style={{ fontSize: '0.72rem', color: '#4169E1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.3rem' }}>{cfg.icon} {cfg.label}</div>
           <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>
             {!tournamentStarted ? '🎲 Group Stage Draw' : phaseLabel}
           </div>
@@ -482,6 +499,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
           <FinalBat
             result={pendingFinal}
             format={format}
+            myBatting={!!pendingFinal.myBatsFirst}
             onComplete={() => setFinalPhase('chase')}
           />
         )}
@@ -493,6 +511,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             format={format}
             team={activeTeam}
             myStr={leagueSeason?.myStrength ?? 65}
+            myChasing={!pendingFinal.myBatsFirst}
             onQTE={(event, opp, done) => {
               setPendingEvent({
                 event,
@@ -515,7 +534,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.625rem', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '0.875rem', justifyContent: 'center' }}>
               {[
-                { label: 'Wins',   value: leagueWins,    color: '#1F6FEB' },
+                { label: 'Wins',   value: leagueWins,    color: '#4169E1' },
                 { label: 'Losses', value: leagueLosses,  color: '#ef4444' },
                 { label: 'Played', value: revealed.length, color: '#94a3b8' },
               ].map(s => (
@@ -530,11 +549,11 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                 padding: '0.3rem 0.875rem',
-                background: currentStreak.type === 'W' ? '#1F6FEB18' : '#ef444418',
-                border: `1px solid ${currentStreak.type === 'W' ? '#1F6FEB44' : '#ef444444'}`,
+                background: currentStreak.type === 'W' ? '#4169E118' : '#ef444418',
+                border: `1px solid ${currentStreak.type === 'W' ? '#4169E144' : '#ef444444'}`,
                 borderRadius: '999px',
                 fontSize: '0.78rem', fontWeight: 800,
-                color: currentStreak.type === 'W' ? '#1F6FEB' : '#ef4444',
+                color: currentStreak.type === 'W' ? '#4169E1' : '#ef4444',
                 animation: 'fade-in 0.3s ease both',
               }}>
                 {currentStreak.type === 'W' ? `🔥 ${currentStreak.count} in a row!` : `💀 ${currentStreak.count} losses in a row`}
@@ -585,7 +604,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
                 <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: '0.75rem' }}>Tournament over for your team</div>
                 <button
                   onClick={callOnDone}
-                  style={{ padding: '0.875rem 2rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
+                  style={{ padding: '0.875rem 2rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
                 >
                   View Season Summary →
                 </button>
@@ -607,7 +626,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
             {/* League section divider */}
             {playoffRevealed.length > 0 && revealed.length > 0 && (
-              <SectionBadge color="#1F6FEB" bg="var(--card2)" border="#0047CC44">📋 League Stage</SectionBadge>
+              <SectionBadge color="#4169E1" bg="var(--card2)" border="#2952CC44">📋 League Stage</SectionBadge>
             )}
 
             {/* League match cards — newest first */}
@@ -650,15 +669,19 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function updateStreak(won, setCurrentStreak, setBestWinStreak) {
-  setCurrentStreak(prev => {
-    if (won) {
-      const newCount = prev.type === 'W' ? prev.count + 1 : 1
-      setBestWinStreak(best => Math.max(best, newCount))
-      return { type: 'W', count: newCount }
-    }
-    return { type: 'L', count: prev.type === 'L' ? prev.count + 1 : 1 }
-  })
+// streakRef holds the live streak so we never read stale state inside a timeout
+function updateStreak(won, streakRef, setCurrentStreak, setBestWinStreak) {
+  const prev = streakRef.current
+  let next
+  if (won) {
+    const newCount = prev.type === 'W' ? prev.count + 1 : 1
+    next = { type: 'W', count: newCount }
+    setBestWinStreak(best => Math.max(best, newCount))
+  } else {
+    next = { type: 'L', count: prev.type === 'L' ? prev.count + 1 : 1 }
+  }
+  streakRef.current = next
+  setCurrentStreak(next)
 }
 
 function addStats(match, setRuns, setWkts) {
@@ -687,7 +710,7 @@ function SectionBadge({ color, bg, border, children }) {
 // ─── Confetti ────────────────────────────────────────────────────────────────
 
 function Confetti() {
-  const COLORS = ['#f59e0b','#1F6FEB','#3b82f6','#ef4444','#a855f7','#ec4899','#fff']
+  const COLORS = ['#f59e0b','#4169E1','#3b82f6','#ef4444','#a855f7','#ec4899','#fff']
   const particles = useMemo(() =>
     Array.from({ length: 55 }, (_, i) => ({
       id: i,
@@ -787,9 +810,11 @@ function buildFirstInningsPoints(finalRuns, finalWickets, format) {
 
 // ─── FinalBat — opponent's first innings animation ────────────────────────────
 
-function FinalBat({ result, format, onComplete }) {
+function FinalBat({ result, format, myBatting, onComplete }) {
   const oppParsed  = parseScoreStr(result.oppScore)
-  const [points]   = useState(() => buildFirstInningsPoints(oppParsed.runs, oppParsed.wickets, format))
+  const myParsed   = parseScoreStr(result.myScore)
+  const batParsed  = myBatting ? myParsed : oppParsed
+  const [points]   = useState(() => buildFirstInningsPoints(batParsed.runs, batParsed.wickets, format))
   const [step,     setStep]     = useState(-1)
   const [finished, setFinished] = useState(false)
   const stepRef  = useRef(-1)
@@ -817,7 +842,7 @@ function FinalBat({ result, format, onComplete }) {
   const barPct = pt ? Math.round((pt.over / totalOvers) * 100) : 0
   const crrNum = pt ? parseFloat(pt.crr) : 0
   const ref    = format === 'odi' ? 6.5 : 9.5
-  const barColor = crrNum > ref + 1.5 ? '#ef4444' : crrNum > ref - 0.5 ? '#f59e0b' : '#1F6FEB'
+  const barColor = crrNum > ref + 1.5 ? '#ef4444' : crrNum > ref - 0.5 ? '#f59e0b' : '#4169E1'
 
   return (
     <div style={{ marginBottom: '1.5rem', animation: 'final-entrance 0.5s ease both' }}>
@@ -829,7 +854,7 @@ function FinalBat({ result, format, onComplete }) {
             🏆 THE FINAL · 1ST INNINGS
           </div>
           <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>
-            {result.opponent}
+            {myBatting ? 'Your XI' : result.opponent}
           </div>
           <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Setting the target…</div>
         </div>
@@ -875,12 +900,14 @@ function FinalBat({ result, format, onComplete }) {
         {finished ? (
           <div style={{ textAlign: 'center', padding: '0.875rem 1rem', background: '#ef444410', border: '1px solid #ef444433', borderRadius: '0.75rem', animation: 'fade-in 0.4s ease both' }}>
             <div style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Target set</div>
-            <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#ef4444', lineHeight: 1 }}>{oppParsed.runs + 1}</div>
-            <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.2rem' }}>Your chase begins in a moment…</div>
+            <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#ef4444', lineHeight: 1 }}>{batParsed.runs + 1}</div>
+            <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+              {myBatting ? `${result.opponent}'s chase begins in a moment…` : 'Your chase begins in a moment…'}
+            </div>
           </div>
         ) : (
           <div style={{ textAlign: 'center', color: '#ef4444', fontSize: '0.8rem', fontWeight: 700 }}>
-            {result.opponent} batting…
+            {myBatting ? 'Your XI batting…' : `${result.opponent} batting…`}
           </div>
         )}
       </div>
@@ -888,38 +915,25 @@ function FinalBat({ result, format, onComplete }) {
   )
 }
 
-function buildChasePoints(targetRuns, finalRuns, finalWickets, format, won) {
+function buildChasePoints(targetRuns, finalRuns, finalWickets, format) {
+  // Always generates the same 4 checkpoints as buildFirstInningsPoints [7,15,18,20]
+  // so the second innings bar mirrors the first innings bar.
+  // The "stop at winner" happens naturally at the final checkpoint when needed===0.
   const totalOvers = format === 'odi' ? 50 : 20
   const marks      = format === 'odi' ? [10, 25, 40, 50] : [7, 15, 18, 20]
 
-  // When we won, pick which checkpoint is the "winning moment"
-  // (fewer wickets lost = more comfortable = won earlier)
-  let winIdx = marks.length - 1
-  if (won && finalRuns >= targetRuns) {
-    if (finalWickets <= 3)      winIdx = 1   // easy win, done at over 15/25
-    else if (finalWickets <= 6) winIdx = 2   // close-ish, over 18/40
-    else                        winIdx = marks.length - 1
-  }
-
-  const pts = []
-  for (let idx = 0; idx < marks.length; idx++) {
-    const over   = marks[idx]
-    const isLast = idx === marks.length - 1
+  return marks.map((over, i) => {
+    const isLast = i === marks.length - 1
     let runs, wkts
 
-    if (won && idx === winIdx) {
-      // Force winning moment — target exactly reached
-      runs = targetRuns
-      wkts = finalWickets
-    } else if (isLast) {
+    if (isLast) {
       runs = finalRuns
       wkts = finalWickets
     } else {
-      const refRuns = won ? targetRuns : finalRuns
       const frac = over / totalOvers
       const pace = over < totalOvers * 0.4 ? 0.78 : over < totalOvers * 0.75 ? 1.0 : 1.15
-      const raw  = refRuns * frac * pace + (Math.random() - 0.5) * 12
-      runs = Math.round(Math.max(6, Math.min(raw, refRuns - 4)))
+      const raw  = finalRuns * frac * pace + (Math.random() - 0.5) * 12
+      runs = Math.round(Math.max(6, Math.min(raw, finalRuns - 4)))
       const rawW = finalWickets * frac * (0.5 + Math.random() * 0.9)
       wkts = Math.round(Math.max(0, Math.min(rawW, Math.min(9, finalWickets - 1))))
     }
@@ -928,29 +942,31 @@ function buildChasePoints(targetRuns, finalRuns, finalWickets, format, won) {
     const crr       = over > 0 ? (runs / over).toFixed(1) : '0.0'
     const rrr       = ballsLeft > 0 ? (needed / ballsLeft * 6).toFixed(1) : '0.0'
     const onTrack   = parseFloat(crr) >= parseFloat(rrr) - 0.5
-    pts.push({ over, totalOvers, runs, wkts, ballsLeft, needed, crr, rrr, onTrack })
-    if (needed === 0) break
-  }
-  return pts
+    return { over, totalOvers, runs, wkts, ballsLeft, needed, crr, rrr, onTrack }
+  })
 }
 
 // ─── FinalChase — live over-by-over chase scorecard ──────────────────────────
 
-function FinalChase({ result, format, team, myStr, onQTE, onComplete }) {
+function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete }) {
   const oppParsed = parseScoreStr(result.oppScore)
   const myParsed  = parseScoreStr(result.myScore)
-  const target    = oppParsed.runs + 1
+  // myChasing=true (default): opp set target, I chase
+  // myChasing=false: I set target, opp chases
+  const firstInningsParsed = myChasing ? oppParsed : myParsed
+  const chaserParsed       = myChasing ? myParsed  : oppParsed
+  const target             = firstInningsParsed.runs + 1
 
-  const [points]       = useState(() => buildChasePoints(target, myParsed.runs, myParsed.wickets, format, result.won))
-  const [step,         setStep]         = useState(0)
+  const [points]       = useState(() => buildChasePoints(target, chaserParsed.runs, chaserParsed.wickets, format))
+  const [step,         setStep]         = useState(-1)
   const [phase,        setPhase]        = useState('animating')  // animating | qte-paused | result
   const [soData,       setSoData]       = useState(null)         // super over result if triggered
 
-  const stepRef    = useRef(0)
+  const stepRef    = useRef(-1)
   const qteUsed    = useRef(false)
   const timerRef   = useRef(null)
 
-  // QTE fires at index 2 (over 18 for T20, over 40 for ODI) — user is BATTING during chase
+  // QTE fires at index 2 (over 18 for T20, over 40 for ODI)
   const QTE_IDX = Math.min(2, points.length - 1)
 
   function advance() {
@@ -967,37 +983,74 @@ function FinalChase({ result, format, team, myStr, onQTE, onComplete }) {
       return
     }
 
-    // Fire QTE at the critical over — batting-only QTE types
+    stepRef.current = next
+    setStep(next)
+
+    // Target already reached at this over — stop the bar here, don't advance further
+    if (points[next].needed === 0) {
+      // Show "Target reached!" card for 2.5s then finish
+      timerRef.current = setTimeout(() => {
+        setPhase('result')
+        // If I'm chasing, reaching target means I won. If opp is chasing and reaches, I lost.
+        timerRef.current = setTimeout(() => onComplete(myChasing ? true : false), 2000)
+      }, 2500)
+      return
+    }
+
+    // Fire QTE at the critical over
     if (next === QTE_IDX && !qteUsed.current) {
       qteUsed.current = true
-      stepRef.current = next
-      setStep(next)
       setPhase('qte-paused')
 
-      // User is BATTING during FinalChase — only batting QTEs
-      const batters = team.filter(p => ['opener','top-order','middle-order','wicket-keeper','all-rounder'].includes(p.role))
       const pt = points[next]
+      let type, player
 
-      let type
-      if (pt.needed <= 20 && pt.ballsLeft <= 18) {
-        type = Math.random() < 0.5 ? 'free-hit' : 'drs'
-      } else if (pt.wkts >= 5) {
-        type = 'drs'
+      if (myChasing) {
+        // I'm batting — batting QTE types
+        const batters = team.filter(p => ['opener','top-order','middle-order','wicket-keeper','all-rounder'].includes(p.role))
+        if (pt.needed <= 20 && pt.ballsLeft <= 18) {
+          // Death overs: free-hit, DRS, or powerplay
+          const r = Math.random()
+          type = r < 0.4 ? 'free-hit' : r < 0.7 ? 'drs' : 'powerplay'
+        } else if (pt.wkts >= 5) {
+          type = 'drs'
+        } else {
+          const r = Math.random()
+          type = r < 0.45 ? 'century' : r < 0.8 ? 'half-century' : 'free-hit'
+        }
+        player = batters[Math.floor(Math.random() * batters.length)] ?? team[0]
       } else {
-        type = Math.random() < 0.6 ? 'century' : 'half-century'
+        // Opp is batting, I'm bowling — wider variety of fielding/bowling events
+        const bowlers = team.filter(p => ['pace-bowler','spin-bowler','all-rounder'].includes(p.role))
+        const wk = team.find(p => p.role === 'wicket-keeper')
+        if (pt.needed <= 20 && pt.ballsLeft <= 18) {
+          // Death: DRS, hat-trick, or last-over
+          const r = Math.random()
+          type = r < 0.35 ? 'drs' : r < 0.65 ? 'hat-trick' : 'last-over'
+        } else if (pt.wkts >= 5) {
+          type = 'hat-trick'
+        } else {
+          // Normal: catch, hat-trick, run-out, stumping, last-over
+          const pool = ['catch', 'hat-trick', 'run-out', 'last-over', ...(wk ? ['stumping'] : [])]
+          type = pool[Math.floor(Math.random() * pool.length)]
+        }
+        // Assign player based on event type
+        if (type === 'stumping') {
+          player = wk ?? team[0]
+        } else if (type === 'catch' || type === 'run-out') {
+          player = team[Math.floor(Math.random() * team.length)]
+        } else {
+          player = bowlers[Math.floor(Math.random() * bowlers.length)] ?? team[0]
+        }
       }
-      const player = batters[Math.floor(Math.random() * batters.length)] ?? team[0]
 
       onQTE({ type, playerName: player.name }, result.opponent, () => {
         setPhase('animating')
-        stepRef.current = next
         timerRef.current = setTimeout(advance, 1600)
       })
       return
     }
 
-    stepRef.current = next
-    setStep(next)
     timerRef.current = setTimeout(advance, 1900)
   }
 
@@ -1008,6 +1061,7 @@ function FinalChase({ result, format, team, myStr, onQTE, onComplete }) {
 
   const pt            = step >= 0 ? points[Math.min(step, points.length - 1)] : null
   const barPct        = pt ? Math.round((pt.over / (pt.totalOvers ?? 20)) * 100) : 0
+  // When step===-1, show "Chase starting…" placeholder (mirrors FinalBat's "Innings starting…")
   const rrr           = pt ? parseFloat(pt.rrr) : 0
   const pressureColor = rrr > 15 ? '#ef4444' : rrr > 12 ? '#f97316' : rrr > 9 ? '#f59e0b' : '#22c55e'
   const pressureBg    = rrr > 15 ? '#ef444418' : rrr > 12 ? '#f9731618' : rrr > 9 ? '#f59e0b15' : '#22c55e18'
@@ -1025,15 +1079,15 @@ function FinalChase({ result, format, team, myStr, onQTE, onComplete }) {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
           <div style={{ fontSize: '0.68rem', color: '#f59e0b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '0.4rem' }}>
-            🏆 THE FINAL · LIVE CHASE
+            🏆 THE FINAL · {myChasing ? 'LIVE CHASE' : `${result.opponent.toUpperCase()} CHASE`}
           </div>
           <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.75rem' }}>
-            Your XI vs {result.opponent}
+            {myChasing ? `Your XI vs ${result.opponent}` : `${result.opponent} chasing your target`}
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.58rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>They set</div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#ef4444', lineHeight: 1.1 }}>{oppParsed.runs}<span style={{ fontSize: '0.85rem', color: '#64748b' }}>/{oppParsed.wickets}</span></div>
+              <div style={{ fontSize: '0.58rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{myChasing ? 'They set' : 'You set'}</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#ef4444', lineHeight: 1.1 }}>{firstInningsParsed.runs}<span style={{ fontSize: '0.85rem', color: '#64748b' }}>/{firstInningsParsed.wickets}</span></div>
             </div>
             <div style={{ width: 1, background: 'var(--border)', margin: '0 0.25rem' }} />
             <div style={{ textAlign: 'center' }}>
@@ -1058,6 +1112,9 @@ function FinalChase({ result, format, team, myStr, onQTE, onComplete }) {
               </span>
             </div>
           </div>
+        )}
+        {!pt && phase !== 'result' && (
+          <div style={{ textAlign: 'center', marginBottom: '0.875rem', opacity: 0.4, fontSize: '0.85rem', color: '#64748b' }}>Chase starting…</div>
         )}
 
         {/* Single filling bar */}
@@ -1101,10 +1158,16 @@ function FinalChase({ result, format, team, myStr, onQTE, onComplete }) {
           </div>
         )}
 
-        {/* Target reached */}
+        {/* Target reached early */}
         {phase === 'animating' && pt && pt.needed === 0 && (
-          <div style={{ textAlign: 'center', padding: '0.5rem', background: '#22c55e15', border: '1px solid #22c55e44', borderRadius: '0.5rem', color: '#22c55e', fontSize: '0.82rem', fontWeight: 800, marginBottom: '0.875rem' }}>
-            🎉 Target reached! Finishing up…
+          <div style={{ textAlign: 'center', padding: '1rem', background: myChasing ? 'var(--win-bg)' : 'var(--loss-bg)', border: `2px solid ${myChasing ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius: '0.875rem', marginBottom: '0.875rem', animation: 'result-reveal 0.6s cubic-bezier(0.34,1.56,0.64,1) both' }}>
+            <div style={{ fontSize: '1.75rem', marginBottom: '0.2rem' }}>{myChasing ? '🏆' : '💔'}</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: myChasing ? '#4169E1' : '#ef4444' }}>
+              {myChasing ? 'Target reached!' : `${result.opponent} wins the chase!`}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.2rem' }}>
+              {chaserParsed.runs}/{chaserParsed.wickets} · over {pt.over}
+            </div>
           </div>
         )}
         {phase === 'qte-paused' && (
@@ -1117,7 +1180,7 @@ function FinalChase({ result, format, team, myStr, onQTE, onComplete }) {
         {phase === 'result' && !soData && (
           <div style={{ padding: '1.25rem', textAlign: 'center', background: won ? 'var(--win-bg)' : 'var(--loss-bg)', border: `2px solid ${won ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius: '1rem', animation: 'result-reveal 0.7s cubic-bezier(0.34,1.56,0.64,1) both' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.3rem' }}>{won ? '🏆' : '💔'}</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: won ? '#1F6FEB' : '#ef4444' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: won ? '#4169E1' : '#ef4444' }}>
               {won ? 'YOU WIN THE FINAL!' : 'Heartbreak at the Final'}
             </div>
             <div style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '0.3rem' }}>{result.summary}</div>
@@ -1276,7 +1339,7 @@ function IPLResultBanner({ outcome, iplChampion, onDone }) {
       {onDone && (
         <button
           onClick={onDone}
-          style={{ padding:'0.875rem 2rem', background:'linear-gradient(135deg,#1F6FEB,#0047CC)', color:'var(--bg)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}
+          style={{ padding:'0.875rem 2rem', background:'linear-gradient(135deg,#4169E1,#2952CC)', color:'var(--bg)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}
         >
           See Full Results →
         </button>
@@ -1293,7 +1356,7 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
     <div style={{ animation:'fade-in-up 0.4s ease both' }}>
       <div style={{ textAlign:'center', marginBottom:'1.25rem', padding:'1.25rem', background: qualified ? 'var(--win-bg)' : 'var(--loss-bg)', border:`1px solid ${qualified ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius:'1rem' }}>
         <div style={{ fontSize:'2.5rem', marginBottom:'0.5rem' }}>{qualified ? '🎉' : '😔'}</div>
-        <div style={{ fontSize:'1.2rem', fontWeight:900, color: qualified ? '#1F6FEB' : '#ef4444', marginBottom:'0.3rem' }}>
+        <div style={{ fontSize:'1.2rem', fontWeight:900, color: qualified ? '#4169E1' : '#ef4444', marginBottom:'0.3rem' }}>
           {qualified ? `Qualified! (Finished ${ordinal(position)})` : `Missed Playoffs (Finished ${ordinal(position)})`}
         </div>
         <div style={{ fontSize:'0.875rem', color:'#64748b' }}>
@@ -1306,13 +1369,13 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
           <div>#</div><div>Team</div><div style={{ textAlign:'center' }}>W</div><div style={{ textAlign:'center' }}>L</div><div style={{ textAlign:'center' }}>Pts</div><div style={{ textAlign:'right' }}>NRR</div>
         </div>
         {table.map((row, i) => (
-          <div key={row.team} style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', borderBottom: i < table.length-1 ? '1px solid var(--border2)' : 'none', background: row.isUser ? '#1F6FEB08' : 'transparent', borderLeft: row.isUser ? '3px solid #1F6FEB' : i < 4 ? '3px solid #1F6FEB22' : '3px solid transparent' }}>
-            <div style={{ fontSize:'0.72rem', fontWeight:800, color: i < 4 ? '#1F6FEB' : 'var(--border)', alignSelf:'center' }}>{i+1}</div>
+          <div key={row.team} style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', borderBottom: i < table.length-1 ? '1px solid var(--border2)' : 'none', background: row.isUser ? '#4169E108' : 'transparent', borderLeft: row.isUser ? '3px solid #4169E1' : i < 4 ? '3px solid #4169E122' : '3px solid transparent' }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:800, color: i < 4 ? '#4169E1' : 'var(--border)', alignSelf:'center' }}>{i+1}</div>
             <div style={{ fontSize:'0.82rem', fontWeight: row.isUser ? 900 : 600, color: row.isUser ? 'var(--text)' : '#94a3b8', alignSelf:'center' }}>{row.team}{row.isUser && ' ⭐'}</div>
-            <div style={{ fontSize:'0.82rem', fontWeight:700, color:'#1F6FEB', textAlign:'center', alignSelf:'center' }}>{row.wins}</div>
+            <div style={{ fontSize:'0.82rem', fontWeight:700, color:'#4169E1', textAlign:'center', alignSelf:'center' }}>{row.wins}</div>
             <div style={{ fontSize:'0.82rem', fontWeight:700, color:'#ef4444', textAlign:'center', alignSelf:'center' }}>{row.losses}</div>
             <div style={{ fontSize:'0.9rem', fontWeight:900, color:'#f59e0b', textAlign:'center', alignSelf:'center' }}>{row.points}</div>
-            <div style={{ fontSize:'0.72rem', color: row.nrr?.startsWith('+') ? '#1F6FEB' : '#ef4444', textAlign:'right', alignSelf:'center', fontWeight:600 }}>{row.nrr}</div>
+            <div style={{ fontSize:'0.72rem', color: row.nrr?.startsWith('+') ? '#4169E1' : '#ef4444', textAlign:'right', alignSelf:'center', fontWeight:600 }}>{row.nrr}</div>
           </div>
         ))}
       </div>
@@ -1324,7 +1387,7 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
         </div>
       )}
 
-      <button onClick={qualified ? onProceed : onSummary} style={{ width:'100%', padding:'1rem', background: qualified ? 'linear-gradient(135deg,#1F6FEB,#0047CC)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: qualified ? 'var(--bg)' : 'var(--text)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}>
+      <button onClick={qualified ? onProceed : onSummary} style={{ width:'100%', padding:'1rem', background: qualified ? 'linear-gradient(135deg,#4169E1,#2952CC)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: qualified ? 'var(--bg)' : 'var(--text)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}>
         {qualified ? 'Proceed to Playoffs →' : 'View Season Summary →'}
       </button>
     </div>
@@ -1377,10 +1440,10 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
           </div>
         </div>
         <div style={{ textAlign:'right', flexShrink:0 }}>
-          <div style={{ fontSize:'0.68rem', color: won ? '#0047CC' : '#dc2626', fontWeight:700 }}>{summary}</div>
+          <div style={{ fontSize:'0.68rem', color: won ? '#2952CC' : '#dc2626', fontWeight:700 }}>{summary}</div>
           <div style={{ fontSize:'0.58rem', color:'#64748b' }}>{myScore} · {oppScore}</div>
         </div>
-        <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, background: won ? '#1F6FEB22' : '#ef444422', border:`1px solid ${won ? '#1F6FEB66' : '#ef444466'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:900, color: won ? '#1F6FEB' : '#ef4444' }}>
+        <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, background: won ? '#4169E122' : '#ef444422', border:`1px solid ${won ? '#4169E166' : '#ef444466'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:900, color: won ? '#4169E1' : '#ef4444' }}>
           {won ? 'W' : 'L'}
         </div>
       </div>
@@ -1390,13 +1453,13 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
         <div style={{ borderTop: divBorder, display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
           {/* My team column */}
           <div style={{ padding:'0.45rem 0.75rem', borderRight: divBorder }}>
-            <div style={{ fontSize:'0.48rem', color:'#1F6FEB', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.3rem' }}>Your XI</div>
+            <div style={{ fontSize:'0.48rem', color:'#4169E1', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.3rem' }}>Your XI</div>
             {myScorer && (
               <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', marginBottom:'0.2rem' }}>
                 <span style={{ fontSize:'0.7rem' }}>🏏</span>
                 <div>
                   <div style={{ fontSize:'0.72rem', fontWeight:700, color:'var(--text)', lineHeight:1.2 }}>{myScorer.name}</div>
-                  <div style={{ fontSize:'0.65rem', color:'#1F6FEB', fontWeight:700 }}>{myScorer.runs} runs</div>
+                  <div style={{ fontSize:'0.65rem', color:'#4169E1', fontWeight:700 }}>{myScorer.runs} runs</div>
                 </div>
               </div>
             )}
@@ -1454,12 +1517,12 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
           {(myScorer2 || oppScorer2) && (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.5rem' }}>
               {myScorer2 && (
-                <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', padding:'0.35rem 0.5rem', background:'#1F6FEB10', borderRadius:'0.4rem' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', padding:'0.35rem 0.5rem', background:'#4169E110', borderRadius:'0.4rem' }}>
                   <span style={{ fontSize:'0.65rem' }}>🏏</span>
                   <div>
                     <div style={{ fontSize:'0.6rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:700 }}>2nd scorer</div>
                     <div style={{ fontSize:'0.7rem', fontWeight:700, color:'var(--text)' }}>{myScorer2.name}</div>
-                    <div style={{ fontSize:'0.62rem', color:'#1F6FEB', fontWeight:700 }}>{myScorer2.runs} runs</div>
+                    <div style={{ fontSize:'0.62rem', color:'#4169E1', fontWeight:700 }}>{myScorer2.runs} runs</div>
                   </div>
                 </div>
               )}
@@ -1519,10 +1582,10 @@ function GroupDraw({ mode, drawnOpponents, onStart }) {
       </div>
       {/* Your XI first */}
       {highlight && (
-        <div style={{ padding: '0.55rem 1rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#1F6FEB08' }}>
+        <div style={{ padding: '0.55rem 1rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#4169E108' }}>
           <span style={{ fontSize: '0.85rem' }}>⭐</span>
           <span style={{ fontSize: '0.875rem', fontWeight: 900, color: 'var(--text)' }}>Your XI</span>
-          <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#1F6FEB', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>You</span>
+          <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#4169E1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>You</span>
         </div>
       )}
       {teams.map((name, i) => (
@@ -1544,7 +1607,7 @@ function GroupDraw({ mode, drawnOpponents, onStart }) {
           title={isODI ? 'Pool A' : 'Group A — Your Group'}
           teams={groupANames}
           highlight={true}
-          accentColor="#1F6FEB"
+          accentColor="#4169E1"
         />
         {groupBNames && (
           <GroupCard
@@ -1560,7 +1623,7 @@ function GroupDraw({ mode, drawnOpponents, onStart }) {
         onClick={onStart}
         style={{
           width: '100%', padding: '1rem',
-          background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
+          background: 'linear-gradient(135deg, #4169E1, #2952CC)',
           color: 'var(--bg)', border: 'none', borderRadius: '0.875rem',
           fontSize: '1.05rem', fontWeight: 800, cursor: 'pointer',
           letterSpacing: '0.03em',

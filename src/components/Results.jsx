@@ -1,10 +1,57 @@
 import { useState } from 'react'
 import { MODE_CONFIG } from '../data/players.js'
+import { loadProfile } from '../hooks/useProfile.js'
+
+// ─── Best-finish helpers ──────────────────────────────────────────────────────
+
+const FINISH_RANK = {
+  champion: 0,
+  'runner-up': 1,
+  'semi-final': 2,
+  'final': 3,
+  'quarter-final': 4,
+}
+
+function rankFinish(h) {
+  const key = (h.iplOutcome ?? h.stageReached ?? '').toLowerCase()
+  return FINISH_RANK[key] ?? 99
+}
+
+function finishLabel(h) {
+  if (h.iplOutcome === 'champion')    return 'IPL Champion'
+  if (h.iplOutcome === 'runner-up')   return 'IPL Runner-up'
+  if (h.stageReached === 'Champion')  return 'World Cup Champion'
+  if (h.stageReached === 'Runner-up') return 'World Cup Runner-up'
+  if (h.stageReached === 'Semi-Final') return 'Semi-Finalist'
+  if (h.stageReached === 'Quarter-Final') return 'Quarter-Finalist'
+  return `${h.wins}W–${h.losses}L`
+}
+
+function getBestPreviousFinish(history) {
+  // history[0] is the just-finished season — skip it
+  const prev = history.slice(1)
+  if (!prev.length) return null
+  return prev.reduce((best, h) => {
+    const rb = rankFinish(best), rh = rankFinish(h)
+    if (rh < rb) return h
+    if (rh === rb && h.wins > best.wins) return h
+    return best
+  })
+}
+
+function getHookLine(currentLabel, bestLabel, isNewBest) {
+  if (isNewBest) {
+    return `New personal best! Can you do it again?`
+  }
+  return `Your best is ${bestLabel}. You've done it before — do it again.`
+}
 
 // ─── Share card generator (Canvas) — 38-0.app style ──────────────────────────
 
-function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, modeLabel, matchResults, potm, topScorer, topScorerRuns, topWicketTaker, topWicketTakerWkts, bestWinStreak, stageReached, iplOutcome, team, myStr, iconPlayer }) {
-  const W = 630, H = 920
+function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, modeLabel, matchResults, potm, topScorer, topScorerRuns, topWicketTaker, topWicketTakerWkts, bestWinStreak, stageReached, iplOutcome, team, myStr, iconPlayer, awards = [] }) {
+  const MEDAL_ROWS = awards.length > 0 ? Math.ceil(awards.length / 3) : 0
+  const MEDALS_H   = awards.length > 0 ? (MEDAL_ROWS * 28 + 30) : 0
+  const W = 630, H = 920 + MEDALS_H
   const canvas = document.createElement('canvas')
   canvas.width  = W
   canvas.height = H
@@ -12,7 +59,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
 
   // ── Role definitions ──────────────────────────────────────────────────────
   const ROLE_TAGS = {
-    'opener':        ['OPN',  '#1F6FEB'],
+    'opener':        ['OPN',  '#4169E1'],
     'top-order':     ['TOP',  '#3b82f6'],
     'middle-order':  ['MID',  '#60a5fa'],
     'wicket-keeper': ['WK',   '#93c5fd'],
@@ -56,7 +103,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     ctx.font = '700 12px system-ui, sans-serif'
     const ovrLabel = `OVR ${myStr}`
     const ovrW = ctx.measureText(ovrLabel).width + 18
-    ctx.fillStyle = '#1F6FEB'
+    ctx.fillStyle = '#4169E1'
     roundRect(ctx, nextRight - ovrW, badgeY, ovrW, badgeH, badgeR)
     ctx.fill()
     ctx.fillStyle = '#ffffff'
@@ -93,7 +140,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   // Rating label
   if (ratingLabel) {
     ctx.font = '800 12px system-ui, sans-serif'
-    ctx.fillStyle = ratingColor || '#1F6FEB'
+    ctx.fillStyle = ratingColor || '#4169E1'
     ctx.letterSpacing = '3px'
     ctx.fillText(ratingLabel.toUpperCase(), W / 2, 108)
     ctx.letterSpacing = '0px'
@@ -101,7 +148,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
 
   // Big W-L (app blue glow)
   ctx.save()
-  ctx.shadowColor = '#1F6FEB'
+  ctx.shadowColor = '#4169E1'
   ctx.shadowBlur = 32
   ctx.font = '900 92px system-ui, sans-serif'
   ctx.fillStyle = '#ffffff'
@@ -149,7 +196,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     let bx = W / 2 - totalBW / 2
     const by = 310
     matchResults.forEach(r => {
-      ctx.fillStyle = r.won ? '#1F6FEB' : '#ef4444'
+      ctx.fillStyle = r.won ? '#4169E1' : '#ef4444'
       roundRect(ctx, bx, by, BLOCK, BLOCK, BRAD)
       ctx.fill()
       bx += BLOCK + GAP
@@ -279,9 +326,53 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     }
   }
 
+  // ── MEDALS SECTION (extra height added above footer) ─────────────────────
+  if (awards.length > 0) {
+    const MY = 846  // = original FOOT_Y (920 - 74), medals slot in the expanded space
+
+    ctx.strokeStyle = 'rgba(245,158,11,0.15)'
+    ctx.lineWidth = 1
+    ctx.beginPath(); ctx.moveTo(28, MY); ctx.lineTo(W - 28, MY); ctx.stroke()
+
+    ctx.textAlign = 'left'
+    ctx.font = '600 8px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(245,158,11,0.6)'
+    ctx.letterSpacing = '1.5px'
+    ctx.fillText('🏅 MEDALS', 28, MY + 13)
+    ctx.letterSpacing = '0px'
+
+    const CHIP_W = 181, CHIP_H = 20
+    awards.slice(0, 9).forEach((award, i) => {
+      const col = i % 3
+      const row = Math.floor(i / 3)
+      const cx = 28 + col * (CHIP_W + 8)
+      const cy = MY + 20 + row * (CHIP_H + 8)
+
+      ctx.fillStyle = 'rgba(245,158,11,0.1)'
+      roundRect(ctx, cx, cy, CHIP_W, CHIP_H, 5)
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(245,158,11,0.28)'
+      ctx.lineWidth = 1
+      ctx.stroke()
+
+      ctx.font = '11px system-ui, sans-serif'
+      ctx.fillStyle = '#f59e0b'
+      ctx.textAlign = 'left'
+      ctx.fillText(award.icon, cx + 5, cy + 14)
+
+      ctx.font = '700 9px system-ui, sans-serif'
+      ctx.fillStyle = '#fde68a'
+      let name = award.name
+      while (ctx.measureText(name).width > CHIP_W - 30 && name.length > 2) {
+        name = name.slice(0, -1) + '…'
+      }
+      ctx.fillText(name, cx + 23, cy + 14)
+    })
+  }
+
   // ── ICON IN TEAM badge (only if a legend appeared via Impact Sub) ─────────
   if (iconPlayer) {
-    const ICON_Y = H - 110
+    const ICON_Y = 810  // hardcoded — was H-110, which breaks when H grows for medals
     // Gold pill background
     ctx.fillStyle = 'rgba(245,158,11,0.12)'
     const rx = PAD_X, ry = ICON_Y, rw = W - PAD_X * 2, rh = 28
@@ -479,7 +570,7 @@ const ROLE_LABEL = {
   'pace-bowler': 'PACE', 'spin-bowler': 'SPIN',
 }
 const ROLE_COLOR = {
-  'opener': '#1F6FEB', 'top-order': '#1F6FEB', 'middle-order': '#0047CC',
+  'opener': '#4169E1', 'top-order': '#4169E1', 'middle-order': '#2952CC',
   'wicket-keeper': '#f59e0b', 'all-rounder': '#3b82f6',
   'pace-bowler': '#ef4444', 'spin-bowler': '#a855f7',
 }
@@ -495,15 +586,15 @@ function getRating(wins, losses, total, perfect, targetWins, iplOutcome) {
     return { label: 'TOUGH SEASON', color: '#ef4444', emoji: '😬', desc: 'A difficult campaign — couldn\'t break into playoffs.' }
   }
   if (perfect) return { label: 'LEGENDARY', color: '#f59e0b', emoji: '🏆', desc: `You achieved the impossible — ${targetWins}-0!` }
-  if (losses === 0) return { label: 'DOMINANT', color: '#1F6FEB', emoji: '👑', desc: 'Unbeaten all season — extraordinary.' }
+  if (losses === 0) return { label: 'DOMINANT', color: '#4169E1', emoji: '👑', desc: 'Unbeaten all season — extraordinary.' }
   const pct = wins / total
-  if (pct >= 0.85) return { label: 'ELITE', color: '#1F6FEB', emoji: '⭐', desc: 'One of the all-time great sides.' }
+  if (pct >= 0.85) return { label: 'ELITE', color: '#4169E1', emoji: '⭐', desc: 'One of the all-time great sides.' }
   if (pct >= 0.70) return { label: 'QUALITY', color: '#3b82f6', emoji: '🔵', desc: 'A strong side that fell just short.' }
   if (pct >= 0.55) return { label: 'DECENT', color: '#94a3b8', emoji: '⚪', desc: 'Competitive but not quite elite.' }
   return { label: 'TOUGH RUN', color: '#ef4444', emoji: '😬', desc: 'Even legends have bad seasons.' }
 }
 
-export default function Results({ team, mode, manager, summary, matchResults, onPlayAgain }) {
+export default function Results({ team, mode, manager, summary, matchResults, onPlayAgain, onNextSeason, seasonNumber = 1, newAwards = [] }) {
   const [tab, setTab] = useState('overview') // overview | playerstats | matches
 
   // Null-safe destructure
@@ -537,19 +628,23 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
   const buildShareUrl = () => {
     try {
-      const payload = {
-        wins, losses, total,
-        rating: rating.label,
-        mode: cfg.label ?? '',
-        potm: potm ?? null,
-        topScorer: topScorers[0]?.name ?? null,
-        topScorerRuns: topScorers[0]?.runs ?? null,
-        topWicketTaker: topWicketTakers[0]?.name ?? null,
-        topWicketTakerWkts: topWicketTakers[0]?.wickets ?? null,
-        manager: manager?.name ?? null,
-        stage: stageReached ?? iplOutcome ?? null,
-        team: (team ?? []).map(p => p.name),
+      // Compact keys to keep the base64 URL short; skip null/undefined fields
+      const raw = {
+        w:  wins,
+        l:  losses,
+        r:  rating.label,
+        m:  cfg.label || undefined,
+        p:  potm || undefined,
+        ts: topScorers[0]?.name || undefined,
+        sr: topScorers[0]?.runs || undefined,
+        tw: topWicketTakers[0]?.name || undefined,
+        wk: topWicketTakers[0]?.wickets || undefined,
+        mg: manager?.name || undefined,
+        st: stageReached ?? iplOutcome ?? undefined,
+        tm: (team ?? []).map(p => p.name),
+        aw: newAwards.length > 0 ? newAwards.map(a => `${a.icon}|${a.name}`) : undefined,
       }
+      const payload = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== undefined && v !== null))
       const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
       return `https://16zero.in/#share=${encoded}`
     } catch {
@@ -557,10 +652,9 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     }
   }
 
-  const shareText = () => {
-    const blocks = (matchResults || []).map(r => r.won ? '🟩' : '🟥').join('')
+  const buildShareText = (url) => {
     const potmLine = potm ? ` · ${potm} starred` : ''
-    return `Cricket 16-0 — ${cfg.label ?? ''}\n\n${blocks}\n\n${wins}W–${losses}L · ${rating.label}${potmLine}\n\nCan you go unbeaten? Check my squad & beat me:\n${buildShareUrl()}`
+    return `Cricket 16-0\n\n${wins}W–${losses}L · ${rating.label}${potmLine}\n\nCan you go unbeaten? Check my squad & beat me:\n${url}`
   }
 
   function cardParams() {
@@ -581,6 +675,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
       team:       team       ?? [],
       myStr:      myStr      ?? 0,
       iconPlayer: iconPlayer ?? null,
+      awards:     newAwards  ?? [],
     }
   }
 
@@ -604,23 +699,9 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     }
   }
 
-  const shareWhatsApp = async () => {
-    const text = shareText()
-    // Try Web Share API first (shares image + text on mobile/WhatsApp)
-    if (navigator.share) {
-      try {
-        const blob = await generateShareCard(cardParams())
-        const file = new File([blob], 'cricket16-result.png', { type: 'image/png' })
-        if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ files: [file], text })
-          return
-        }
-        // Share without image if files not supported
-        await navigator.share({ text })
-        return
-      } catch { /* fall through */ }
-    }
-    // Fallback: open WhatsApp deep link with text
+  const shareWhatsApp = () => {
+    const url  = buildShareUrl()
+    const text = buildShareText(url)
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
   }
 
@@ -693,7 +774,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                 title={`Match ${i+1} vs ${r.opponent} — ${r.summary}`}
                 style={{
                   width: 26, height: 26, borderRadius: 4,
-                  background: r.won ? '#0047CC' : '#dc2626',
+                  background: r.won ? '#2952CC' : '#dc2626',
                 }}
               />
             ))}
@@ -704,11 +785,46 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.3rem 0.875rem',
-              background: '#1F6FEB18', border: '1px solid #1F6FEB33',
+              background: '#4169E118', border: '1px solid #4169E133',
               borderRadius: '999px', marginBottom: '1.25rem',
-              fontSize: '0.78rem', fontWeight: 800, color: '#1F6FEB',
+              fontSize: '0.78rem', fontWeight: 800, color: '#4169E1',
             }}>
               🔥 Season-best streak: {bestWinStreak} wins in a row
+            </div>
+          )}
+
+          {/* ── Medals earned this season ── */}
+          {newAwards.length > 0 && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{
+                fontSize: '0.6rem', fontWeight: 800, color: '#f59e0b',
+                textTransform: 'uppercase', letterSpacing: '0.12em',
+                marginBottom: '0.6rem',
+              }}>
+                🏅 Medals Unlocked This Season
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center' }}>
+                {newAwards.map(award => (
+                  <div key={award.id} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
+                    padding: '0.45rem 0.875rem',
+                    background: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.06))',
+                    border: '1.5px solid rgba(245,158,11,0.35)',
+                    borderRadius: '0.625rem',
+                    animation: 'fade-in-up 0.4s ease both',
+                  }}>
+                    <span style={{ fontSize: '1.05rem', lineHeight: 1 }}>{award.icon}</span>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#f59e0b', lineHeight: 1.1 }}>
+                        {award.name}
+                      </div>
+                      <div style={{ fontSize: '0.58rem', color: '#94a3b8', lineHeight: 1.3, maxWidth: 140 }}>
+                        {award.desc}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -725,7 +841,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#f59e0b' }}>{myStr}</span>
             </div>
             <div style={{ height: 8, background: 'var(--border2)', borderRadius: 4 }}>
-              <div style={{ width: `${myStr}%`, height: '100%', background: 'linear-gradient(90deg, #1F6FEB, #f59e0b)', borderRadius: 4, transition: 'width 1s ease' }} />
+              <div style={{ width: `${myStr}%`, height: '100%', background: 'linear-gradient(90deg, #4169E1, #f59e0b)', borderRadius: 4, transition: 'width 1s ease' }} />
             </div>
           </div>
 
@@ -810,10 +926,21 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                 fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer',
               }}
             >
-              ✕ Close
+              🏠 Home
             </button>
           </div>
         </div>
+
+        {/* ── Play Again Hook — just below share buttons to hook player ── */}
+        <BestFinishHook
+          wins={wins}
+          losses={losses}
+          iplOutcome={iplOutcome}
+          stageReached={stageReached}
+          onPlayAgain={onPlayAgain}
+          onNextSeason={onNextSeason}
+          seasonNumber={seasonNumber}
+        />
 
         {/* ── Season Highlights ─────────────────────────────── */}
         <SeasonHighlights
@@ -841,7 +968,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               onClick={() => setTab(t.id)}
               style={{
                 flex: 1, padding: '0.5rem 0.5rem',
-                background: tab === t.id ? '#1F6FEB' : 'transparent',
+                background: tab === t.id ? '#4169E1' : 'transparent',
                 color: tab === t.id ? 'var(--bg)' : '#64748b',
                 border: 'none', borderRadius: '0.5rem',
                 fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer',
@@ -870,7 +997,103 @@ export default function Results({ team, mode, manager, summary, matchResults, on
         {tab === 'matches' && (
           <MatchesTab matchResults={matchResults} />
         )}
+
       </div>
+    </div>
+  )
+}
+
+// ─── Best Finish Hook ─────────────────────────────────────────────────────────
+
+function BestFinishHook({ wins, losses, iplOutcome, stageReached, onPlayAgain, onNextSeason, seasonNumber = 1 }) {
+  const profile  = loadProfile()
+  const history  = profile.history ?? []
+
+  // Current season (already saved by recordSeason before Results renders)
+  const current  = history[0]
+  const bestPrev = getBestPreviousFinish(history)
+
+  // Build current finish label
+  const curLabel  = current ? finishLabel(current) : `${wins}W–${losses}L`
+  const isNewBest = bestPrev == null || rankFinish(current ?? {}) <= rankFinish(bestPrev)
+  const hookLine  = bestPrev
+    ? getHookLine(curLabel, finishLabel(bestPrev), isNewBest)
+    : 'First season in the books. The real run starts now.'
+
+  const bestLabel  = bestPrev ? finishLabel(bestPrev) : curLabel
+  const bestWins   = bestPrev?.wins ?? wins
+  const bestLosses = bestPrev?.losses ?? losses
+
+  return (
+    <div style={{
+      marginTop: '2rem',
+      padding: '1.25rem 1.25rem 1.5rem',
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
+      borderRadius: '1rem',
+      textAlign: 'center',
+    }}>
+      <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
+        Your best finish ever
+      </div>
+      <div style={{ fontSize: '1.35rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>
+        {bestLabel}
+      </div>
+      <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.1rem' }}>
+        {bestWins}W – {bestLosses}L
+      </div>
+      <div style={{
+        margin: '0.875rem 0 1.25rem',
+        fontSize: '0.88rem',
+        color: isNewBest ? '#f59e0b' : '#94a3b8',
+        fontWeight: isNewBest ? 800 : 600,
+        lineHeight: 1.5,
+      }}>
+        {isNewBest && <span style={{ display: 'block', fontSize: '1.5rem', marginBottom: '0.25rem' }}>🔥</span>}
+        {hookLine}
+      </div>
+      {/* Season N+1 — the main hook CTA */}
+      {onNextSeason && (
+        <button
+          onClick={onNextSeason}
+          style={{
+            width: '100%',
+            padding: '1rem',
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            color: '#0a0f1a',
+            border: 'none',
+            borderRadius: '0.75rem',
+            fontSize: '1.05rem',
+            fontWeight: 900,
+            cursor: 'pointer',
+            letterSpacing: '0.02em',
+            marginBottom: '0.625rem',
+            boxShadow: '0 4px 20px rgba(245,158,11,0.4)',
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+        >
+          🏆 Season {seasonNumber + 1} — Retain &amp; Rebuild →
+        </button>
+      )}
+      <button
+        onClick={onPlayAgain}
+        style={{
+          width: '100%',
+          padding: '0.75rem',
+          background: 'transparent',
+          color: '#64748b',
+          border: '1px solid var(--border)',
+          borderRadius: '0.625rem',
+          fontSize: '0.88rem',
+          fontWeight: 700,
+          cursor: 'pointer',
+        }}
+        onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+      >
+        🏠 Start Fresh
+      </button>
     </div>
   )
 }
@@ -888,13 +1111,13 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.625rem', marginBottom: '1rem' }}>
 
         {/* Top Batter */}
-        <div style={{ background: 'var(--card)', border: '1px solid #1F6FEB33', borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid #4169E133', borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
           <div style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>🏏</div>
-          <div style={{ fontSize: '0.55rem', color: '#1F6FEB', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.35rem' }}>Top Scorer</div>
+          <div style={{ fontSize: '0.55rem', color: '#4169E1', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.35rem' }}>Top Scorer</div>
           {topBat ? (
             <>
               <div style={{ fontSize: '0.82rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1.2, marginBottom: '0.25rem' }}>{topBat.name}</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1F6FEB' }}>{topBat.runs}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#4169E1' }}>{topBat.runs}</div>
               <div style={{ fontSize: '0.55rem', color: '#64748b' }}>runs</div>
             </>
           ) : <div style={{ fontSize: '0.7rem', color: 'var(--border)' }}>—</div>}
@@ -969,7 +1192,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
             padding: '1.25rem',
             animation: 'fade-in-up 0.3s ease both',
           }}>
-            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '1rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#4169E1', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '1rem', textAlign: 'center' }}>
               ⚡ Season Story
             </div>
 
@@ -984,7 +1207,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
 
               {/* Arrow */}
               <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '0 0.1rem' }}>
-                <div style={{ fontSize: '1.25rem', color: exceeded ? '#1F6FEB' : '#ef4444', fontWeight: 900 }}>
+                <div style={{ fontSize: '1.25rem', color: exceeded ? '#4169E1' : '#ef4444', fontWeight: 900 }}>
                   {exceeded ? '→' : '→'}
                 </div>
               </div>
@@ -1054,7 +1277,7 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
         {/* Top 3 Batsmen */}
         {top3bat.length > 0 && (
           <div>
-            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#1F6FEB', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem', paddingLeft: '0.25rem' }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#4169E1', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem', paddingLeft: '0.25rem' }}>
               🏏 Top Batters
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -1062,14 +1285,14 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
                 <div key={p.name} style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.625rem 0.75rem',
-                  background: i === 0 ? '#1F6FEB12' : 'var(--card)',
-                  border: `1px solid ${i === 0 ? '#1F6FEB44' : 'var(--border)'}`,
+                  background: i === 0 ? '#4169E112' : 'var(--card)',
+                  border: `1px solid ${i === 0 ? '#4169E144' : 'var(--border)'}`,
                   borderRadius: '0.625rem',
                 }}>
                   <div style={{ fontSize: i === 0 ? '1rem' : '0.8rem', width: 20, textAlign: 'center', flexShrink: 0 }}>{medals[i]}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                    <div style={{ fontSize: i === 0 ? '1rem' : '0.85rem', fontWeight: 900, color: i === 0 ? '#1F6FEB' : '#94a3b8' }}>{p.runs} <span style={{ fontSize: '0.52rem', color: '#64748b', fontWeight: 600 }}>runs</span></div>
+                    <div style={{ fontSize: i === 0 ? '1rem' : '0.85rem', fontWeight: 900, color: i === 0 ? '#4169E1' : '#94a3b8' }}>{p.runs} <span style={{ fontSize: '0.52rem', color: '#64748b', fontWeight: 600 }}>runs</span></div>
                   </div>
                 </div>
               ))}
@@ -1126,8 +1349,8 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
                   padding: '0.55rem 0.875rem',
                   borderBottom: i < xiEntries.length - 2 ? '1px solid var(--border2)' : 'none',
                   borderRight: i % 2 === 0 ? '1px solid var(--border2)' : 'none',
-                  background: isUser ? '#1F6FEB08' : '#3b82f608',
-                  borderLeft: `3px solid ${isUser ? '#1F6FEB44' : '#3b82f644'}`,
+                  background: isUser ? '#4169E108' : '#3b82f608',
+                  borderLeft: `3px solid ${isUser ? '#4169E144' : '#3b82f644'}`,
                 }}>
                   <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--border)', width: 16, textAlign: 'center', flexShrink: 0 }}>{i+1}</div>
                   <div style={{ padding: '0.1rem 0.3rem', borderRadius: '0.2rem', flexShrink: 0, background: roleClr + '22', border: `1px solid ${roleClr}44`, fontSize: '0.45rem', fontWeight: 900, color: roleClr, minWidth: 30, textAlign: 'center' }}>
@@ -1137,7 +1360,7 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
                     <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.name}
                     </div>
-                    <div style={{ fontSize: '0.55rem', color: isUser ? '#1F6FEB' : '#64748b', fontWeight: isUser ? 700 : 400 }}>
+                    <div style={{ fontSize: '0.55rem', color: isUser ? '#4169E1' : '#64748b', fontWeight: isUser ? 700 : 400 }}>
                       {isUser ? 'Your XI' : p.team}
                     </div>
                   </div>
@@ -1212,8 +1435,8 @@ function TournamentXITab({ tournamentBestXI }) {
                   padding: '0.65rem 1rem',
                   borderBottom: i < entries.length - 2 ? '1px solid var(--border2)' : 'none',
                   borderRight: i % 2 === 0 ? '1px solid var(--border2)' : 'none',
-                  background: isUser ? '#1F6FEB08' : '#3b82f608',
-                  borderLeft: `3px solid ${isUser ? '#1F6FEB44' : '#3b82f644'}`,
+                  background: isUser ? '#4169E108' : '#3b82f608',
+                  borderLeft: `3px solid ${isUser ? '#4169E144' : '#3b82f644'}`,
                 }}>
                   {/* Number */}
                   <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--border)', width: 18, textAlign: 'center', flexShrink: 0 }}>
@@ -1233,7 +1456,7 @@ function TournamentXITab({ tournamentBestXI }) {
                     <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.name}
                     </div>
-                    <div style={{ fontSize: '0.58rem', color: isUser ? '#1F6FEB' : '#64748b', fontWeight: isUser ? 700 : 400 }}>
+                    <div style={{ fontSize: '0.58rem', color: isUser ? '#4169E1' : '#64748b', fontWeight: isUser ? 700 : 400 }}>
                       {isUser ? 'Your XI' : p.team}
                     </div>
                   </div>
@@ -1302,7 +1525,7 @@ function PlayerStatsTab({ playerStats, team }) {
                         {roleTag}
                       </span>
                     </td>
-                    <td style={{ ...tdStyle, color: showBat && p.runs > 0 ? '#1F6FEB' : 'var(--border)', fontWeight: showBat && p.runs > 0 ? 800 : 400 }}>
+                    <td style={{ ...tdStyle, color: showBat && p.runs > 0 ? '#4169E1' : 'var(--border)', fontWeight: showBat && p.runs > 0 ? 800 : 400 }}>
                       {showBat ? (p.runs || 0) : '—'}
                     </td>
                     <td style={{ ...tdStyle, color: showBat && p.sr !== '—' ? '#86efac' : 'var(--border)' }}>
@@ -1349,15 +1572,15 @@ function MatchesTab({ matchResults }) {
             <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text)' }}>vs {r.opponent}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.7rem', color: r.won ? '#0047CC' : '#dc2626', fontWeight: 700 }}>{r.summary}</div>
+            <div style={{ fontSize: '0.7rem', color: r.won ? '#2952CC' : '#dc2626', fontWeight: 700 }}>{r.summary}</div>
             <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{r.myScore} · {r.oppScore}</div>
           </div>
           <div style={{
             width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-            background: r.won ? '#1F6FEB22' : '#ef444422',
-            border: `1px solid ${r.won ? '#1F6FEB66' : '#ef444466'}`,
+            background: r.won ? '#4169E122' : '#ef444422',
+            border: `1px solid ${r.won ? '#4169E166' : '#ef444466'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.65rem', fontWeight: 900, color: r.won ? '#1F6FEB' : '#ef4444',
+            fontSize: '0.65rem', fontWeight: 900, color: r.won ? '#4169E1' : '#ef4444',
           }}>
             {r.won ? 'W' : 'L'}
           </div>

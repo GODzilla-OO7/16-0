@@ -27,15 +27,18 @@ const ICON_PLAYERS = [
 ]
 
 // ─── Event types that can land on the wheel ──────────────────────────────────
+// All 10 events have equal probability. minRating/maxRating filter the incoming player pool.
 
 const EVENTS = [
+  // ─── Original 5 ──────────────────────────────────────────────────────────
   {
     id: 'team-raid',
     icon: '🎯',
     label: 'Team Raid',
-    color: '#1F6FEB',
-    desc: 'You raid a rival squad. A new player spins in — replaces your weakest of the same role.',
+    color: '#4169E1',
+    desc: 'You raid a rival squad. A quality player spins in — replaces your weakest of the same role.',
     replaceTarget: 'weakest',
+    minRating: 78,
   },
   {
     id: 'best-is-lost',
@@ -50,16 +53,18 @@ const EVENTS = [
     icon: '⭐',
     label: 'Rising Star',
     color: '#f59e0b',
-    desc: 'A rising star joins your camp. Replaces your lowest-rated player of the same role.',
+    desc: 'A rising star joins your camp. Young and hungry — replaces your weakest of that role.',
     replaceTarget: 'weakest',
+    maxRating: 80,
   },
   {
     id: 'rival-sends',
     icon: '🔄',
     label: 'Rival Sends',
     color: '#a855f7',
-    desc: 'A rival team offloads their 12th man to you. Whoever spins in replaces your weakest of that role.',
+    desc: 'A rival team offloads their 12th man to you. Fringe player — replaces your weakest of that role.',
     replaceTarget: 'weakest',
+    maxRating: 76,
   },
   {
     id: 'wildcard',
@@ -68,6 +73,50 @@ const EVENTS = [
     color: '#22c55e',
     desc: 'Complete chaos. Anyone can spin in — replaces your worst player of that role.',
     replaceTarget: 'weakest',
+  },
+  // ─── 5 New events ────────────────────────────────────────────────────────
+  {
+    id: 'headhunt',
+    icon: '🦅',
+    label: 'Headhunt',
+    color: '#f97316',
+    desc: 'Your scouts poach elite talent from another franchise. An exceptional player arrives — replaces your weakest of that role.',
+    replaceTarget: 'weakest',
+    minRating: 82,
+  },
+  {
+    id: 'youth-academy',
+    icon: '🌱',
+    label: 'Youth Academy',
+    color: '#10b981',
+    desc: 'A raw academy prospect earns their debut. Unproven but passionate — replaces your weakest of that role.',
+    replaceTarget: 'weakest',
+    maxRating: 72,
+  },
+  {
+    id: 'deadline-deal',
+    icon: '⏰',
+    label: 'Deadline Deal',
+    color: '#94a3b8',
+    desc: 'Transfer window is closing. Whoever is available gets the nod — replaces your weakest of that role.',
+    replaceTarget: 'weakest',
+  },
+  {
+    id: 'swap-deal',
+    icon: '🔀',
+    label: 'Swap Deal',
+    color: '#8b5cf6',
+    desc: 'Both teams agree to a player exchange. Your best player of that role departs — a fresh arrival takes their place.',
+    replaceTarget: 'best',
+  },
+  {
+    id: 'franchise-buy',
+    icon: '🏟️',
+    label: 'Franchise Buy',
+    color: '#0ea5e9',
+    desc: 'The franchise opens the purse strings. A solid, reputable player joins — replaces your weakest of that role.',
+    replaceTarget: 'weakest',
+    minRating: 74,
   },
 ]
 
@@ -133,14 +182,19 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
   // ── Phase 1: spin for event type ─────────────────────────────────────────
   function spinEvent() {
     setPhase('event-spin')
-    const chosen = EVENTS[Math.floor(Math.random() * EVENTS.length)]
+
+    // Shuffle EVENTS freshly each spin — animation sequence AND final pick
+    // both come from this shuffle, so it feels like a real spinning wheel
+    const shuffledEvents = [...EVENTS].sort(() => Math.random() - 0.5)
+    const landIndex = Math.floor(Math.random() * shuffledEvents.length)
+    const chosen = shuffledEvents[landIndex]
     const TICKS = 28
     let i = 0
 
     function tick() {
       i++
       const last = i >= TICKS
-      setCycleEvent(last ? chosen : EVENTS[i % EVENTS.length])
+      setCycleEvent(last ? chosen : shuffledEvents[i % shuffledEvents.length])
       if (last) {
         timerRef.current = setTimeout(() => {
           setEventEntry(chosen)
@@ -160,22 +214,20 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
     const teamIds   = new Set(team.map(p => p.id))
     const teamNames = new Set(team.map(p => p.name))
 
-    // For "best-is-lost": determine who walks out FIRST (highest overall in team),
+    // For "best-is-lost" and "swap-deal": determine who walks out FIRST (highest overall in team),
     // then restrict incoming to the same role.
     let requiredRole = null
     let preOut = null
-    if (eventEntry.id === 'best-is-lost') {
+    if (eventEntry.id === 'best-is-lost' || eventEntry.id === 'swap-deal') {
       preOut = [...team].sort((a, b) => b.overall - a.overall)[0] ?? null
       requiredRole = preOut?.role ?? null
       if (preOut) setOutgoing(preOut)
     }
 
-    // Build filtered candidate pool based on event rules:
-    //   team-raid   → quality acquisition  (overall ≥ 78 scaled)
-    //   rising-star → breakthrough player  (overall ≤ 80 scaled)
-    //   rival-sends → fringe/backup player (overall ≤ 76 scaled)
-    //   best-is-lost→ same role as outgoing (no rating restriction)
-    //   wildcard    → no restriction
+    // Build filtered candidate pool using event's minRating / maxRating properties
+    const minR = eventEntry.minRating ?? null
+    const maxR = eventEntry.maxRating ?? null
+
     const seen = new Set()
     const fullPool = []
     for (const entry of WHEEL_ENTRIES) {
@@ -185,9 +237,8 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
         if (seen.has(p.name)) continue
         if (requiredRole && p.role !== requiredRole) continue
         const scaled = scaleDisplay(p.overall)
-        if (eventEntry.id === 'rising-star' && scaled > 80) continue
-        if (eventEntry.id === 'team-raid'   && scaled < 78) continue
-        if (eventEntry.id === 'rival-sends' && scaled > 76) continue
+        if (minR !== null && scaled < minR) continue
+        if (maxR !== null && scaled > maxR) continue
         seen.add(p.name)
         fullPool.push(p)
       }
@@ -209,8 +260,10 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
 
     if (!fullPool.length) { onSkip(); return }
 
-    // Shuffle + pick
-    const shuffled = [...fullPool].sort(() => Math.random() - 0.5)
+    // Double-shuffle to break any latent ordering bias
+    const shuffled = [...fullPool]
+      .sort(() => Math.random() - 0.5)
+      .sort(() => Math.random() - 0.5)
     let chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
 
     // ── 0.05% chance of a legendary icon player appearing ─────────────────
@@ -373,9 +426,9 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
         {(phase === 'player-spin' || phase === 'player-landed') && (
           <>
             <div style={{ textAlign: 'center', marginBottom: '0.875rem' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem 0.75rem', background: (eventEntry?.color ?? '#1F6FEB') + '22', border: `1px solid ${(eventEntry?.color ?? '#1F6FEB')}44`, borderRadius: '999px', marginBottom: '0.5rem' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem 0.75rem', background: (eventEntry?.color ?? '#4169E1') + '22', border: `1px solid ${(eventEntry?.color ?? '#4169E1')}44`, borderRadius: '999px', marginBottom: '0.5rem' }}>
                 <span>{eventEntry?.icon}</span>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: eventEntry?.color ?? '#1F6FEB' }}>{eventEntry?.label}</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: eventEntry?.color ?? '#4169E1' }}>{eventEntry?.label}</span>
               </div>
               <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Spinning for your replacement player…</div>
             </div>

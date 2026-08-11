@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 
-const TIMER_SECONDS = 8
+const TIMER_SECONDS = 14
 
 // ─── Choice pool helper ────────────────────────────────────────────────────────
 // Randomly shuffles a pool and returns `count` choices.
@@ -206,7 +206,7 @@ const EVENT_DEFS = {
   },
 
   'powerplay': {
-    icon: '⚡', badge: 'POWERPLAY TIME', accentColor: '#1F6FEB',
+    icon: '⚡', badge: 'POWERPLAY TIME', accentColor: '#4169E1',
     headline: (p) => `Powerplay — ${p} opens up!`,
     subline:  (p, opp) => `vs ${opp} · Fielding circle on — first 6 overs set the total`,
     choiceCount: 3,
@@ -438,7 +438,7 @@ export default function MatchEvent({ event, opponent, onContinue }) {
               onClick={() => onContinue(success, chosen?.label ?? 'timeout')}
               style={{
                 padding: '0.75rem 2rem',
-                background: 'linear-gradient(135deg, #1F6FEB, #0047CC)',
+                background: 'linear-gradient(135deg, #4169E1, #2952CC)',
                 border: 'none', borderRadius: '0.625rem',
                 color: '#fff', fontSize: '0.92rem', fontWeight: 800,
                 cursor: 'pointer', boxShadow: '0 4px 16px rgba(31,111,235,0.3)',

@@ -98,7 +98,7 @@ export default function AuthModal({ onClose, onSuccess }) {
                 fontSize: '0.95rem', fontWeight: 700, color: 'var(--text)',
                 marginBottom: '1.25rem', transition: 'border-color 0.15s, background 0.15s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#1F6FEB'; e.currentTarget.style.background = 'var(--card)' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#4169E1'; e.currentTarget.style.background = 'var(--card)' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--card2)' }}
             >
               {/* Google icon */}
@@ -122,7 +122,7 @@ export default function AuthModal({ onClose, onSuccess }) {
         {sent ? (
           <div style={{ textAlign: 'center', padding: '1rem' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📧</div>
-            <div style={{ fontWeight: 800, color: '#1F6FEB', marginBottom: '0.5rem' }}>Check your email</div>
+            <div style={{ fontWeight: 800, color: '#4169E1', marginBottom: '0.5rem' }}>Check your email</div>
             <div style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.6 }}>
               We sent a confirmation link to <strong style={{ color: 'var(--text)' }}>{email}</strong>. Click it to activate your account, then come back and sign in.
             </div>
@@ -146,7 +146,7 @@ export default function AuthModal({ onClose, onSuccess }) {
                 placeholder="you@example.com"
                 required
                 style={inputStyle}
-                onFocus={e => e.target.style.borderColor = '#1F6FEB'}
+                onFocus={e => e.target.style.borderColor = '#4169E1'}
                 onBlur={e => e.target.style.borderColor = 'var(--border)'}
               />
             </div>
@@ -163,7 +163,7 @@ export default function AuthModal({ onClose, onSuccess }) {
                 required
                 minLength={6}
                 style={inputStyle}
-                onFocus={e => e.target.style.borderColor = '#1F6FEB'}
+                onFocus={e => e.target.style.borderColor = '#4169E1'}
                 onBlur={e => e.target.style.borderColor = 'var(--border)'}
               />
             </div>
@@ -179,7 +179,7 @@ export default function AuthModal({ onClose, onSuccess }) {
               disabled={loading}
               style={{
                 width: '100%', padding: '0.875rem',
-                background: loading ? '#1a2e1a' : 'linear-gradient(135deg, #1F6FEB, #0047CC)',
+                background: loading ? '#1a2e1a' : 'linear-gradient(135deg, #4169E1, #2952CC)',
                 color: loading ? '#64748b' : 'var(--bg)',
                 border: 'none', borderRadius: '0.625rem',
                 fontSize: '1rem', fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
@@ -197,7 +197,7 @@ export default function AuthModal({ onClose, onSuccess }) {
             {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(null) }}
-              style={{ background: 'none', border: 'none', color: '#1F6FEB', fontWeight: 700, cursor: 'pointer', fontSize: '0.83rem' }}
+              style={{ background: 'none', border: 'none', color: '#4169E1', fontWeight: 700, cursor: 'pointer', fontSize: '0.83rem' }}
             >
               {mode === 'signin' ? 'Create one' : 'Sign in'}
             </button>

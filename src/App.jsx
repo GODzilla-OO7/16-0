@@ -12,12 +12,16 @@ import ProfileModal from './components/ProfileModal.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import SquadComposer from './components/SquadComposer.jsx'
+import RetentionScreen from './components/RetentionScreen.jsx'
 import DailyChallenge from './components/DailyChallenge.jsx'
 import H2HLobby from './components/H2HLobby.jsx'
 import H2HDraft from './components/H2HDraft.jsx'
+import SharedLeague from './components/SharedLeague.jsx'
 import { STARTING_BUDGET } from './components/WheelSpin.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
-import { useAuth, saveGameResult, incrementTotalPlays } from './hooks/useAuth.js'
+import { useAuth, saveGameResult, incrementTotalPlays, signInWithGoogle } from './hooks/useAuth.js'
+import { generateTournament } from './utils/sharedTournament.js'
+import { getSupabase } from './lib/supabase.js'
 
 // Error boundary — catches H2HDraft crashes and shows a recoverable error screen
 class H2HErrorBoundary extends Component {
@@ -35,7 +39,7 @@ class H2HErrorBoundary extends Component {
           </div>
           <button
             onClick={() => { this.setState({ error: null }); this.props.onBack?.() }}
-            style={{ padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg,#1F6FEB,#0047CC)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}
+            style={{ padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg,#4169E1,#2952CC)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}
           >
             ← Back to menu
           </button>
@@ -98,8 +102,13 @@ export default function App() {
   const [confirmedManager, setConfirmedManager] = useState(null) // coach confirmed by user click
   const [composition, setComposition] = useState(null) // squad role blueprint
   const [budgetLeft, setBudgetLeft]   = useState(STARTING_BUDGET) // ₹125cr auction budget
-  const [showH2H,    setShowH2H]      = useState(false)
-  const [h2hRoom,    setH2hRoom]      = useState(null)  // active H2H room
+  const [seasonNumber, setSeasonNumber]       = useState(1)          // current season (1, 2, 3…)
+  const [releasedPlayerIds, setReleasedPlayerIds] = useState(new Set()) // can't draft these in next season
+  const [prevBudgetLeftover, setPrevBudgetLeftover] = useState(0)    // leftover from last auction
+  const [retentionTeam, setRetentionTeam]     = useState([])         // full season-end team snapshot for retention screen
+  const [showH2H,      setShowH2H]        = useState(false)
+  const [h2hRoom,      setH2hRoom]        = useState(null)   // active H2H draft room
+  const [h2hLeagueRoom, setH2hLeagueRoom] = useState(null)  // active shared league room
   const [activeChallenge, setActiveChallenge] = useState(null) // daily challenge in progress
 
   function handleModeSelect(m) {
@@ -162,6 +171,7 @@ export default function App() {
       iplPosition:  sum.iplPosition,
       perfect:      sum.perfect,
       difficulty:   settings?.difficulty,
+      ratingType:   settings?.ratingType,
       manager,
     })
     if (newlyEarned.length > 0) {
@@ -194,6 +204,10 @@ export default function App() {
     setComposition(null)
     setBudgetLeft(STARTING_BUDGET)
     setActiveChallenge(null)
+    setSeasonNumber(1)
+    setReleasedPlayerIds(new Set())
+    setPrevBudgetLeftover(0)
+    setRetentionTeam([])
     window.__activeChallenge = null
   }
 
@@ -204,6 +218,51 @@ export default function App() {
     setPreviewManager(null); setConfirmedManager(null)
     setComposition(null)
     setBudgetLeft(STARTING_BUDGET)
+  }
+
+  // Back from draft → composition screen (S1) or retention screen (S2+)
+  function handleBackToComposition() {
+    if (seasonNumber > 1) {
+      // In S2+, undo the season increment from handleRetentionDone so re-confirming works correctly
+      setSeasonNumber(n => n - 1)
+      setTeam([])
+      setDraftedIds(new Set())
+      setManager(null)
+      setPreviewManager(null); setConfirmedManager(null)
+      // retentionTeam snapshot still holds the full season-end XI for the retention screen
+      setPhase('retention')
+    } else {
+      setPhase('compose')
+      setTeam([]); setDraftedIds(new Set())
+      setManager(null)
+      setPreviewManager(null); setConfirmedManager(null)
+      setComposition(null)
+      setBudgetLeft(STARTING_BUDGET)
+    }
+  }
+
+  // Results → retention window (next season)
+  function handleNextSeason() {
+    setPrevBudgetLeftover(budgetLeft)   // save unused auction budget
+    setRetentionTeam([...team])         // snapshot full 11-player team for retention screen
+    setPhase('retention')
+  }
+
+  // Retention confirmed → straight to draft (keep Season 1 composition, pre-fill retained players)
+  function handleRetentionDone({ retained, releasedIds, newBudget }) {
+    setSeasonNumber(n => n + 1)
+    setReleasedPlayerIds(releasedIds)
+    setBudgetLeft(newBudget)
+    // Pre-fill team and draftedIds with retained players
+    setTeam(retained)
+    setDraftedIds(new Set(retained.map(p => p.id)))
+    setManager(null)
+    setPreviewManager(null); setConfirmedManager(null)
+    // composition stays from Season 1 — we reuse it so slot needs are computed correctly
+    setRerollsLeft(settings?.rerolls ?? 3)  // fresh rerolls for the new auction
+    setSummary(null); setMatchResults([])
+    setNewAwards([])
+    setPhase('draft')   // skip composition screen, go straight to auction
   }
 
   // Retry bidding: keep composition + settings, reset squad + budget
@@ -221,7 +280,7 @@ export default function App() {
   const challengeBanner = activeChallenge ? (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1100,
-      background: 'linear-gradient(90deg, #1a3a7a, #1F6FEB)',
+      background: 'linear-gradient(90deg, #1a3a7a, #4169E1)',
       padding: '0 1.25rem',
       height: BANNER_H,
       display: 'flex', alignItems: 'center', gap: '0.625rem',
@@ -250,23 +309,6 @@ export default function App() {
 
   const profileBtn = (
     <div style={{ position: 'fixed', bottom: '1.25rem', right: '1.25rem', zIndex: 800, display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
-      {/* Account button */}
-      <button
-        onClick={() => user ? setShowUserProfile(true) : setShowAuth(true)}
-        title={user ? 'Your account' : 'Sign in'}
-        style={{
-          ...btnBase,
-          color: user ? '#1F6FEB' : '#64748b',
-          borderColor: user ? '#1F6FEB44' : 'var(--border)',
-          fontSize: user ? '0.75rem' : '1.1rem',
-          fontWeight: 900,
-        }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#1F6FEB'; e.currentTarget.style.color = '#1F6FEB' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = user ? '#1F6FEB44' : 'var(--border)'; e.currentTarget.style.color = user ? '#1F6FEB' : '#64748b' }}
-      >
-        {user ? (user.email?.[0]?.toUpperCase() ?? '👤') : '👤'}
-      </button>
-
       {/* Medals button */}
       <button
         onClick={() => { setNewAwards([]); setShowProfile(true) }}
@@ -284,6 +326,17 @@ export default function App() {
       </button>
     </div>
   )
+
+  // Shared League full-page takeover
+  if (h2hLeagueRoom) {
+    return (
+      <SharedLeague
+        room={h2hLeagueRoom}
+        uid={sessionStorage.getItem('h2h_uid') ?? ''}
+        onBack={() => { setH2hLeagueRoom(null) }}
+      />
+    )
+  }
 
   // H2H active draft screen (full-page takeover)
   if (h2hRoom) {
@@ -305,6 +358,28 @@ export default function App() {
           setSettings({ ratingType: 'overall', difficulty: 'normal', rerolls: 0 })
           setManager(null)
           setPhase('simulate')
+        }}
+        onInitSharedLeague={async (finalRoom) => {
+          // Host generates and saves the tournament
+          const myUid     = sessionStorage.getItem('h2h_uid') ?? ''
+          const hostName  = finalRoom.host_name ?? 'Host XI'
+          const guestName = finalRoom.guest_name ?? 'Guest XI'
+          const tournament = generateTournament(
+            finalRoom.host_team ?? [], finalRoom.guest_team ?? [],
+            null, null, hostName, guestName,
+          )
+          const sb = await getSupabase()
+          if (sb) await sb.from('h2h_rooms').update({ tournament }).eq('id', finalRoom.id)
+          // Host also transitions
+          setH2hRoom(null)
+          setShowH2H(false)
+          setH2hLeagueRoom({ ...finalRoom, tournament })
+        }}
+        onSharedLeague={(finalRoom) => {
+          // Guest transitions when tournament appears
+          setH2hRoom(null)
+          setShowH2H(false)
+          setH2hLeagueRoom(finalRoom)
         }}
       />
       </H2HErrorBoundary>
@@ -361,6 +436,7 @@ export default function App() {
         onDailyChallenge={() => setShowDailyChallenge(true)}
         user={user}
         onSignIn={() => setShowAuth(true)}
+        onGoogleSignIn={signInWithGoogle}
         onAccount={() => setShowUserProfile(true)}
         onMedals={() => { setNewAwards([]); setShowProfile(true) }}
         newAwards={newAwards}
@@ -370,14 +446,14 @@ export default function App() {
     </>
   )
   if (phase === 'settings') return (
-    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0 }}>
+    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0, background: 'var(--bg)', minHeight: '100vh' }}>
       <DraftSettings mode={mode} onStart={handleSettingsStart} onBack={() => setPhase('menu')} />
       {profileBtn}
       {globalOverlays}
     </div>
   )
   if (phase === 'compose') return (
-    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0 }}>
+    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0, background: 'var(--bg)', minHeight: '100vh' }}>
       <SquadComposer onDone={handleCompositionDone} onBack={() => setPhase('settings')} />
       {profileBtn}
       {globalOverlays}
@@ -386,7 +462,7 @@ export default function App() {
 
   // Manager select now comes AFTER the draft is complete
   if (phase === 'manager')  return (
-    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0 }}>
+    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0, background: 'var(--bg)', minHeight: '100vh' }}>
       <ManagerSelect mode={mode} team={team} onSelect={handleManagerSelect} onBack={() => setPhase('draft')} />
       {profileBtn}
       {globalOverlays}
@@ -408,8 +484,8 @@ export default function App() {
           position: 'sticky', top: activeChallenge ? 36 : 0, background: 'var(--card)',
           backdropFilter: 'blur(8px)', zIndex: 10,
         }}>
-          <button onClick={handleBackToSettings} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer' }}>
-            ← Settings
+          <button onClick={handleBackToComposition} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer' }}>
+            ← Back
           </button>
           <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>
             {cfg.icon} {cfg.label}
@@ -423,7 +499,7 @@ export default function App() {
             }}>
               💰 ₹{budgetLeft}cr
             </div>
-            <div style={{ fontSize: '0.85rem', color: isDone ? '#1F6FEB' : 'var(--text-muted)', fontWeight: 700 }}>
+            <div style={{ fontSize: '0.85rem', color: isDone ? '#4169E1' : 'var(--text-muted)', fontWeight: 700 }}>
               {slotsFilled}/{totalSlots}
             </div>
           </div>
@@ -442,6 +518,7 @@ export default function App() {
                   slotIndex={slotsFilled}
                   totalSlots={totalSlots}
                   draftedIds={draftedIds}
+                  releasedPlayerIds={releasedPlayerIds}
                   team={team}
                   rerollsLeft={rerollsLeft}
                   onReroll={handleReroll}
@@ -453,7 +530,7 @@ export default function App() {
                 />
               ) : (
                 <div style={{ padding: '1.75rem 1.5rem', textAlign: 'center', animation: 'fade-in-up 0.4s ease both' }}>
-                  <div style={{ fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#4169E1', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
                     XI Complete
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.5rem' }}>
@@ -472,6 +549,7 @@ export default function App() {
                 team={team}
                 manager={isDone ? (confirmedManager || previewManager) : null}
                 mode={mode}
+                ratingType={settings?.ratingType ?? 'season'}
                 showPenalty={isDone}
                 onStart={isDone && confirmedManager ? () => handleManagerSelect(confirmedManager) : undefined}
               />
@@ -484,6 +562,45 @@ export default function App() {
             height: activeChallenge ? 'calc(100vh - 5.5rem - 36px)' : 'calc(100vh - 5.5rem)',
             display: 'flex', flexDirection: 'column', gap: '0.625rem',
           }}>
+            {/* Overseas tracker — IPL only, always visible at top of right column */}
+            {mode === 'ipl' && (() => {
+              const overseasCount = team.filter(p => p.nationality !== 'India').length
+              const limitReached  = overseasCount >= 4
+              return (
+                <div style={{
+                  flexShrink: 0,
+                  display: 'flex', alignItems: 'center', gap: '0.6rem',
+                  padding: '0.5rem 0.875rem',
+                  background: limitReached ? '#ef444410' : 'var(--card)',
+                  border: `1.5px solid ${limitReached ? '#ef444455' : 'var(--border)'}`,
+                  borderRadius: '0.625rem',
+                }}>
+                  <span style={{ fontSize: '0.75rem' }}>✈️</span>
+                  <div>
+                    <div style={{ fontSize: '0.55rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>
+                      Overseas slots
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.3rem' }}>
+                      {[0,1,2,3].map(i => (
+                        <div key={i} style={{
+                          width: 16, height: 16, borderRadius: '50%',
+                          background: i < overseasCount ? '#4169E1' : 'transparent',
+                          border: `2px solid ${i < overseasCount ? '#4169E1' : 'var(--border)'}`,
+                          transition: 'background 0.2s, border-color 0.2s',
+                        }} />
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: limitReached ? '#ef4444' : 'var(--muted)', marginLeft: 'auto' }}>
+                    {overseasCount}/4
+                  </div>
+                  {limitReached && (
+                    <div style={{ fontSize: '0.6rem', color: '#ef4444', fontWeight: 700 }}>FULL</div>
+                  )}
+                </div>
+              )
+            })()}
+
             {/* TeamSheet takes all remaining space and scrolls internally if needed */}
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
               <TeamSheet
@@ -523,9 +640,28 @@ export default function App() {
     </div>
   )
 
+  if (phase === 'retention') return (
+    <>
+      <RetentionScreen
+        team={retentionTeam}          // snapshot of full season-end XI, not the live (possibly cleared) team
+        prevBudgetLeftover={prevBudgetLeftover}
+        seasonNumber={seasonNumber + 1}
+        onConfirm={handleRetentionDone}
+      />
+      {globalOverlays}
+    </>
+  )
+
   if (phase === 'results') return (
     <>
-      <Results team={team} mode={mode} manager={manager} summary={summary} matchResults={matchResults} onPlayAgain={handlePlayAgain} />
+      <Results
+        team={team} mode={mode} manager={manager}
+        summary={summary} matchResults={matchResults}
+        onPlayAgain={handlePlayAgain}
+        onNextSeason={handleNextSeason}
+        seasonNumber={seasonNumber}
+        newAwards={newAwards}
+      />
       {profileBtn}
       {globalOverlays}
     </>
@@ -537,8 +673,24 @@ export default function App() {
 // ── Shared result view ─────────────────────────────────────────────────────────
 
 function SharedResultView({ data, onPlay }) {
-  const { wins, losses, total, rating, mode, potm, topScorer, topScorerRuns,
-          topWicketTaker, topWicketTakerWkts, manager, stage, team = [] } = data
+  // Support both compact keys (new) and verbose keys (old shared links)
+  const wins             = data.w   ?? data.wins
+  const losses           = data.l   ?? data.losses
+  const rating           = data.r   ?? data.rating
+  const mode             = data.m   ?? data.mode
+  const potm             = data.p   ?? data.potm
+  const topScorer        = data.ts  ?? data.topScorer
+  const topScorerRuns    = data.sr  ?? data.topScorerRuns
+  const topWicketTaker   = data.tw  ?? data.topWicketTaker
+  const topWicketTakerWkts = data.wk ?? data.topWicketTakerWkts
+  const manager          = data.mg  ?? data.manager
+  const stage            = data.st  ?? data.stage
+  const team             = data.tm  ?? data.team ?? []
+  // Awards: encoded as ["icon|name", ...] strings
+  const awards = (data.aw ?? []).map(s => {
+    const idx = s.indexOf('|')
+    return idx === -1 ? { icon: '🏅', name: s } : { icon: s.slice(0, idx), name: s.slice(idx + 1) }
+  })
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem 1rem' }}>
@@ -546,7 +698,7 @@ function SharedResultView({ data, onPlay }) {
 
         {/* Badge */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'inline-block', padding: '0.25rem 0.75rem', background: 'rgba(31,111,235,0.12)', border: '1px solid rgba(31,111,235,0.25)', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700, color: '#1F6FEB', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
+          <div style={{ display: 'inline-block', padding: '0.25rem 0.75rem', background: 'rgba(31,111,235,0.12)', border: '1px solid rgba(31,111,235,0.25)', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700, color: '#4169E1', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
             Cricket 16-0 · {mode || 'Season'}
           </div>
           <div style={{ fontSize: '3rem', lineHeight: 1 }}>🏆</div>
@@ -560,8 +712,8 @@ function SharedResultView({ data, onPlay }) {
             <div style={{ fontSize: '2.75rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>
               {wins}W <span style={{ color: '#64748b', fontSize: '1.8rem' }}>–</span> {losses}L
             </div>
-            {stage && <div style={{ fontSize: '0.8rem', color: '#1F6FEB', fontWeight: 700, marginTop: '0.35rem' }}>{stage}</div>}
-            <div style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.2rem 0.75rem', background: '#1F6FEB18', border: '1px solid #1F6FEB33', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 800, color: '#1F6FEB' }}>{rating}</div>
+            {stage && <div style={{ fontSize: '0.8rem', color: '#4169E1', fontWeight: 700, marginTop: '0.35rem' }}>{stage}</div>}
+            <div style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.2rem 0.75rem', background: '#4169E118', border: '1px solid #4169E133', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 800, color: '#4169E1' }}>{rating}</div>
           </div>
 
           {/* Stats row */}
@@ -576,7 +728,7 @@ function SharedResultView({ data, onPlay }) {
               <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
                 <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Top Run Scorer</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>{topScorer}</div>
-                {topScorerRuns && <div style={{ fontSize: '0.72rem', color: '#1F6FEB', fontWeight: 700 }}>{topScorerRuns} runs</div>}
+                {topScorerRuns && <div style={{ fontSize: '0.72rem', color: '#4169E1', fontWeight: 700 }}>{topScorerRuns} runs</div>}
               </div>
             )}
             {topWicketTaker && (
@@ -609,10 +761,33 @@ function SharedResultView({ data, onPlay }) {
           )}
         </div>
 
+        {/* Medal cards */}
+        {awards.length > 0 && (
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1.25rem', padding: '1rem 1.25rem', marginBottom: '1rem' }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>
+              🏅 Medals Earned
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {awards.map((award, i) => (
+                <div key={i} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                  padding: '0.4rem 0.75rem',
+                  background: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.06))',
+                  border: '1.5px solid rgba(245,158,11,0.35)',
+                  borderRadius: '0.625rem',
+                }}>
+                  <span style={{ fontSize: '1rem', lineHeight: 1 }}>{award.icon}</span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 900, color: '#f59e0b', lineHeight: 1.1 }}>{award.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* CTA */}
         <button
           onClick={onPlay}
-          style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #1F6FEB, #0047CC)', color: '#fff', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 20px rgba(31,111,235,0.35)', letterSpacing: '0.02em' }}
+          style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: '#fff', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 20px rgba(31,111,235,0.35)', letterSpacing: '0.02em' }}
         >
           Can you go unbeaten? Play Cricket 16-0 →
         </button>

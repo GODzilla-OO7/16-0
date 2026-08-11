@@ -13,7 +13,7 @@
   --text:    #f1f5f9;
   --muted:   #64748b;
   --dim:     #2a3855;
-  --accent:  #1F6FEB;
+  --accent:  #4169E1;
   --green:   #22c55e;
   --gold:    #f59e0b;
   --red:     #ef4444;
@@ -25,7 +25,7 @@
   --blue:    #3b82f6;
   /* semantic game colors */
   --win-bg:      #0d2418;
-  --win-border:  #0047CC44;
+  --win-border:  #2952CC44;
   --loss-bg:     #1a0d0d;
   --loss-border: #7f1d1d44;
   --warn-bg:     #1a1200;

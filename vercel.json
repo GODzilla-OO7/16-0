@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/t/:code",
+      "destination": "https://tinyurl.com/:code",
+      "permanent": false
+    }
+  ]
+}
