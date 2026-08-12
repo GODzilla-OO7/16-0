@@ -7783,3 +7783,28 @@ export const MODE_CONFIG = {
     opponents: ['India','Australia','England','Pakistan','West Indies','New Zealand','South Africa','Sri Lanka','Afghanistan','Bangladesh'],
   },
 }
+
+// ─── Prime Ratings ────────────────────────────────────────────────────────────
+// For each player, their prime rating = their highest `overall` across all IPL
+// season entries. Computed once at load time from the data; no manual curation.
+// Used in Prime Mode for both display and simulation.
+export const PRIME_RATINGS = (() => {
+  const map = {}
+  for (const entry of WHEEL_ENTRIES) {
+    if (!entry.competition.includes('ipl')) continue
+    for (const p of entry.players) {
+      if (map[p.name] === undefined || p.overall > map[p.name]) {
+        map[p.name] = p.overall
+      }
+    }
+  }
+  return map
+})()
+
+/** Apply prime overalls to a team array (returns a new array, does not mutate). */
+export function applyPrimeRatings(team) {
+  return team.map(p => {
+    const prime = PRIME_RATINGS[p.name]
+    return prime !== undefined ? { ...p, overall: prime } : p
+  })
+}

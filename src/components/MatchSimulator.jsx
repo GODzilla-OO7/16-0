@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { simulateFullSeason, simulateIPLPlayoffs, generateIPLTable, simulateSuperOver, calcTeamStrength } from '../utils/simulator.js'
-import { MODE_CONFIG } from '../data/players.js'
+import { MODE_CONFIG, applyPrimeRatings } from '../data/players.js'
 import MatchEvent from './MatchEvent.jsx'
 import ImpactSub from './ImpactSub.jsx'
 import { getSupabase } from '../lib/supabase.js'
@@ -143,7 +143,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
     const h2hOpp = h2hContext?.opponentTeam?.length > 0
       ? { name: h2hContext.opponentName, strength: calcTeamStrength(h2hContext.opponentTeam, null, 'ipl') }
       : null
-    const season = simulateFullSeason(team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp })
+    const season = simulateFullSeason(ratingType === 'prime' ? applyPrimeRatings(team) : team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp })
     setLeagueSeason(season)
 
     let i = 0
@@ -315,7 +315,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   }, [iplPhase, h2hContext])
 
   function startPlayoffs() {
-    const pd = simulateIPLPlayoffs(activeTeam, manager, iplPosition, iplTable?.table ?? [])
+    const pd = simulateIPLPlayoffs(ratingType === 'prime' ? applyPrimeRatings(activeTeam) : activeTeam, manager, iplPosition, iplTable?.table ?? [])
     if (!pd?.results?.length) { setIplPhase('done'); return }
     setPlayoffData(pd)
     setIplPhase('playoffs')
