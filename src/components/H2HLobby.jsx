@@ -373,21 +373,21 @@ export default function H2HLobby({ onClose, onStartDraft }) {
         animation: 'fade-in-up 0.25s ease both',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#e2e8f0' }}>
             {screen === 'waiting'     ? '🔗 Room ' + roomId :
              screen === 'join'        ? '🚪 Join Room'      :
              screen === 'composition' ? '⚖️ Team Composition' : '⚔️ Head to Head'}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#475569', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
         </div>
 
         {/* Name gate */}
         {!nameSet && (
-          <div style={{ marginBottom: '1.25rem', padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Your display name</div>
+          <div style={{ marginBottom: '1.25rem', padding: '1rem', background: '#13131f', border: '1px solid #2a2a3a', borderRadius: '0.75rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Your display name</div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <input style={{ ...inp, flex: 1 }} value={myName} onChange={e => setMyName(e.target.value)} placeholder="Enter your name" onKeyDown={e => e.key === 'Enter' && saveName()} />
-              <button onClick={saveName} style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>✓</button>
+              <button onClick={saveName} style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: '#fff', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>✓</button>
             </div>
           </div>
         )}
@@ -400,62 +400,72 @@ export default function H2HLobby({ onClose, onStartDraft }) {
 
         {/* ── Home ── */}
         {screen === 'home' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
             <p style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.5, margin: 0 }}>
               Draft real-time with a friend. Your teams clash in the IPL — more intense QTEs decide the showdown.
             </p>
 
-            {/* League + Draft modes side by side */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem' }}>
-
-              {/* League Mode */}
-              <div>
-                <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>League</div>
+            {/* League Mode — top row */}
+            <div>
+              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>League Mode</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                 {[
-                  { id: 'classic', icon: '⚔️', label: 'Classic H2H', desc: 'Separate seasons, compare at end' },
-                  { id: 'shared',  icon: '🏟️', label: 'Shared League', desc: 'Same IPL, shared table' },
-                ].map(m => (
-                  <div
-                    key={m.id}
-                    onClick={() => setLeagueMode(m.id)}
-                    style={{
-                      padding: '0.6rem 0.75rem', marginBottom: '0.4rem',
-                      borderRadius: '0.5rem', cursor: 'pointer',
-                      border: `1.5px solid ${leagueMode === m.id ? '#f59e0b' : '#2a2a3a'}`,
-                      background: leagueMode === m.id ? '#f59e0b14' : '#16161f',
-                      transition: 'border-color 0.15s, background 0.15s',
-                    }}
-                  >
-                    <div style={{ fontSize: '1rem', marginBottom: '0.15rem' }}>{m.icon}</div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: leagueMode === m.id ? '#f59e0b' : 'var(--text)', lineHeight: 1.2 }}>{m.label}</div>
-                    <div style={{ fontSize: '0.62rem', color: '#64748b', marginTop: '0.15rem', lineHeight: 1.3 }}>{m.desc}</div>
-                  </div>
-                ))}
+                  { id: 'classic', icon: '⚔️', label: 'Classic H2H',   desc: 'Separate seasons, compare at end' },
+                  { id: 'shared',  icon: '🏟️', label: 'Shared League', desc: 'Same IPL, shared table & playoffs' },
+                ].map(m => {
+                  const sel = leagueMode === m.id
+                  return (
+                    <div
+                      key={m.id}
+                      onClick={() => setLeagueMode(m.id)}
+                      style={{
+                        padding: '0.75rem', borderRadius: '0.625rem', cursor: 'pointer',
+                        border: `2px solid ${sel ? '#f59e0b' : '#2a2a3a'}`,
+                        background: sel ? '#f59e0b18' : '#1a1a28',
+                        transition: 'border-color 0.15s, background 0.15s',
+                        minHeight: 80, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                      }}
+                    >
+                      <div style={{ fontSize: '1.2rem' }}>{m.icon}</div>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 800, color: sel ? '#f59e0b' : '#e2e8f0', marginBottom: '0.2rem' }}>{m.label}</div>
+                        <div style={{ fontSize: '0.62rem', color: '#64748b', lineHeight: 1.3 }}>{m.desc}</div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
+            </div>
 
-              {/* Draft Mode */}
-              <div>
-                <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>Draft</div>
+            {/* Draft Mode — bottom row */}
+            <div>
+              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Draft Mode</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                 {[
-                  { id: 'snake',   icon: '🐍', label: 'Snake Draft', desc: 'Take turns, order reverses' },
-                  { id: 'auction', icon: '🔨', label: 'Live Auction', desc: 'Bid on players, highest wins' },
-                ].map(m => (
-                  <div
-                    key={m.id}
-                    onClick={() => setDraftMode(m.id)}
-                    style={{
-                      padding: '0.6rem 0.75rem', marginBottom: '0.4rem',
-                      borderRadius: '0.5rem', cursor: 'pointer',
-                      border: `1.5px solid ${draftMode === m.id ? '#4169E1' : '#2a2a3a'}`,
-                      background: draftMode === m.id ? '#4169E114' : '#16161f',
-                      transition: 'border-color 0.15s, background 0.15s',
-                    }}
-                  >
-                    <div style={{ fontSize: '1rem', marginBottom: '0.15rem' }}>{m.icon}</div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: draftMode === m.id ? '#4169E1' : 'var(--text)', lineHeight: 1.2 }}>{m.label}</div>
-                    <div style={{ fontSize: '0.62rem', color: '#64748b', marginTop: '0.15rem', lineHeight: 1.3 }}>{m.desc}</div>
-                  </div>
-                ))}
+                  { id: 'snake',   icon: '🐍', label: 'Snake Draft',  desc: 'Take turns, order reverses each round' },
+                  { id: 'auction', icon: '🔨', label: 'Live Auction', desc: 'Bid on players, highest bid wins' },
+                ].map(m => {
+                  const sel = draftMode === m.id
+                  return (
+                    <div
+                      key={m.id}
+                      onClick={() => setDraftMode(m.id)}
+                      style={{
+                        padding: '0.75rem', borderRadius: '0.625rem', cursor: 'pointer',
+                        border: `2px solid ${sel ? '#4169E1' : '#2a2a3a'}`,
+                        background: sel ? '#4169E118' : '#1a1a28',
+                        transition: 'border-color 0.15s, background 0.15s',
+                        minHeight: 80, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                      }}
+                    >
+                      <div style={{ fontSize: '1.2rem' }}>{m.icon}</div>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 800, color: sel ? '#4169E1' : '#e2e8f0', marginBottom: '0.2rem' }}>{m.label}</div>
+                        <div style={{ fontSize: '0.62rem', color: '#64748b', lineHeight: 1.3 }}>{m.desc}</div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
 
@@ -463,7 +473,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
               <button
                 onClick={createRoom}
                 disabled={!nameSet || loading}
-                style={{ padding: '0.75rem', background: nameSet ? 'linear-gradient(135deg, #4169E1, #2952CC)' : 'var(--border2)', color: nameSet ? '#fff' : '#475569', border: 'none', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 800, cursor: nameSet && !loading ? 'pointer' : 'not-allowed' }}
+                style={{ padding: '0.75rem', background: nameSet ? 'linear-gradient(135deg, #4169E1, #2952CC)' : '#2a2a3a', color: nameSet ? '#fff' : '#475569', border: 'none', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 800, cursor: nameSet && !loading ? 'pointer' : 'not-allowed' }}
               >
                 {loading ? '🔄 Creating…' : '🏠 Create Room'}
               </button>
