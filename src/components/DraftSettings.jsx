@@ -166,7 +166,12 @@ export default function DraftSettings({ mode, onStart, onBack }) {
   function getFilteredEntries() {
     if (mode === 'ipl') {
       const [lo, hi] = iplRange
-      return allEntries.filter(e => { const y = getYear(e); return y >= lo && y <= hi })
+      const iplEntries = allEntries.filter(e => { const y = getYear(e); return y >= lo && y <= hi })
+      // Pakistani players have been barred from the IPL since 2009 — exclude them from the pool
+      return iplEntries.map(e => ({
+        ...e,
+        players: (e.players ?? []).filter(p => p.nationality !== 'Pakistan'),
+      })).filter(e => e.players.length > 0)
     }
     return allEntries.filter(e => checkedYears.has(getYear(e)))
   }

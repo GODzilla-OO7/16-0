@@ -138,14 +138,18 @@ function extractYear(season) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────
 
+const MARQUEE_THRESHOLD = 87  // display overall at/above this triggers a bidding war
+
 export default function WheelSpin({
   mode, settings, composition, slotIndex, totalSlots,
   draftedIds, releasedPlayerIds, team, rerollsLeft, onReroll, onResult,
   budget, onSpend, onRetryFromBeginning, onRetryBidding,
+  biddingWarsUsed = 0, onBiddingWar,
 }) {
   const [phase, setPhase]             = useState('idle')
   const [landedEntry, setLandedEntry] = useState(null)
   const [cycleEntry, setCycleEntry]   = useState(null)
+  const [activeBiddingPlayer, setActiveBiddingPlayer] = useState(null)  // triggers bidding war overlay
   const cycleRef = useRef(null)
 
   const entries    = settings.filteredEntries
@@ -183,8 +187,10 @@ export default function WheelSpin({
     function playerIsPickable(p) {
       // Already drafted?
       if (draftedIds.has(p.id) || draftedNameSet.has(p.name)) return false
-      // Released in a previous season (cannot re-draft)?
-      if (releasedPlayerIds?.has(p.id)) return false
+      // Released last season (impact sub out or not retained) — blocked by name for one auction
+      if (releasedPlayerIds?.has(p.name)) return false
+      // Pakistani players are barred from the IPL since 2009
+      if (isIPLMode && p.nationality === 'Pakistan') return false
       // Role quota full?
       if (isRoleFull(p, team, composition)) return false
       // Mandatory role not satisfied?
@@ -203,13 +209,17 @@ export default function WheelSpin({
       entry.players.some(playerIsPickable)
     )
 
+    // Released players are NEVER relaxable — always excluded regardless of fallback tier
+    const notReleased = p => !releasedPlayerIds?.has(p.name)
+
     // Tiered fallbacks: relax constraints one at a time so we always spin somewhere
     let pool = spinnable
     if (pool.length === 0) {
-      // Relax mustPick (keep overseas + budget)
+      // Relax mustPick (keep overseas + budget + released block)
       pool = entries.filter(entry =>
         entry.players.some(p =>
           !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
+          notReleased(p) &&
           !isRoleFull(p, team, composition) &&
           !(overseasFull && isOverseas(p)) &&
           (budgetExhausted || budget == null || calcPrice(displayRating(p, 'season').overall) <= budget)
@@ -217,25 +227,27 @@ export default function WheelSpin({
       )
     }
     if (pool.length === 0) {
-      // Relax overseas too (keep budget)
+      // Relax overseas too (keep budget + released block)
       pool = entries.filter(entry =>
         entry.players.some(p =>
           !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
+          notReleased(p) &&
           !isRoleFull(p, team, composition) &&
           (budgetExhausted || budget == null || calcPrice(displayRating(p, 'season').overall) <= budget)
         )
       )
     }
     if (pool.length === 0) {
-      // Relax budget too — player must just not be drafted
+      // Relax budget too — still keep released block
       pool = entries.filter(entry =>
         entry.players.some(p =>
           !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
+          notReleased(p) &&
           !isRoleFull(p, team, composition)
         )
       )
     }
-    if (pool.length === 0) pool = entries  // absolute last resort
+    if (pool.length === 0) pool = entries  // absolute last resort (budget exhausted + fully constrained)
     const shuffled = shuffle(pool)
     const chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
     const TOTAL_TICKS = 18
@@ -280,9 +292,9 @@ export default function WheelSpin({
     startSpin()
   }
 
-  function pickPlayer(player) {
-    if (onSpend && budget != null) {
-      const price = calcPrice(displayRating(player, 'season').overall)  // always season price regardless of rating type
+  function pickPlayer(player, overridePriceCr) {
+    const price = overridePriceCr ?? (budget != null ? calcPrice(displayRating(player, 'season').overall) : null)
+    if (onSpend && price != null) {
       onSpend(Math.min(price, budget))   // never go below 0
     }
     // Attach the IPL squad they came from so TeamSheet can display it
@@ -297,10 +309,28 @@ export default function WheelSpin({
     setCycleEntry(null)
   }
 
+  function tryPickPlayer(player) {
+    // Check if this is a marquee player that should trigger a bidding war
+    const displayOvr = displayRating(player, ratingType).overall
+    const basePrice  = calcPrice(displayRating(player, 'season').overall)
+    const isMarquee  = displayOvr >= MARQUEE_THRESHOLD && !player._budgetBlocked
+    const canBid     = budget != null && biddingWarsUsed < 2
+    if (isMarquee && canBid) {
+      setActiveBiddingPlayer({ player, basePrice })
+      onBiddingWar?.()
+      return
+    }
+    pickPlayer(player)
+  }
+
   // Build + sort player list — always descending overall, eligible first when mustPick
   const draftedNames = new Set(team.map(p => p.name))
   const rawPlayers = landedEntry
-    ? landedEntry.players.filter(p => !draftedIds.has(p.id) && !draftedNames.has(p.name))
+    ? landedEntry.players.filter(p =>
+        !draftedIds.has(p.id) &&
+        !draftedNames.has(p.name) &&
+        !releasedPlayerIds?.has(p.name)   // released players never appear in the pick list
+      )
     : []
 
   // Always sort by overall descending
@@ -359,6 +389,26 @@ export default function WheelSpin({
 
   return (
     <div style={{ width: '100%' }}>
+      {/* Bidding War overlay */}
+      {activeBiddingPlayer && (
+        <BiddingWarOverlay
+          player={activeBiddingPlayer.player}
+          basePrice={activeBiddingPlayer.basePrice}
+          ratingType={ratingType}
+          onWin={(finalPriceCr) => {
+            setActiveBiddingPlayer(null)
+            pickPlayer(activeBiddingPlayer.player, finalPriceCr)
+          }}
+          onPass={() => {
+            setActiveBiddingPlayer(null)
+            // Free re-spin — rival won the player, no reroll used
+            setLandedEntry(null)
+            setCycleEntry(null)
+            startSpin()
+          }}
+        />
+      )}
+
       {phase !== 'selecting' ? (
         <SpinPhase
           phase={phase}
@@ -393,7 +443,7 @@ export default function WheelSpin({
           overseasLimitReached={overseasLimitReached}
           isIPLMode={isIPLMode}
           budget={budget}
-          onPick={pickPlayer}
+          onPick={tryPickPlayer}
           onSpinAgain={spinAgain}
           onRetryFromBeginning={onRetryFromBeginning}
           onRetryBidding={onRetryBidding}
@@ -821,6 +871,127 @@ function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, 
       {!blocked && (
         <div style={{ color: hovered ? (highlight || teamColor) : 'var(--border)', fontSize: '1rem', transition: 'color 0.12s', flexShrink: 0 }}>→</div>
       )}
+    </div>
+  )
+}
+
+// ─── Bidding War ──────────────────────────────────────────────────────────────
+
+const RIVAL_FRANCHISES = [
+  { name: 'Mumbai Indians',        color: '#004C97', icon: '🔵' },
+  { name: 'Chennai Super Kings',   color: '#f5a623', icon: '🟡' },
+  { name: 'Royal Challengers',     color: '#c8102e', icon: '🔴' },
+  { name: 'Kolkata Knight Riders', color: '#3a225d', icon: '🟣' },
+  { name: 'Delhi Capitals',        color: '#004c97', icon: '🔷' },
+  { name: 'Punjab Kings',          color: '#ed1b24', icon: '🟥' },
+  { name: 'Rajasthan Royals',      color: '#ea1a8c', icon: '🌸' },
+  { name: 'Sunrisers Hyderabad',   color: '#f7a721', icon: '🟠' },
+]
+
+export function BiddingWarOverlay({ player, basePrice, ratingType, onWin, onPass }) {
+  const rival = useState(() => RIVAL_FRANCHISES[Math.floor(Math.random() * RIVAL_FRANCHISES.length)])[0]
+  // Rival will drop out once bid exceeds their secret max (1.3–1.9× base, min +5)
+  const rivalMax = useState(() => Math.round((basePrice * (1.3 + Math.random() * 0.6)) * 2) / 2)[0]
+
+  const [currentBid, setCurrentBid] = useState(basePrice)
+  const [phase, setBidPhase] = useState('bidding')  // 'bidding' | 'won' | 'lost'
+  const [rivalDropped, setRivalDropped] = useState(false)
+
+  const raise = (amount) => {
+    const newBid = Math.round((currentBid + amount) * 2) / 2
+    setCurrentBid(newBid)
+    if (newBid > rivalMax) {
+      setRivalDropped(true)
+      setBidPhase('won')
+    }
+  }
+
+  const displayOvr = displayRating(player, ratingType).overall
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.85)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '1.5rem',
+      animation: 'fade-in 0.2s ease',
+    }}>
+      <div style={{
+        maxWidth: 380, width: '100%',
+        background: 'var(--card)',
+        border: `2px solid ${rival.color}66`,
+        borderRadius: '1.25rem',
+        padding: '1.5rem',
+        boxShadow: `0 0 40px ${rival.color}33`,
+        textAlign: 'center',
+        animation: 'fade-in-up 0.3s ease',
+      }}>
+        {/* Header */}
+        <div style={{ fontSize: '0.62rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '0.5rem' }}>
+          🔥 Bidding War
+        </div>
+
+        {/* Player being bid on */}
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text)' }}>{player.name}</div>
+          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{player.nationality} · {player.role} · {displayOvr} OVR</div>
+        </div>
+
+        {/* Rival */}
+        <div style={{
+          padding: '0.625rem 1rem', marginBottom: '1rem',
+          background: `${rival.color}18`, border: `1px solid ${rival.color}44`,
+          borderRadius: '0.75rem', fontSize: '0.8rem', fontWeight: 800,
+          color: rival.color,
+        }}>
+          {rival.icon} {rival.name} {rivalDropped ? 'dropped out!' : 'is also bidding'}
+        </div>
+
+        {/* Current bid */}
+        <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+            {phase === 'won' ? 'You won at' : 'Current bid'}
+          </div>
+          <div style={{
+            fontSize: '2.5rem', fontWeight: 900,
+            color: phase === 'won' ? '#22c55e' : '#f59e0b',
+            lineHeight: 1,
+          }}>
+            {fmtCr(currentBid)}
+          </div>
+          {phase === 'bidding' && (
+            <div style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '0.2rem' }}>
+              Normal price: {fmtCr(basePrice)}
+            </div>
+          )}
+        </div>
+
+        {/* Buttons */}
+        {phase === 'bidding' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button onClick={() => raise(5)} style={{ flex: 1, padding: '0.75rem', background: 'linear-gradient(135deg,#15803d,#16a34a)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer' }}>
+                Raise +₹5cr
+              </button>
+              <button onClick={() => raise(10)} style={{ flex: 1, padding: '0.75rem', background: 'linear-gradient(135deg,#b45309,#d97706)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer' }}>
+                Raise +₹10cr
+              </button>
+            </div>
+            <button onClick={onPass} style={{ width: '100%', padding: '0.75rem', background: 'transparent', color: '#94a3b8', border: '1px solid var(--border)', borderRadius: '0.625rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+              Let {rival.name} have it → spin again
+            </button>
+          </div>
+        )}
+
+        {phase === 'won' && (
+          <button
+            onClick={() => onWin(currentBid)}
+            style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg,#15803d,#22c55e)', color: '#fff', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 16px #22c55e33' }}
+          >
+            🎉 Sign {player.name} for {fmtCr(currentBid)}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { simulateFullSeason, simulateIPLPlayoffs, generateIPLTable, simulateSuperOver } from '../utils/simulator.js'
+import { simulateFullSeason, simulateIPLPlayoffs, generateIPLTable, simulateSuperOver, calcTeamStrength } from '../utils/simulator.js'
 import { MODE_CONFIG } from '../data/players.js'
 import MatchEvent from './MatchEvent.jsx'
 import ImpactSub from './ImpactSub.jsx'
+import { getSupabase } from '../lib/supabase.js'
 
 // ─── Final drama commentary ─────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ const COMMENTARY_ODI = [
   'The last ball of the Final is delivered…',
 ]
 
-export default function MatchSimulator({ team, mode, manager, ratingType, onDone }) {
+export default function MatchSimulator({ team, mode, manager, ratingType, onDone, h2hContext = null }) {
   const [leagueSeason,    setLeagueSeason]    = useState(null)
   const [revealed,        setRevealed]        = useState([])
   const [liveRuns,        setLiveRuns]        = useState({})
@@ -65,6 +66,11 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   // Guard: prevent double-calls to callOnDone (e.g. double-click on results button)
   const onDoneCalledRef = useRef(false)
 
+  // H2H: showdown match animation + live opponent results
+  const [h2hShowdown, setH2hShowdown]       = useState(null)  // { match, opponentName }
+  const [h2hOppResults, setH2hOppResults]   = useState([])    // opponent's published results
+  const h2hPollRef = useRef(null)
+
 
   // Group draw — WC modes show a group draw before simulation starts
   const cfg    = MODE_CONFIG[mode]
@@ -90,12 +96,54 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   const tableTimRef = useRef(null)
   const finalTimRef = useRef(null)
 
+  // ── H2H live results polling ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!h2hContext?.roomId) return
+    async function pollOppResults() {
+      const sb = await getSupabase()
+      if (!sb) return
+      const { data } = await sb
+        .from('h2h_live_results')
+        .select('*')
+        .eq('room_id', h2hContext.roomId)
+        .neq('player_id', h2hContext.myUserId)
+        .order('match_num', { ascending: true })
+      if (data) setH2hOppResults(data)
+    }
+    pollOppResults()
+    h2hPollRef.current = setInterval(pollOppResults, 3000)
+    return () => clearInterval(h2hPollRef.current)
+  }, [h2hContext?.roomId])
+
+  // ── Helper: publish my match result to Supabase ────────────────────────────
+  async function publishH2HResult(match, matchNum) {
+    if (!h2hContext?.roomId) return
+    try {
+      const sb = await getSupabase()
+      if (!sb) return
+      await sb.from('h2h_live_results').insert({
+        room_id:    h2hContext.roomId,
+        player_id:  h2hContext.myUserId,
+        match_num:  matchNum,
+        opponent_name: match.opponent,
+        won:        match.won,
+        my_score:   match.myScore ?? null,
+        opp_score:  match.oppScore ?? null,
+        is_h2h_showdown: match.isH2HShowdown ?? false,
+      })
+    } catch { /* ignore */ }
+  }
+
   useEffect(() => {
     if (!tournamentStarted) return  // Wait for group draw → "Start Tournament" click
 
     const groupStageCount = mode === 'odi-wc' ? 9 : mode === 't20-wc' ? 4 : 0
     const groupOppNames   = drawnAllOpponents ? drawnAllOpponents.slice(0, groupStageCount) : null
-    const season = simulateFullSeason(team, mode, manager, { groupOppNames })
+    // H2H: inject opponent team as match 7 + compute their strength
+    const h2hOpp = h2hContext?.opponentTeam?.length > 0
+      ? { name: h2hContext.opponentName, strength: calcTeamStrength(h2hContext.opponentTeam, null, 'ipl') }
+      : null
+    const season = simulateFullSeason(team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp })
     setLeagueSeason(season)
 
     let i = 0
@@ -136,12 +184,11 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
           return
         }
         // Intercept match event (century / hat-trick moments)
+        // In H2H auto-sim mode: auto-resolve after a short delay instead of waiting for user
         if (match.event) {
-          setPendingEvent({
-            event: match.event,
-            opponent: match.opponent,
-            resume: (success, choiceLabel) => {
-              setPendingEvent(null)
+          const autoResolve = !!h2hContext
+          const doResume = (success, choiceLabel) => {
+            setPendingEvent(null)
               const BATTING_MILESTONES = { 'half-century': 50, 'century': 100, '150': 150, '200': 200 }
               // Types that grant a bonus wicket to the bowling tally on success
               const WICKET_EVENTS = new Set(['catch', 'run-out', 'stumping'])
@@ -149,33 +196,38 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               const RUN_BONUS_EVENTS = { 'free-hit': 6, 'powerplay': 12 }
 
               let finalMatch = { ...match, eventResult: { success, choiceLabel } }
-              // For successful QTE events: patch stats so the correct value is reflected
-              if (success && match.event && finalMatch.stats) {
+              // Patch stats so the QTE player always appears in the scorecard (success or failure)
+              if (match.event && finalMatch.stats) {
                 const evt = match.event
                 const milestone = BATTING_MILESTONES[evt.type]
                 if (milestone !== undefined) {
-                  // Player scored milestone + bonus runs (didn't stop exactly at 50/100/150)
-                  const bonus = Math.floor(Math.random() * 36)  // 0–35 extra runs
-                  const teamTotal = parseScoreStr(match.myScore ?? '').runs
-                  const cappedRuns = teamTotal ? Math.min(milestone + bonus, teamTotal) : milestone + bonus
                   const origScorer = finalMatch.stats.topScorer
-                  // Preserve original topScorer as topScorer2 so their runs aren't lost from cap table
                   const preservedScorer2 = origScorer?.name !== evt.playerName ? origScorer : finalMatch.stats.topScorer2
-                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats,
-                    topScorer:  { name: evt.playerName, runs: cappedRuns },
-                    topScorer2: preservedScorer2,
-                  }}
+                  if (success) {
+                    // Player scored milestone + bonus runs
+                    const bonus = Math.floor(Math.random() * 36)  // 0–35 extra runs
+                    const teamTotal = parseScoreStr(match.myScore ?? '').runs
+                    const cappedRuns = teamTotal ? Math.min(milestone + bonus, teamTotal) : milestone + bonus
+                    finalMatch = { ...finalMatch, stats: { ...finalMatch.stats,
+                      topScorer:  { name: evt.playerName, runs: cappedRuns },
+                      topScorer2: preservedScorer2,
+                    }}
+                  } else {
+                    // Player fell one short — show milestone−1 runs so they appear in the card
+                    finalMatch = { ...finalMatch, stats: { ...finalMatch.stats,
+                      topScorer:  { name: evt.playerName, runs: milestone - 1 },
+                      topScorer2: preservedScorer2,
+                    }}
+                  }
                 } else if (evt.type === 'hat-trick') {
-                  // Replace topBowler with QTE player at exactly 3 wickets
-                  // Also credit original topBowler's wickets separately if different player
                   const origBowler = finalMatch.stats.topBowler
-                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topBowler: { name: evt.playerName, wickets: 3 } } }
-                  // Credit original bowler's wickets to live table if they're a different player
+                  const wickets = success ? 3 : 2   // 3 on success, 2 if catch dropped / missed
+                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topBowler: { name: evt.playerName, wickets } } }
                   if (origBowler && origBowler.name !== evt.playerName) {
                     setLiveWkts(prev => ({ ...prev, [origBowler.name]: (prev[origBowler.name] || 0) + origBowler.wickets }))
                   }
-                } else if (RUN_BONUS_EVENTS[evt.type] !== undefined) {
-                  // Add bonus runs to topScorer for powerplay/free-hit success, capped at team total
+                } else if (success && RUN_BONUS_EVENTS[evt.type] !== undefined) {
+                  // Bonus runs on success only (free-hit / powerplay)
                   const bonus = RUN_BONUS_EVENTS[evt.type]
                   const existing = finalMatch.stats.topScorer
                   const teamTotal = parseScoreStr(match.myScore ?? '').runs
@@ -185,6 +237,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
                 }
               }
               setRevealed(prev => [...prev, finalMatch])
+              publishH2HResult(finalMatch, i + 1)
               addStats(finalMatch, setLiveRuns, setLiveWkts)
               updateStreak(match.won, streakRef, setCurrentStreak, setBestWinStreak)
               // Fielding/stumping events add a wicket not tracked in base match stats
@@ -196,28 +249,43 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               }
               i++
               scheduleNext()
-            }
-          })
+          }
+          if (autoResolve) {
+            // H2H auto-sim: resolve QTE randomly after a short pause (no user click needed)
+            setTimeout(() => doResume(Math.random() < 0.6, 'auto'), 600)
+          } else {
+            setPendingEvent({ event: match.event, opponent: match.opponent, resume: doResume })
+          }
           return
         }
         // Intercept league Super Over
         if (match.superOver) {
-          setPendingLeagueSO({
-            match,
-            resume: (soWon) => {
-              setPendingLeagueSO(null)
-              const finalM = { ...match, won: soWon }
-              setRevealed(prev => [...prev, finalM])
-              addStats(finalM, setLiveRuns, setLiveWkts)
-              updateStreak(soWon, streakRef, setCurrentStreak, setBestWinStreak)
-              i++
-              scheduleNext()
-            }
-          })
+          const soResume = (soWon) => {
+            setPendingLeagueSO(null)
+            const finalM = { ...match, won: soWon }
+            setRevealed(prev => [...prev, finalM])
+            publishH2HResult(finalM, i + 1)
+            addStats(finalM, setLiveRuns, setLiveWkts)
+            updateStreak(soWon, streakRef, setCurrentStreak, setBestWinStreak)
+            i++
+            scheduleNext()
+          }
+          if (h2hContext) {
+            // H2H auto-sim: use the already-simulated super over result
+            setTimeout(() => soResume(match.superOver.won), 800)
+          } else {
+            setPendingLeagueSO({ match, resume: soResume })
+          }
           return
         }
 
         setRevealed(prev => [...prev, match])
+        publishH2HResult(match, i + 1)
+        // H2H showdown: brief animation pause when the two H2H teams face each other
+        if (match.isH2HShowdown && h2hContext) {
+          setH2hShowdown({ match, opponentName: h2hContext.opponentName })
+          setTimeout(() => setH2hShowdown(null), 4000)
+        }
         addStats(match, setLiveRuns, setLiveWkts)
         updateStreak(match.won, streakRef, setCurrentStreak, setBestWinStreak)
         i++
@@ -234,6 +302,17 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
       clearTimeout(finalTimRef.current)
     }
   }, [tournamentStarted])
+
+  // H2H auto-sim: auto-proceed from league table to playoffs (skip user click)
+  useEffect(() => {
+    if (!h2hContext || iplPhase !== 'table' || !iplTable) return
+    const t = setTimeout(() => {
+      // Skip impact sub in H2H mode — proceed straight to playoffs if qualified
+      if (iplTable.qualified) startPlayoffs()
+      else callOnDone()
+    }, 4000)  // show table for 4 seconds so the player can see it
+    return () => clearTimeout(t)
+  }, [iplPhase, h2hContext])
 
   function startPlayoffs() {
     const pd = simulateIPLPlayoffs(activeTeam, manager, iplPosition, iplTable?.table ?? [])
@@ -328,6 +407,8 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         iplTable,
         iplPosition,
         iconPlayer:      iconSubPlayer,   // legend via impact sub (null if none)
+        impactSubLog,                     // { out, in, event } or null
+        finalTeam:       activeTeam,      // team after any impact sub swap (may differ from original team prop)
       },
       [...revealed, ...playoffRevealed],
     )
@@ -362,6 +443,35 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
   return (
     <>
+      {/* ── H2H Showdown Full-screen Overlay ─────────────────────────── */}
+      {h2hShowdown && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 5000, pointerEvents: 'none',
+          background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fade-in 0.3s ease both',
+        }}>
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem', animation: 'trophy-bounce 0.7s ease both' }}>⚔️</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.5rem' }}>
+              H2H SHOWDOWN
+            </div>
+            <div style={{ fontSize: '0.88rem', color: 'var(--text)', fontWeight: 700, marginBottom: '0.3rem' }}>
+              Your XI vs {h2hShowdown.opponentName}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+              The moment of truth — two drafted squads collide!
+            </div>
+            <div style={{ marginTop: '1rem', fontSize: '1.8rem', fontWeight: 900, color: h2hShowdown.match.won ? '#22c55e' : '#ef4444' }}>
+              {h2hShowdown.match.won ? '✅ YOU WON!' : '❌ YOU LOST'}
+            </div>
+            <div style={{ fontSize: '0.9rem', color: '#94a3b8', marginTop: '0.3rem' }}>
+              {h2hShowdown.match.myScore} vs {h2hShowdown.match.oppScore}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Trophy Celebration Overlay ───────────────────────────────── */}
       {showCelebration && (
         <div style={{
@@ -568,8 +678,49 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
           </div>
         )}
 
-        {/* Main two-column grid */}
-        <div className="sim-grid" style={{ display: 'grid', gridTemplateColumns: revealed.length > 0 ? '1fr 260px' : '1fr', gap: '1.25rem', alignItems: 'start' }}>
+        {/* Main two-column grid (three columns in H2H mode) */}
+        <div className="sim-grid" style={{ display: 'grid', gridTemplateColumns: revealed.length > 0 ? (h2hContext ? '220px 1fr 260px' : '1fr 260px') : '1fr', gap: '1.25rem', alignItems: 'start' }}>
+
+          {/* H2H Opponent Live Results (left column, H2H only) */}
+          {h2hContext && revealed.length > 0 && (
+            <div style={{ position: 'sticky', top: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '80vh', overflow: 'hidden' }}>
+              <div style={{ padding: '0.5rem 0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
+                <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>⚔️ {h2hContext.opponentName}</div>
+                <div style={{ fontSize: '0.6rem', color: '#64748b' }}>
+                  {h2hOppResults.length === 0 ? 'Waiting for results…' : `${h2hOppResults.filter(r => r.won).length}W – ${h2hOppResults.filter(r => !r.won).length}L`}
+                </div>
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {[...h2hOppResults].reverse().map((r, i) => (
+                  <div key={i} style={{
+                    padding: '0.4rem 0.6rem', borderRadius: '0.4rem',
+                    background: r.is_h2h_showdown ? (r.won ? '#0d1a0d' : '#1a0d0d') : 'var(--card)',
+                    border: `1px solid ${r.is_h2h_showdown ? (r.won ? '#22c55e44' : '#ef444444') : 'var(--border2)'}`,
+                    animation: 'fade-in 0.25s ease both',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 700, color: r.won ? '#22c55e' : '#ef4444' }}>
+                        {r.won ? '✅' : '❌'}
+                      </span>
+                      <span style={{ fontSize: '0.6rem', color: '#64748b', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {r.is_h2h_showdown ? '⚔️ vs YOU' : `vs ${r.opponent_name}`}
+                      </span>
+                    </div>
+                    {(r.my_score || r.opp_score) && (
+                      <div style={{ fontSize: '0.55rem', color: '#475569', marginTop: '0.1rem', textAlign: 'right' }}>
+                        {r.my_score} • {r.opp_score}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {h2hOppResults.length === 0 && (
+                  <div style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--muted)', fontSize: '0.65rem', fontStyle: 'italic' }}>
+                    Their results will<br/>appear here…
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Left — phase UI + match cards */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -1397,7 +1548,7 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
 // ─── Match card ───────────────────────────────────────────────────────────────
 
 function MatchCard({ result, isLatest, expanded, onToggle }) {
-  const { won, matchNum, stage, opponent, summary, myScore, oppScore, stats, oppStats, event, eventResult } = result
+  const { won, matchNum, stage, opponent, summary, myScore, oppScore, stats, oppStats, event, eventResult, superOver } = result
   const stageClr = stage === 'Final' ? '#f59e0b' : (stage?.includes('Qualifier') || stage === 'Eliminator' || stage?.includes('Semi')) ? '#a78bfa' : '#64748b'
 
   // Primary: always shown
@@ -1440,8 +1591,16 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
           </div>
         </div>
         <div style={{ textAlign:'right', flexShrink:0 }}>
-          <div style={{ fontSize:'0.68rem', color: won ? '#2952CC' : '#dc2626', fontWeight:700 }}>{summary}</div>
-          <div style={{ fontSize:'0.58rem', color:'#64748b' }}>{myScore} · {oppScore}</div>
+          <div style={{ fontSize:'0.68rem', color: won ? '#2952CC' : '#dc2626', fontWeight:700 }}>
+            {summary}
+            {superOver && (
+              <span style={{ display:'inline-block', marginLeft:'0.35rem', padding:'0.05rem 0.35rem', background:'#a855f720', border:'1px solid #a855f744', borderRadius:'999px', fontSize:'0.5rem', color:'#a855f7', fontWeight:800, verticalAlign:'middle', letterSpacing:'0.05em' }}>⚡ SO</span>
+            )}
+          </div>
+          <div style={{ fontSize:'0.58rem', color:'#64748b' }}>
+            {myScore} · {oppScore}
+            {superOver && <span style={{ color:'#a855f7', marginLeft:'0.3rem' }}>SO: {superOver.myRuns}–{superOver.oppRuns}</span>}
+          </div>
         </div>
         <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, background: won ? '#4169E122' : '#ef444422', border:`1px solid ${won ? '#4169E166' : '#ef444466'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:900, color: won ? '#4169E1' : '#ef4444' }}>
           {won ? 'W' : 'L'}

@@ -19,9 +19,11 @@ import H2HDraft from './components/H2HDraft.jsx'
 import SharedLeague from './components/SharedLeague.jsx'
 import { STARTING_BUDGET } from './components/WheelSpin.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
+import { getStreakData, recordPlayStreak, consumeStreakBonus } from './hooks/useStreak.js'
 import { useAuth, saveGameResult, incrementTotalPlays, signInWithGoogle } from './hooks/useAuth.js'
 import { generateTournament } from './utils/sharedTournament.js'
 import { getSupabase } from './lib/supabase.js'
+import { resolveShortUrl } from './lib/shortUrl.js'
 
 // Error boundary — catches H2HDraft crashes and shows a recoverable error screen
 class H2HErrorBoundary extends Component {
@@ -73,14 +75,34 @@ export default function App() {
 
   // ── URL-encoded share view (#share=...) ─────────────────────────────────────
   const [sharedResult, setSharedResult] = useState(null)
+  // ── Challenge a Friend (#challenge=...) ─────────────────────────────────────
+  const [challengeData, setChallengeData] = useState(null)  // decoded challenge from URL
+  const [challengerResult, setChallengerResult] = useState(null) // shown in Results for comparison
   useEffect(() => {
+    // Handle short URLs: /s/<code> → resolve to long URL and redirect
+    const path = window.location.pathname
+    if (path.startsWith('/s/')) {
+      const code = path.slice(3)
+      resolveShortUrl(code).then(longUrl => {
+        if (longUrl) window.location.replace(longUrl)
+      })
+      return  // Don't parse hash until redirect resolves
+    }
+
     const hash = window.location.hash
-    if (!hash.startsWith('#share=')) return
-    try {
-      const encoded = hash.slice('#share='.length)
-      const decoded = JSON.parse(decodeURIComponent(escape(atob(encoded))))
-      setSharedResult(decoded)
-    } catch { /* ignore bad hashes */ }
+    if (hash.startsWith('#share=')) {
+      try {
+        const encoded = hash.slice('#share='.length)
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(encoded))))
+        setSharedResult(decoded)
+      } catch { /* ignore bad hashes */ }
+    } else if (hash.startsWith('#challenge=')) {
+      try {
+        const encoded = hash.slice('#challenge='.length)
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(encoded))))
+        setChallengeData(decoded)
+      } catch { /* ignore bad hashes */ }
+    }
   }, [])
   const { user, signOut } = useAuth()
 
@@ -98,17 +120,26 @@ export default function App() {
   const [showUserProfile, setShowUserProfile] = useState(false)
   const [showDailyChallenge, setShowDailyChallenge] = useState(false)
   const [newAwards,   setNewAwards]     = useState([])
+  const [prevSeasons, setPrevSeasons]  = useState([])  // history entries for prior seasons in this run
+  const [streak, setStreak]           = useState(() => getStreakData().streak)
+  const [streakBonus, setStreakBonus] = useState(() => getStreakData().bonusPending)
   const [previewManager,   setPreviewManager]   = useState(null) // coach landed (spin preview for TeamStrengthPanel)
   const [confirmedManager, setConfirmedManager] = useState(null) // coach confirmed by user click
   const [composition, setComposition] = useState(null) // squad role blueprint
   const [budgetLeft, setBudgetLeft]   = useState(STARTING_BUDGET) // ₹125cr auction budget
   const [seasonNumber, setSeasonNumber]       = useState(1)          // current season (1, 2, 3…)
-  const [releasedPlayerIds, setReleasedPlayerIds] = useState(new Set()) // can't draft these in next season
+  // runId: unique per app session — used to identify medals earned within the same continuous run
+  const [runId] = useState(() => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`)
+  const [releasedPlayerNames, setReleasedPlayerNames] = useState(new Set()) // blocked by name for immediate next auction only
+  const [impactSubOutName, setImpactSubOutName]     = useState(null)       // impact sub outgoing player name (added to released next retention)
+  const [biddingWarsUsed, setBiddingWarsUsed]   = useState(0)          // max 2 bidding wars per draft
   const [prevBudgetLeftover, setPrevBudgetLeftover] = useState(0)    // leftover from last auction
   const [retentionTeam, setRetentionTeam]     = useState([])         // full season-end team snapshot for retention screen
   const [showH2H,      setShowH2H]        = useState(false)
   const [h2hRoom,      setH2hRoom]        = useState(null)   // active H2H draft room
   const [h2hLeagueRoom, setH2hLeagueRoom] = useState(null)  // active shared league room
+  const [h2hSimContext, setH2hSimContext] = useState(null)   // { roomId, opponentName, opponentTeam, myUserId } during sim
+  const [h2hResultCtx, setH2hResultCtx] = useState(null)   // same data preserved for results screen
   const [activeChallenge, setActiveChallenge] = useState(null) // daily challenge in progress
 
   function handleModeSelect(m) {
@@ -124,7 +155,10 @@ export default function App() {
     setManager(null)
     setPreviewManager(null); setConfirmedManager(null)
     setRerollsLeft(s.rerolls ?? 3)
-    setBudgetLeft(STARTING_BUDGET)
+    const bonus = consumeStreakBonus()
+    setBudgetLeft(STARTING_BUDGET + bonus)
+    setStreakBonus(0)  // shown on banner — now consumed
+    setBiddingWarsUsed(0)
     setPhase('compose')
   }
 
@@ -155,13 +189,19 @@ export default function App() {
   }
 
   function handleSimDone(sum, results) {
+    // Apply impact sub team swap — finalTeam reflects the squad that played the playoffs
+    const finalTeam = sum.finalTeam ?? team
+    if (sum.finalTeam) setTeam(sortByBattingOrder(sum.finalTeam))
+    // Store impact sub outgoing player name — will be added to releasedPlayerNames at retention
+    if (sum.impactSubLog?.out?.name) setImpactSubOutName(sum.impactSubLog.out.name)
+
     setSummary(sum)
     setMatchResults(results)
     setPhase('results')
     incrementTotalPlays()  // global counter — works for everyone, logged in or not
 
-    // Record season locally + check awards
-    const { newlyEarned } = recordSeason({
+    // Record season locally + check awards (use finalTeam so squad-based medals are correct)
+    const { newlyEarned, profile } = recordSeason({
       mode,
       wins:         sum.wins,
       losses:       sum.losses,
@@ -173,10 +213,21 @@ export default function App() {
       difficulty:   settings?.difficulty,
       ratingType:   settings?.ratingType,
       manager,
+      team:         finalTeam,
+      composition,
+      runId,
+      seasonNumber,
     })
     if (newlyEarned.length > 0) {
       setNewAwards(newlyEarned)
     }
+    // Store prior seasons for the share card (history[0] = current season just recorded; history.slice(1) = prior)
+    setPrevSeasons((profile.history ?? []).slice(1).filter(h => h.runId === runId))
+
+    // Record play streak (once per calendar day)
+    const newStreak = recordPlayStreak()
+    setStreak(newStreak)
+    setStreakBonus(getStreakData().bonusPending)
 
     // Save to Supabase if signed in
     if (user) {
@@ -205,9 +256,11 @@ export default function App() {
     setBudgetLeft(STARTING_BUDGET)
     setActiveChallenge(null)
     setSeasonNumber(1)
-    setReleasedPlayerIds(new Set())
+    setReleasedPlayerNames(new Set())
+    setImpactSubOutName(null)
     setPrevBudgetLeftover(0)
     setRetentionTeam([])
+    setH2hResultCtx(null)
     window.__activeChallenge = null
   }
 
@@ -218,6 +271,9 @@ export default function App() {
     setPreviewManager(null); setConfirmedManager(null)
     setComposition(null)
     setBudgetLeft(STARTING_BUDGET)
+    // Clear any release blocks — back-to-settings is a full restart so these shouldn't persist
+    setReleasedPlayerNames(new Set())
+    setImpactSubOutName(null)
   }
 
   // Back from draft → composition screen (S1) or retention screen (S2+)
@@ -251,7 +307,11 @@ export default function App() {
   // Retention confirmed → straight to draft (keep Season 1 composition, pre-fill retained players)
   function handleRetentionDone({ retained, releasedIds, newBudget }) {
     setSeasonNumber(n => n + 1)
-    setReleasedPlayerIds(releasedIds)
+    // releasedIds is now a Set of names; also include the impact sub outgoing player
+    const allReleased = new Set(releasedIds)
+    if (impactSubOutName) allReleased.add(impactSubOutName)
+    setReleasedPlayerNames(allReleased)
+    setImpactSubOutName(null)  // consumed
     setBudgetLeft(newBudget)
     // Pre-fill team and draftedIds with retained players
     setTeam(retained)
@@ -348,15 +408,18 @@ export default function App() {
         uid={sessionStorage.getItem('h2h_uid') ?? ''}
         onBack={handleH2HBack}
         onDone={finalRoom => {
-          const myUid   = sessionStorage.getItem('h2h_uid') ?? ''
-          const amHost  = myUid === finalRoom.host_id
-          const myTeam  = sortByBattingOrder(amHost ? (finalRoom.host_team ?? []) : (finalRoom.guest_team ?? []))
+          const myUid    = sessionStorage.getItem('h2h_uid') ?? ''
+          const amHost   = myUid === finalRoom.host_id
+          const myTeam   = sortByBattingOrder(amHost ? (finalRoom.host_team ?? []) : (finalRoom.guest_team ?? []))
+          const oppTeam  = amHost ? (finalRoom.guest_team ?? []) : (finalRoom.host_team ?? [])
+          const oppName  = amHost ? (finalRoom.guest_name ?? 'Opponent XI') : (finalRoom.host_name ?? 'Opponent XI')
           setH2hRoom(null)
           setShowH2H(false)
           setTeam(myTeam)
           setMode('ipl')
           setSettings({ ratingType: 'overall', difficulty: 'normal', rerolls: 0 })
           setManager(null)
+          setH2hSimContext({ roomId: finalRoom.id, myUserId: myUid, opponentName: oppName, opponentTeam: oppTeam })
           setPhase('simulate')
         }}
         onInitSharedLeague={async (finalRoom) => {
@@ -428,6 +491,68 @@ export default function App() {
   // ── Shared result view — shown when URL has #share=... ─────────────────────
   if (sharedResult) return <SharedResultView data={sharedResult} onPlay={() => setSharedResult(null)} />
 
+  // ── Challenge accept screen — shown when URL has #challenge=... ─────────────
+  if (challengeData) {
+    const cd = challengeData
+    const modeLabel = { ipl: 'IPL', 'odi-wc': 'ODI WC', 't20-wc': 'T20 WC' }[cd.m] || cd.m
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1.25rem' }}>
+        <div style={{ maxWidth: 400, width: '100%', textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>⚔️</div>
+          <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '0.5rem' }}>Challenge</div>
+          <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.25rem' }}>
+            Beat {cd.w}W–{cd.l}L
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.5rem' }}>
+            {modeLabel} · {cd.rl} · You'll play with their exact squad — squad is locked. Can you do better?
+          </div>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', padding: '1rem', marginBottom: '1.5rem', textAlign: 'left' }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Their Squad</div>
+            {(cd.sq || []).map((p, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0', borderBottom: i < cd.sq.length - 1 ? '1px solid var(--border)' : 'none', fontSize: '0.78rem' }}>
+                <span style={{ color: 'var(--text)', fontWeight: 700 }}>{p.n}</span>
+                <span style={{ color: '#64748b' }}>{p.r} · {p.o}</span>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => {
+              // Reconstruct team from encoded squad data
+              const reconstructed = (cd.sq || []).map(p => ({
+                id: p.id || `challenge-${p.n}`,
+                name: p.n, role: p.r,
+                overall: p.o, batting: p.bt, bowling: p.bw, fielding: p.f,
+                nationality: p.nat,
+                iplTeam: p.it ?? null, iplYear: p.iy ?? null,
+                primeOverall: p.po ?? p.o, primeBatting: p.pb ?? p.bt, primeBowling: p.pbw ?? p.bw,
+              }))
+              setTeam(reconstructed)
+              setDraftedIds(new Set(reconstructed.map(p => p.id)))
+              setMode(cd.m || 'ipl')
+              setSettings({ ratingType: 'season', difficulty: 'normal', rerolls: 3, filteredEntries: [] })
+              setChallengerResult({ wins: cd.w, losses: cd.l, ratingLabel: cd.rl, mode: cd.m })
+              setChallengeData(null)
+              window.location.hash = ''
+              setPhase('manager')
+            }}
+            style={{
+              width: '100%', padding: '1rem', marginBottom: '0.75rem',
+              background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+              color: '#fff', border: 'none', borderRadius: '0.75rem',
+              fontSize: '1rem', fontWeight: 900, cursor: 'pointer',
+              boxShadow: '0 4px 20px #6366f133',
+            }}
+          >
+            ⚔️ Accept Challenge
+          </button>
+          <button onClick={() => { setChallengeData(null); window.location.hash = '' }} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.82rem', cursor: 'pointer' }}>
+            No thanks, play normally →
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (phase === 'menu')     return (
     <>
       <ModeSelect
@@ -440,6 +565,8 @@ export default function App() {
         onAccount={() => setShowUserProfile(true)}
         onMedals={() => { setNewAwards([]); setShowProfile(true) }}
         newAwards={newAwards}
+        streak={streak}
+        streakBonus={streakBonus}
       />
       {profileBtn}
       {globalOverlays}
@@ -518,7 +645,7 @@ export default function App() {
                   slotIndex={slotsFilled}
                   totalSlots={totalSlots}
                   draftedIds={draftedIds}
-                  releasedPlayerIds={releasedPlayerIds}
+                  releasedPlayerIds={releasedPlayerNames}
                   team={team}
                   rerollsLeft={rerollsLeft}
                   onReroll={handleReroll}
@@ -527,6 +654,8 @@ export default function App() {
                   onSpend={amt => setBudgetLeft(b => Math.max(0, b - amt))}
                   onRetryFromBeginning={handleBackToSettings}
                   onRetryBidding={handleRetryBidding}
+                  biddingWarsUsed={biddingWarsUsed}
+                  onBiddingWar={() => setBiddingWarsUsed(n => n + 1)}
                 />
               ) : (
                 <div style={{ padding: '1.75rem 1.5rem', textAlign: 'center', animation: 'fade-in-up 0.4s ease both' }}>
@@ -634,7 +763,7 @@ export default function App() {
 
   if (phase === 'simulate') return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: activeChallenge ? BANNER_H : 0 }}>
-      <MatchSimulator team={team} mode={mode} manager={manager} ratingType={settings?.ratingType} onDone={handleSimDone} />
+      <MatchSimulator team={team} mode={mode} manager={manager} ratingType={settings?.ratingType} onDone={(sum) => { if (h2hSimContext) setH2hResultCtx(h2hSimContext); setH2hSimContext(null); handleSimDone(sum) }} h2hContext={h2hSimContext} />
       {profileBtn}
       {globalOverlays}
     </div>
@@ -661,6 +790,9 @@ export default function App() {
         onNextSeason={handleNextSeason}
         seasonNumber={seasonNumber}
         newAwards={newAwards}
+        prevSeasons={prevSeasons}
+        challengerResult={challengerResult}
+        h2hContext={h2hResultCtx}
       />
       {profileBtn}
       {globalOverlays}

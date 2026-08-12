@@ -4,7 +4,7 @@ const ROLE_DEFS = [
   { key: 'opener',        label: 'Openers',       short: 'OPR', icon: '🏏', color: '#f59e0b',  min: 1, max: 4 },
   { key: 'top-order',     label: 'Top Order',      short: 'TOP', icon: '🏏', color: '#fbbf24',  min: 0, max: 4 },
   { key: 'middle-order',  label: 'Middle Order',   short: 'MID', icon: '🏏', color: '#fb923c',  min: 0, max: 4 },
-  { key: 'wicket-keeper', label: 'Wicket-keeper',  short: 'WK',  icon: '🧤', color: '#a78bfa',  min: 1, max: 3 },
+  { key: 'wicket-keeper', label: 'Wicket-keeper',  short: 'WK',  icon: '🧤', color: '#a78bfa',  min: 1, max: 4 },
   { key: 'all-rounder',   label: 'All-rounders',   short: 'AR',  icon: '⚡', color: '#34d399',  min: 0, max: 4 },
   { key: 'pace-bowler',   label: 'Pace Bowlers',   short: 'PAC', icon: '💨', color: '#ef4444',  min: 0, max: 5 },
   { key: 'spin-bowler',   label: 'Spin Bowlers',   short: 'SPN', icon: '🌀', color: '#a855f7',  min: 0, max: 5 },
@@ -26,7 +26,7 @@ const PRESETS = [
     comp: { opener: 2, 'top-order': 2, 'middle-order': 2, 'wicket-keeper': 1, 'all-rounder': 2, 'pace-bowler': 1, 'spin-bowler': 1 },
   },
   {
-    label: 'Pace Attack', icon: '💨', color: '#ef4444',
+    label: 'Pace Atk', icon: '💨', color: '#ef4444',
     comp: { opener: 2, 'top-order': 1, 'middle-order': 1, 'wicket-keeper': 1, 'all-rounder': 2, 'pace-bowler': 3, 'spin-bowler': 1 },
   },
   {
@@ -96,7 +96,7 @@ function RoleSlider({ def, value, onDrag, isMobile }) {
   const thumbSize = isMobile ? 26 : 20
 
   return (
-    <div style={{ marginBottom: isMobile ? '1.3rem' : '0.85rem' }}>
+    <div style={{ marginBottom: isMobile ? '1.3rem' : 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <span style={{ fontSize: isMobile ? '1.1rem' : '0.95rem', lineHeight: 1 }}>{def.icon}</span>
@@ -476,127 +476,143 @@ export default function SquadComposer({ onDone, onBack }) {
       height: '100vh', overflow: 'hidden',
       background: 'var(--bg)',
       display: 'flex', flexDirection: 'column',
-      padding: '1.5rem 2.5rem 1.5rem',
+      padding: '1rem 1.5rem',
       boxSizing: 'border-box',
-      gap: '1rem',
+      gap: '0.75rem',
     }}>
 
-      {/* Header — badge + title + subtitle, centred */}
+      {/* Header — full size now that presets live inside the slider card */}
       <div style={{ textAlign: 'center', flexShrink: 0 }}>
         <button onClick={onBack} style={{
-          display: 'block', margin: '0 auto 0.5rem',
+          display: 'block', margin: '0 auto 0.4rem',
           background: 'none', border: 'none', color: '#64748b',
           fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600,
         }}>← Back</button>
         <div style={{
-          display: 'inline-block', padding: '0.22rem 0.9rem',
+          display: 'inline-block', padding: '0.2rem 0.85rem',
           background: 'rgba(65,105,225,0.12)', border: '1px solid rgba(65,105,225,0.3)',
           borderRadius: '999px', color: '#4169E1',
-          fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.1em',
-          textTransform: 'uppercase', marginBottom: '0.4rem',
+          fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em',
+          textTransform: 'uppercase', marginBottom: '0.35rem',
         }}>Build Your XI</div>
-        <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text)', margin: '0 0 0.25rem', letterSpacing: '-0.03em' }}>
+        <h2 style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text)', margin: '0 0 0.2rem', letterSpacing: '-0.03em' }}>
           Choose Your Composition
         </h2>
-        <p style={{ color: '#64748b', fontSize: '0.8rem', margin: 0 }}>
+        <p style={{ color: '#64748b', fontSize: '0.78rem', margin: 0 }}>
           Drag the sliders · Must total exactly 11 · Min 1 opener, 1 keeper
         </p>
       </div>
 
-      {/* Presets */}
-      <div style={{ display: 'flex', gap: '0.65rem', justifyContent: 'center', flexShrink: 0 }}>
-        {PRESETS.map((p, i) => (
-          <button key={p.label} onClick={() => applyPreset(p, i)} style={{
-            padding: '0.48rem 1.1rem',
-            background: activePreset === i ? p.color + '22' : 'var(--card)',
-            border: `1.5px solid ${activePreset === i ? p.color : 'var(--border)'}`,
-            borderRadius: '999px', color: activePreset === i ? p.color : '#64748b',
-            fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
-            transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: '0.35rem',
-          }}>
-            <span>{p.icon}</span> {p.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Main grid — fills remaining height */}
-      <div style={{
-        flex: 1, overflow: 'hidden',
-        display: 'grid', gridTemplateColumns: '1fr 0.68fr',
-        gap: '1.5rem',
-        minHeight: 0,
-      }}>
-
-        {/* LEFT — sliders, no scroll */}
+      {/* Main grid — centred; left column widened 20% left; right column unchanged */}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--border)',
-          borderRadius: '1.5rem', padding: '1.5rem 1.75rem',
-          display: 'flex', flexDirection: 'column',
-          overflow: 'hidden', minHeight: 0,
+          width: '100%', maxWidth: 1011,
+          display: 'grid', gridTemplateColumns: '1.12fr 1fr',
+          gap: '1.5rem',
+          minHeight: 0,
         }}>
-          <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.875rem', flexShrink: 0 }}>
-            Role Sliders
-          </div>
 
-          {/* Sliders — no scroll */}
-          <div style={{ flex: 1, minHeight: 0 }}>
-            {ROLE_DEFS.map(def => (
-              <RoleSlider key={def.key} def={def} value={comp[def.key] || 0} onDrag={handleDrag} isMobile={false} />
-            ))}
-          </div>
+          {/* LEFT column: presets on far-left | slider card on right */}
+          <div style={{ display: 'flex', gap: '0.75rem', minHeight: 0 }}>
 
-          {/* Total + buttons */}
-          <div style={{ flexShrink: 0, paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                {total !== 11 && (
-                  <span style={{ fontSize: '0.72rem', color: total < 11 ? '#f59e0b' : '#ef4444', fontWeight: 700 }}>
-                    {total < 11 ? `${11 - total} more to add` : `${total - 11} too many`}
-                  </span>
+            {/* Presets — vertical column, outside & to the left of the card */}
+            <div style={{
+              flexShrink: 0, width: 82,
+              display: 'flex', flexDirection: 'column', gap: '0.45rem',
+              justifyContent: 'center',
+            }}>
+              <div style={{ fontSize: '0.52rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.15rem', textAlign: 'center' }}>Presets</div>
+              {PRESETS.map((p, i) => (
+                <button key={p.label} onClick={() => applyPreset(p, i)} style={{
+                  padding: '0.4rem 0.4rem',
+                  background: activePreset === i ? p.color + '22' : 'var(--card)',
+                  border: `1.5px solid ${activePreset === i ? p.color : 'var(--border)'}`,
+                  borderRadius: '0.75rem',
+                  color: activePreset === i ? p.color : '#64748b',
+                  fontSize: '0.62rem', fontWeight: 700, cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+                  width: '100%', transition: 'all 0.15s',
+                  lineHeight: 1.2,
+                }}>
+                  <span style={{ fontSize: '1rem', lineHeight: 1 }}>{p.icon}</span>
+                  <span style={{ textAlign: 'center', wordBreak: 'break-word' }}>{p.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Slider card — unchanged */}
+            <div style={{
+              flex: 1, minHeight: 0,
+              background: 'var(--card)', border: '1px solid var(--border)',
+              borderRadius: '1.5rem', padding: '1.5rem 1.75rem',
+              display: 'flex', flexDirection: 'column',
+              overflow: 'hidden',
+            }}>
+              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.75rem', flexShrink: 0 }}>
+                Role Sliders
+              </div>
+
+              {/* Sliders — full card width, space-between */}
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                {ROLE_DEFS.map(def => (
+                  <RoleSlider key={def.key} def={def} value={comp[def.key] || 0} onDrag={handleDrag} isMobile={false} />
+                ))}
+              </div>
+
+              {/* Total + button */}
+              <div style={{ flexShrink: 0, paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    {total !== 11 && (
+                      <span style={{ fontSize: '0.72rem', color: total < 11 ? '#f59e0b' : '#ef4444', fontWeight: 700 }}>
+                        {total < 11 ? `${11 - total} more to add` : `${total - 11} too many`}
+                      </span>
+                    )}
+                    <span style={{ fontSize: '1.6rem', fontWeight: 900, color: total === 11 ? '#4169E1' : total > 11 ? '#ef4444' : '#f59e0b' }}>
+                      {total}/11
+                    </span>
+                  </div>
+                </div>
+                {!isValid && total === 11 && (
+                  <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: '#ef4444', fontWeight: 700 }}>
+                    ⚠️ Need at least 2 bowlers (pace or spin)
+                  </div>
                 )}
-                <span style={{ fontSize: '1.6rem', fontWeight: 900, color: total === 11 ? '#4169E1' : total > 11 ? '#ef4444' : '#f59e0b' }}>
-                  {total}/11
-                </span>
+                {actionButtons}
               </div>
-            </div>
-            {!isValid && total === 11 && (
-              <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: '#ef4444', fontWeight: 700 }}>
-                ⚠️ Need at least 2 bowlers (pace or spin)
-              </div>
-            )}
-            {actionButtons}
-          </div>
-        </div>
-
-        {/* RIGHT — formation (big) + breakdown (small) */}
-        <div style={{
-          display: 'flex', flexDirection: 'column', gap: '1.25rem',
-          overflow: 'hidden', minHeight: 0,
-        }}>
-
-          {/* Formation card — takes most of the height */}
-          <div style={{
-            flex: 1, minHeight: 0,
-            background: 'var(--card)', border: '1px solid var(--border)',
-            borderRadius: '1.5rem', padding: '1.25rem',
-            display: 'flex', flexDirection: 'column',
-          }}>
-            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.75rem', flexShrink: 0 }}>
-              Formation
-            </div>
-            <div style={{ flex: 1, minHeight: 0 }}>
-              <FormationPreview comp={comp} circleSize={50} />
             </div>
           </div>
 
-          {/* Composition breakdown */}
+          {/* RIGHT — formation (big) + breakdown (small) */}
           <div style={{
-            flexShrink: 0,
-            background: 'var(--card)', border: '1px solid var(--border)',
-            borderRadius: '1.5rem', padding: '1.1rem 1.35rem',
+            display: 'flex', flexDirection: 'column', gap: '1.25rem',
+            overflow: 'hidden', minHeight: 0,
           }}>
-            <CompositionBar comp={comp} />
+
+            {/* Formation card — takes most of the height */}
+            <div style={{
+              flex: 1, minHeight: 0,
+              background: 'var(--card)', border: '1px solid var(--border)',
+              borderRadius: '1.5rem', padding: '1.25rem',
+              display: 'flex', flexDirection: 'column',
+            }}>
+              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.75rem', flexShrink: 0 }}>
+                Formation
+              </div>
+              <div style={{ flex: 1, minHeight: 0 }}>
+                <FormationPreview comp={comp} circleSize={50} />
+              </div>
+            </div>
+
+            {/* Composition breakdown */}
+            <div style={{
+              flexShrink: 0,
+              background: 'var(--card)', border: '1px solid var(--border)',
+              borderRadius: '1.5rem', padding: '1.1rem 1.35rem',
+            }}>
+              <CompositionBar comp={comp} />
+            </div>
           </div>
         </div>
       </div>

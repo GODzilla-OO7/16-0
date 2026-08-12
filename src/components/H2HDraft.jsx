@@ -23,6 +23,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { getSupabase } from '../lib/supabase.js'
 import { WHEEL_ENTRIES } from '../data/players.js'
+import { compFromSlider, roleGroup } from './H2HLobby.jsx'
 
 const TOTAL_SLOTS   = 11
 const BID_SECONDS   = 15
@@ -31,6 +32,51 @@ const SNAKE_SECONDS = 20   // time limit per pick in snake draft
 // ── IPL squad rules ──────────────────────────────────────────────────────────
 function overseasCount(team) { return team.filter(p => p.nationality !== 'India').length }
 function hasWK(team)         { return team.some(p => p.role === 'wicket-keeper') }
+
+// ── Composition quota check ───────────────────────────────────────────────────
+function compCounts(team) {
+  let batters = 0, ar = 0, bowlers = 0, wk = 0
+  for (const p of team) {
+    const g = roleGroup(p.role)
+    if (g === 'batter') batters++
+    else if (g === 'ar') ar++
+    else if (g === 'bowler') bowlers++
+    else wk++
+  }
+  return { batters, ar, bowlers, wk }
+}
+
+function compEligible(player, team, comp) {
+  if (!comp) return true   // no composition enforced
+  const counts  = compCounts(team)
+  const group   = roleGroup(player.role)
+  const slotsLeft = TOTAL_SLOTS - team.length
+  // How many slots must still be filled for other groups
+  const minBatters = Math.max(0, comp.batters - counts.batters)
+  const minAR      = Math.max(0, comp.ar      - counts.ar)
+  const minBowlers = Math.max(0, comp.bowlers - counts.bowlers)
+  const minWK      = Math.max(0, comp.wk      - counts.wk)
+  const hardMin    = minBatters + minAR + minBowlers + minWK
+
+  if (group === 'batter') {
+    // Would this pick leave room for all other required slots?
+    if (counts.batters >= comp.batters) return false
+    return (slotsLeft - 1) >= (hardMin - minBatters)
+  }
+  if (group === 'ar') {
+    if (counts.ar >= comp.ar) return false
+    return (slotsLeft - 1) >= (hardMin - minAR)
+  }
+  if (group === 'bowler') {
+    if (counts.bowlers >= comp.bowlers) return false
+    return (slotsLeft - 1) >= (hardMin - minBowlers)
+  }
+  if (group === 'wk') {
+    if (counts.wk >= comp.wk) return false
+    return (slotsLeft - 1) >= (hardMin - minWK)
+  }
+  return true
+}
 
 function getEligiblePlayers(players, team) {
   const oc       = overseasCount(team)
@@ -113,9 +159,10 @@ const XI_SLOTS = [
   { role: 'spin-bowler',    label: 'SPN', n: 1 },
 ]
 
-function XIPanel({ name, team, isMe }) {
+function XIPanel({ name, team, isMe, comp }) {
   const oc   = overseasCount(team)
   const wkOk = hasWK(team)
+  const counts = comp ? compCounts(team) : null
 
   // Expand slots and fill with matching players
   const used  = new Set()
@@ -138,12 +185,23 @@ function XIPanel({ name, team, isMe }) {
       borderRadius: '0.75rem', overflow: 'hidden',
       position: 'sticky', top: '4.5rem',
     }}>
-      <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: '0.75rem', fontWeight: 900, color: isMe ? '#4169E1' : '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>{name}</div>
-        <div style={{ display: 'flex', gap: '0.4rem', fontSize: '0.6rem', flexShrink: 0 }}>
-          <span style={{ color: oc >= 4 ? '#ef4444' : '#475569', fontWeight: 700 }}>🌍{oc}/4</span>
-          <span style={{ color: wkOk ? '#22c55e' : team.length > 4 ? '#f59e0b' : '#475569', fontWeight: 700 }}>🧤{wkOk ? '✓' : '?'}</span>
+      <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border2)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 900, color: isMe ? '#4169E1' : '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>{name}</div>
+          <div style={{ display: 'flex', gap: '0.4rem', fontSize: '0.6rem', flexShrink: 0 }}>
+            <span style={{ color: oc >= 4 ? '#ef4444' : '#475569', fontWeight: 700 }}>🌍{oc}/4</span>
+            <span style={{ color: wkOk ? '#22c55e' : team.length > 4 ? '#f59e0b' : '#475569', fontWeight: 700 }}>🧤{wkOk ? '✓' : '?'}</span>
+          </div>
         </div>
+        {comp && counts && (
+          <div style={{ display: 'flex', gap: '0.3rem', fontSize: '0.52rem', fontWeight: 700 }}>
+            <span style={{ color: counts.batters >= comp.batters ? '#22c55e' : '#f59e0b' }}>BAT {counts.batters}/{comp.batters}</span>
+            <span style={{ color: '#64748b' }}>·</span>
+            <span style={{ color: counts.ar >= comp.ar ? '#22c55e' : '#f59e0b' }}>AR {counts.ar}/{comp.ar}</span>
+            <span style={{ color: '#64748b' }}>·</span>
+            <span style={{ color: counts.bowlers >= comp.bowlers ? '#22c55e' : '#f59e0b' }}>BWL {counts.bowlers}/{comp.bowlers}</span>
+          </div>
+        )}
       </div>
       {slots.map(({ label, player }, i) => (
         <div key={i} style={{
@@ -153,7 +211,7 @@ function XIPanel({ name, team, isMe }) {
           background: player ? 'transparent' : 'var(--bg)',
           minHeight: 28,
         }}>
-          <span style={{ fontSize: '0.52rem', fontWeight: 800, color: 'var(--border)', width: 24, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{label}</span>
+          <span style={{ fontSize: '0.52rem', fontWeight: 800, color: 'var(--muted)', width: 24, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{label}</span>
           {player ? (
             <>
               <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</span>
@@ -161,7 +219,7 @@ function XIPanel({ name, team, isMe }) {
               {player.nationality !== 'India' && <span style={{ fontSize: '0.48rem', color: '#3b82f6', fontWeight: 800, flexShrink: 0 }}>OS</span>}
             </>
           ) : (
-            <span style={{ fontSize: '0.6rem', color: '#1e1e2a', fontStyle: 'italic' }}>—</span>
+            <span style={{ fontSize: '0.6rem', color: 'var(--border)', fontStyle: 'italic' }}>—</span>
           )}
         </div>
       ))}
@@ -214,6 +272,9 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
   const oppName  = isHost ? room.guest_name : room.host_name
   const myBudget  = isHost ? room.host_budget  : room.guest_budget
   const oppBudget = isHost ? room.guest_budget : room.host_budget
+  // Composition from lobby slider (null = unconstrained for old rooms without the column)
+  const myComp  = compFromSlider(isHost ? (room.host_comp ?? 5) : (room.guest_comp ?? 5))
+  const oppComp = compFromSlider(isHost ? (room.guest_comp ?? 5) : (room.host_comp ?? 5))
   // bp must be declared here (before any useEffects) to avoid TDZ ReferenceError
   const bp = room.auction_bid?.base_price ?? 0
 
@@ -400,8 +461,14 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
     const allPicked = new Set([...lMyTeam, ...lOppTeam].map(p => p.name))
     const available = latestRoom.current_pick.players.filter(p => !allPicked.has(p.name))
     if (!available.length) return  // all taken, host skip logic handles this
-    let eligible = getEligiblePlayers(available, lMyTeam)
-    if (!eligible.length) eligible = available  // relax role rules for auto-pick
+    // Apply composition constraint first, then IPL rules
+    const myCompData = compFromSlider(isHost ? (latestRoom.host_comp ?? 5) : (latestRoom.guest_comp ?? 5))
+    let eligible = getEligiblePlayers(
+      available.filter(p => compEligible(p, lMyTeam, myCompData)),
+      lMyTeam
+    )
+    if (!eligible.length) eligible = getEligiblePlayers(available, lMyTeam)  // relax comp if nothing fits
+    if (!eligible.length) eligible = available  // relax IPL rules as last resort
     // Auto-pick lowest rated eligible player
     const pick = eligible.reduce((a, b) => (a.overall < b.overall ? a : b))
     await snakePickRef.current?.(pick)
@@ -670,7 +737,12 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
   const snakeMyTurn  = isSnake && room.current_turn === uid
   const allPickedSet = new Set([...myTeam, ...oppTeam].map(p => p.name))
   const snakePlayers = currentEntry
-    ? getEligiblePlayers(currentEntry.players.filter(p => !allPickedSet.has(p.name)), myTeam)
+    ? getEligiblePlayers(
+        currentEntry.players
+          .filter(p => !allPickedSet.has(p.name))
+          .filter(p => compEligible(p, myTeam, myComp)),
+        myTeam
+      )
     : []
 
   return (
@@ -700,7 +772,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
       <div style={{ maxWidth: isSnake ? 1100 : 900, margin: '0 auto', padding: '1rem', width: '100%', display: 'grid', gridTemplateColumns: isSnake ? '200px 1fr 200px' : '1fr 220px', gap: '1rem', alignItems: 'start' }}>
 
         {/* ── Snake: My XI (left) ─────────────────────────────────────────── */}
-        {isSnake && <XIPanel name={`${myName} (You)`} team={myTeam} isMe />}
+        {isSnake && <XIPanel name={`${myName} (You)`} team={myTeam} isMe comp={myComp} />}
 
         {/* ── Center/Left panel ──────────────────────────────────────────── */}
         <div>
@@ -737,7 +809,11 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                   </div>
                   <div style={{ background: 'var(--card)', border: `1px solid ${currentEntry.color}22`, borderTop: 'none', borderRadius: '0 0 0.75rem 0.75rem', overflow: 'hidden' }}>
                     {snakePlayers.length === 0 ? (
-                      <div style={{ padding: '1rem', textAlign: 'center', color: '#475569', fontSize: '0.85rem' }}>All players from this squad already taken</div>
+                      <div style={{ padding: '1rem', textAlign: 'center', color: '#475569', fontSize: '0.85rem' }}>
+                        {currentEntry.players.filter(p => !allPickedSet.has(p.name)).length === 0
+                          ? 'All players from this squad already taken'
+                          : 'No players in this squad fit your composition slots'}
+                      </div>
                     ) : snakePlayers.map((p, i) => (
                       <div
                         key={p.id ?? p.name}
@@ -759,7 +835,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                         <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>
                           {scaleDisplay(p.overall)}
                         </div>
-                        {snakeMyTurn && <div style={{ color: 'var(--border)', fontSize: '0.9rem' }}>→</div>}
+                        {snakeMyTurn && <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>→</div>}
                       </div>
                     ))}
                   </div>
@@ -935,7 +1011,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
 
         {/* ── Right panel ─────────────────────────────────────────────────── */}
         {isSnake
-          ? <XIPanel name={oppName} team={oppTeam} isMe={false} />
+          ? <XIPanel name={oppName} team={oppTeam} isMe={false} comp={oppComp} />
           : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <TeamColumn name={myName}  team={myTeam}  budget={myBudget}  highlight />

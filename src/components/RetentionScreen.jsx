@@ -97,7 +97,8 @@ export default function RetentionScreen({ team, prevBudgetLeftover, seasonNumber
   const leftover    = prevBudgetLeftover || 0
   const totalCost   = retained.reduce((s, p) => s + retentionCost(p.overall), 0)
   const newBudget   = Math.max(0, SEASON_BASE + leftover - totalCost)
-  const releasedIds = new Set(team.filter(p => !selected.has(p.id)).map(p => p.id))
+  // Block by name (not ID) — same player from a different era has the same name and should stay blocked
+  const releasedIds = new Set(team.filter(p => !selected.has(p.id)).map(p => p.name))
   const slotsLeft   = 11 - retained.length
 
   return (

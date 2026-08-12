@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MODE_CONFIG } from '../data/players.js'
 import { loadProfile } from '../hooks/useProfile.js'
+import { createShortUrl } from '../lib/shortUrl.js'
 
 // ─── Best-finish helpers ──────────────────────────────────────────────────────
 
@@ -594,8 +595,27 @@ function getRating(wins, losses, total, perfect, targetWins, iplOutcome) {
   return { label: 'TOUGH RUN', color: '#ef4444', emoji: '😬', desc: 'Even legends have bad seasons.' }
 }
 
-export default function Results({ team, mode, manager, summary, matchResults, onPlayAgain, onNextSeason, seasonNumber = 1, newAwards = [] }) {
+export default function Results({ team, mode, manager, summary, matchResults, onPlayAgain, onNextSeason, seasonNumber = 1, newAwards = [], prevSeasons = [], challengerResult = null, h2hContext = null }) {
   const [tab, setTab] = useState('overview') // overview | playerstats | matches
+  const [h2hOppStats, setH2hOppStats] = useState(null) // { wins, losses, oppName }
+  const [waSharing2, setWaSharing2]   = useState(false)
+
+  // Fetch H2H opponent's results from Supabase when in H2H mode
+  useEffect(() => {
+    if (!h2hContext?.roomId) return
+    import('../lib/supabase.js').then(({ getSupabase }) => getSupabase()).then(async sb => {
+      if (!sb) return
+      const { data } = await sb
+        .from('h2h_live_results')
+        .select('won')
+        .eq('room_id', h2hContext.roomId)
+        .neq('player_id', h2hContext.myUserId)
+      if (!data) return
+      const oppWins   = data.filter(r => r.won).length
+      const oppLosses = data.filter(r => !r.won).length
+      setH2hOppStats({ wins: oppWins, losses: oppLosses, oppName: h2hContext.opponentName })
+    })
+  }, [h2hContext?.roomId])
 
   // Null-safe destructure
   const cfg     = MODE_CONFIG[mode] || {}
@@ -617,7 +637,20 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const iplPosition  = summary?.iplPosition  ?? null
   const stageReached = summary?.stageReached ?? null
   const actualWinner = summary?.actualWinner ?? null
-  const iconPlayer   = summary?.iconPlayer   ?? null
+  const iconPlayer    = summary?.iconPlayer   ?? null
+  const impactSubLog  = summary?.impactSubLog ?? null
+
+  // Derive impact sub performance: did the sub help?
+  // "performed well" = team reached Final or won; player rating >= player they replaced
+  const impactSubPerf = (() => {
+    if (!impactSubLog) return null
+    const inOvr  = impactSubLog.in?.overall  ?? 0
+    const outOvr = impactSubLog.out?.overall ?? 0
+    const goodOutcome = iplOutcome === 'champion' || iplOutcome === 'runner-up'
+    const ratingUpgrade = inOvr >= outOvr
+    const performed = goodOutcome || ratingUpgrade
+    return performed ? 'good' : 'bad'
+  })()
 
   // Show heartbreak for: IPL runner-up, WC Final loss, WC Semi-Final exit
   const isHeartbreak = iplOutcome === 'runner-up' || stageReached === 'Runner-up' || stageReached === 'Semi-Final'
@@ -643,6 +676,8 @@ export default function Results({ team, mode, manager, summary, matchResults, on
         st: stageReached ?? iplOutcome ?? undefined,
         tm: (team ?? []).map(p => p.name),
         aw: newAwards.length > 0 ? newAwards.map(a => `${a.icon}|${a.name}`) : undefined,
+        // Prior seasons in same run (compact: wins, losses, outcome/stage)
+        ps: prevSeasons.length > 0 ? prevSeasons.map(h => `${h.wins}W-${h.losses}L|${h.iplOutcome ?? h.stageReached ?? '?'}`) : undefined,
       }
       const payload = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== undefined && v !== null))
       const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
@@ -654,7 +689,51 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
   const buildShareText = (url) => {
     const potmLine = potm ? ` · ${potm} starred` : ''
-    return `Cricket 16-0\n\n${wins}W–${losses}L · ${rating.label}${potmLine}\n\nCan you go unbeaten? Check my squad & beat me:\n${url}`
+    const seasonLine = seasonNumber > 1 ? ` · Season ${seasonNumber}` : ''
+    let prevLine = ''
+    if (prevSeasons.length > 0) {
+      const summaries = prevSeasons.slice(0, 3).map((h, i) => {
+        const sNum = seasonNumber - 1 - i
+        const outcome = h.iplOutcome === 'champion' ? '🏆' : h.iplOutcome === 'runner-up' ? '🥈' : h.stageReached === 'Champion' ? '🏆' : ''
+        return `S${sNum}: ${h.wins}W–${h.losses}L ${outcome}`.trim()
+      })
+      prevLine = `\nPrev: ${summaries.join(' · ')}`
+    }
+    return `Cricket 16-0\n\n${wins}W–${losses}L · ${rating.label}${potmLine}${seasonLine}${prevLine}\n\nCan you go unbeaten? Check my squad & beat me:\n${url}`
+  }
+
+  const buildChallengeUrl = () => {
+    try {
+      // Encode minimal player data needed for simulation + the challenger's result
+      const squadData = (team ?? []).map(p => ({
+        r:   p.role,
+        o:   p.overall,
+        bt:  p.batting,
+        bw:  p.bowling,
+        f:   p.fielding,
+        n:   p.name,
+        nat: p.nationality,
+        id:  p.id,
+        it:  p.iplTeam  ?? null,
+        iy:  p.iplYear  ?? null,
+        // prime fields so prime mode works
+        po:  p.primeOverall  ?? null,
+        pb:  p.primeBatting  ?? null,
+        pbw: p.primeBowling  ?? null,
+      }))
+      const raw = {
+        sq: squadData,
+        m:  mode,
+        w:  wins,
+        l:  losses,
+        rl: rating.label,
+        st: stageReached ?? iplOutcome ?? undefined,
+      }
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(raw))))
+      return `https://16zero.in/#challenge=${encoded}`
+    } catch {
+      return 'https://16zero.in'
+    }
   }
 
   function cardParams() {
@@ -699,10 +778,17 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     }
   }
 
-  const shareWhatsApp = () => {
-    const url  = buildShareUrl()
-    const text = buildShareText(url)
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+  const [waSharing, setWaSharing] = useState(false)
+  const shareWhatsApp = async () => {
+    setWaSharing(true)
+    try {
+      const long = buildShareUrl()
+      const url  = await createShortUrl(long)
+      const text = buildShareText(url)
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+    } finally {
+      setWaSharing(false)
+    }
   }
 
   // Best win streak from matchResults
@@ -793,6 +879,74 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             </div>
           )}
 
+          {/* ── Challenge comparison card ── */}
+          {challengerResult && (() => {
+            const cw = challengerResult.wins ?? 0
+            const cl = challengerResult.losses ?? 0
+            const youWon = wins > cw || (wins === cw && losses < cl)
+            const tied   = wins === cw && losses === cl
+            return (
+              <div style={{
+                marginBottom: '1.25rem',
+                padding: '0.875rem 1.25rem',
+                background: youWon ? 'linear-gradient(135deg,#14532d18,#15803d18)' : tied ? 'linear-gradient(135deg,#1e3a8a18,#1e40af18)' : 'linear-gradient(135deg,#7f1d1d18,#b91c1c18)',
+                border: `2px solid ${youWon ? '#22c55e55' : tied ? '#60a5fa55' : '#ef444455'}`,
+                borderRadius: '0.875rem',
+                animation: 'fade-in-up 0.4s ease both',
+              }}>
+                <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>⚔️ Challenge Result</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '0.75rem', alignItems: 'center' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700, marginBottom: '0.2rem' }}>THEM</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#94a3b8' }}>{cw}–{cl}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{challengerResult.ratingLabel}</div>
+                  </div>
+                  <div style={{ fontSize: '1.2rem', color: youWon ? '#4ade80' : tied ? '#60a5fa' : '#f87171' }}>
+                    {youWon ? '🏆' : tied ? '🤝' : '💔'}
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.6rem', color: youWon ? '#4ade80' : '#f87171', fontWeight: 700, marginBottom: '0.2rem' }}>YOU</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text)' }}>{wins}–{losses}</div>
+                    <div style={{ fontSize: '0.65rem', color: youWon ? '#4ade80' : '#f87171', fontWeight: 700 }}>
+                      {youWon ? 'You beat the challenge! 🎉' : tied ? 'Exactly matched!' : 'Better luck next time'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* ── Previous seasons in this run ── */}
+          {prevSeasons.length > 0 && (
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.5rem' }}>
+                Season History
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', justifyContent: 'center' }}>
+                {prevSeasons.slice(0, 5).map((h, i) => {
+                  const sNum = seasonNumber - 1 - i
+                  const isChamp = h.iplOutcome === 'champion' || h.stageReached === 'Champion'
+                  const isRunnerUp = h.iplOutcome === 'runner-up' || h.stageReached === 'Runner-up'
+                  const icon = isChamp ? '🏆' : isRunnerUp ? '🥈' : ''
+                  return (
+                    <div key={i} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                      padding: '0.3rem 0.65rem',
+                      background: isChamp ? 'linear-gradient(135deg,#78350f18,#92400e18)' : 'var(--card2)',
+                      border: `1px solid ${isChamp ? '#f59e0b55' : 'var(--border)'}`,
+                      borderRadius: '999px',
+                      fontSize: '0.72rem', fontWeight: 700,
+                      color: isChamp ? '#f59e0b' : '#94a3b8',
+                    }}>
+                      {icon && <span>{icon}</span>}
+                      <span>S{sNum}: {h.wins}W–{h.losses}L</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {/* ── Medals earned this season ── */}
           {newAwards.length > 0 && (
             <div style={{ marginBottom: '1.5rem' }}>
@@ -867,6 +1021,43 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                 <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
                   {iconPlayer.nationality} · {iconPlayer.role} · Legend signing via Impact Sub
                 </div>
+                {impactSubPerf && (
+                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: impactSubPerf === 'good' ? '#4ade80' : '#f87171', marginTop: '0.25rem' }}>
+                    {impactSubPerf === 'good' ? '✅ Delivered in the playoffs' : '❌ Didn\'t quite deliver'}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Impact Sub performance line */}
+          {impactSubLog && !iconPlayer && (
+            <div style={{
+              marginBottom: '1.25rem',
+              padding: '0.75rem 1.25rem',
+              background: impactSubPerf === 'good'
+                ? 'linear-gradient(135deg, #14532d18, #15803d18)'
+                : 'linear-gradient(135deg, #7f1d1d18, #b91c1c18)',
+              border: `2px solid ${impactSubPerf === 'good' ? '#22c55e55' : '#ef444455'}`,
+              borderRadius: '0.875rem',
+              display: 'flex', alignItems: 'center', gap: '0.875rem',
+              animation: 'fade-in-up 0.4s ease both',
+            }}>
+              <div style={{ fontSize: '1.5rem', flexShrink: 0 }}>
+                {impactSubPerf === 'good' ? '✅' : '❌'}
+              </div>
+              <div style={{ textAlign: 'left', minWidth: 0 }}>
+                <div style={{ fontSize: '0.6rem', fontWeight: 900, color: impactSubPerf === 'good' ? '#22c55e' : '#ef4444', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.15rem' }}>
+                  Impact Sub · {impactSubLog.event?.label ?? 'Transfer'}
+                </div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>
+                  {impactSubLog.in?.name} <span style={{ color: '#64748b', fontWeight: 500, fontSize: '0.75rem' }}>in for</span> {impactSubLog.out?.name}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: impactSubPerf === 'good' ? '#4ade80' : '#f87171', marginTop: '0.1rem' }}>
+                  {impactSubPerf === 'good'
+                    ? 'Delivered in the playoffs'
+                    : 'Didn\'t quite deliver in the playoffs'}
+                </div>
               </div>
             </div>
           )}
@@ -876,18 +1067,20 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             {/* WhatsApp */}
             <button
               onClick={shareWhatsApp}
+              disabled={waSharing}
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.45rem',
                 padding: '0.8rem 1.4rem',
-                background: '#25D366',
+                background: waSharing ? '#1aaa52' : '#25D366',
                 color: '#fff', border: 'none', borderRadius: '0.625rem',
-                fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer',
+                fontSize: '0.88rem', fontWeight: 800, cursor: waSharing ? 'wait' : 'pointer',
+                transition: 'background 0.15s',
               }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
               </svg>
-              WhatsApp
+              {waSharing ? '⏳ Shortening…' : 'WhatsApp'}
             </button>
             {/* Copy Image */}
             <button
@@ -928,6 +1121,127 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             >
               🏠 Home
             </button>
+          </div>
+        </div>
+
+        {/* ── H2H Bragging Rights Card ── */}
+        {h2hContext && (
+          <div style={{
+            marginTop: '1.25rem',
+            padding: '1.25rem',
+            background: 'linear-gradient(135deg, #0d0d1a, #0a0a1200)',
+            border: '2px solid #f59e0b55',
+            borderRadius: '1rem',
+            animation: 'fade-in-up 0.4s ease both',
+          }}>
+            <div style={{ fontSize: '0.62rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.875rem', textAlign: 'center' }}>
+              ⚔️ H2H Bragging Rights
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '0.75rem', alignItems: 'center', marginBottom: '0.875rem' }}>
+              {/* My column */}
+              <div style={{ textAlign: 'center', padding: '0.75rem', background: 'var(--card)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#4169E1', marginBottom: '0.3rem' }}>You</div>
+                <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{wins}</div>
+                <div style={{ fontSize: '0.62rem', color: '#64748b' }}>wins</div>
+                <div style={{ fontSize: '0.78rem', color: '#ef4444', fontWeight: 700, marginTop: '0.2rem' }}>{losses}L</div>
+              </div>
+              {/* VS */}
+              <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#64748b' }}>vs</div>
+              {/* Opponent column */}
+              <div style={{ textAlign: 'center', padding: '0.75rem', background: 'var(--card)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#f59e0b', marginBottom: '0.3rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h2hContext.opponentName}</div>
+                {h2hOppStats ? (
+                  <>
+                    <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{h2hOppStats.wins}</div>
+                    <div style={{ fontSize: '0.62rem', color: '#64748b' }}>wins</div>
+                    <div style={{ fontSize: '0.78rem', color: '#ef4444', fontWeight: 700, marginTop: '0.2rem' }}>{h2hOppStats.losses}L</div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: '0.72rem', color: '#475569', padding: '0.5rem 0' }}>Still playing…</div>
+                )}
+              </div>
+            </div>
+            {/* Verdict */}
+            {h2hOppStats && (() => {
+              const iWon = wins > h2hOppStats.wins
+              const tied = wins === h2hOppStats.wins
+              return (
+                <div style={{ textAlign: 'center', padding: '0.6rem', background: iWon ? '#0d1a0d' : tied ? 'var(--card)' : '#1a0d0d', borderRadius: '0.625rem', border: `1px solid ${iWon ? '#22c55e44' : tied ? 'var(--border)' : '#ef444444'}` }}>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 900, color: iWon ? '#22c55e' : tied ? '#94a3b8' : '#ef4444' }}>
+                    {iWon ? `🏆 You win the bragging rights!` : tied ? `🤝 It's a tie!` : `${h2hContext.opponentName} wins the bragging rights`}
+                  </div>
+                </div>
+              )
+            })()}
+            {/* WhatsApp share for H2H */}
+            <button
+              onClick={async () => {
+                setWaSharing2(true)
+                try {
+                  const oppLine = h2hOppStats ? ` · ${h2hContext.opponentName}: ${h2hOppStats.wins}W–${h2hOppStats.losses}L` : ''
+                  const long = buildShareUrl()
+                  const url = await createShortUrl(long)
+                  const text = `⚔️ H2H RESULT\nMe: ${wins}W–${losses}L${oppLine}\n\nPlayed on Cricket 16-0 • ${url}`
+                  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+                } finally {
+                  setWaSharing2(false)
+                }
+              }}
+              disabled={waSharing2}
+              style={{
+                width: '100%', marginTop: '0.875rem', padding: '0.75rem',
+                background: waSharing2 ? '#1aaa52' : '#25D366',
+                color: '#fff', border: 'none', borderRadius: '0.625rem',
+                fontSize: '0.88rem', fontWeight: 800, cursor: waSharing2 ? 'wait' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+              }}
+            >
+              📣 {waSharing2 ? 'Shortening…' : 'Share H2H Result on WhatsApp'}
+            </button>
+          </div>
+        )}
+
+        {/* ── Challenge a Friend — separate, clearly distinct from share ── */}
+        <div style={{
+          marginTop: '1.25rem',
+          padding: '1rem 1.25rem',
+          background: 'linear-gradient(135deg, #1e1b4b22, #312e8122)',
+          border: '2px solid #6366f155',
+          borderRadius: '1rem',
+          textAlign: 'center',
+          animation: 'fade-in-up 0.5s ease 0.2s both',
+        }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.3rem' }}>
+            ⚔️ Challenge a Friend
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.875rem' }}>
+            Can they beat your {wins}W–{losses}L record with the <strong style={{ color: 'var(--text)' }}>exact same squad?</strong> Send them your squad — they play blind.
+          </div>
+          <button
+            onClick={() => {
+              const url = buildChallengeUrl()
+              navigator.clipboard?.writeText(url).then(() => {
+                // Brief flash feedback — swap button text
+                const btn = document.getElementById('challenge-copy-btn')
+                if (btn) { btn.textContent = '✅ Link Copied!'; setTimeout(() => { btn.textContent = '📋 Copy Challenge Link' }, 2000) }
+              }).catch(() => {
+                window.prompt('Copy this challenge link:', url)
+              })
+            }}
+            id="challenge-copy-btn"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.75rem 1.5rem',
+              background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+              color: '#fff', border: 'none', borderRadius: '0.625rem',
+              fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer',
+              boxShadow: '0 4px 16px #6366f133',
+            }}
+          >
+            📋 Copy Challenge Link
+          </button>
+          <div style={{ fontSize: '0.6rem', color: '#475569', marginTop: '0.5rem' }}>
+            This is NOT the same as the WhatsApp result share above — it locks your squad for them to play with.
           </div>
         </div>
 

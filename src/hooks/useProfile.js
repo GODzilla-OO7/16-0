@@ -111,6 +111,31 @@ export const AWARDS = [
       iplOutcome === 'champion' && history?.length >= 1 && history[0]?.iplOutcome === 'champion',
   },
   {
+    id:    'run_double',
+    icon:  '🔥',
+    name:  'On Fire',
+    desc:  'Win the IPL twice in a row in the same session',
+    // Both this season and last must share the same runId, meaning they're from the same continuous play session
+    check: ({ iplOutcome, history, runId }) =>
+      iplOutcome === 'champion' &&
+      history?.length >= 1 &&
+      history[0]?.iplOutcome === 'champion' &&
+      history[0]?.runId === runId,
+  },
+  {
+    id:    'run_triple',
+    icon:  '👑🔥',
+    name:  'Reign of Fire',
+    desc:  'Win the IPL three times in a row in the same session',
+    check: ({ iplOutcome, history, runId }) =>
+      iplOutcome === 'champion' &&
+      history?.length >= 2 &&
+      history[0]?.iplOutcome === 'champion' &&
+      history[1]?.iplOutcome === 'champion' &&
+      history[0]?.runId === runId &&
+      history[1]?.runId === runId,
+  },
+  {
     id:    'big_guns',
     icon:  '💪',
     name:  'Big Guns',
@@ -160,6 +185,113 @@ export const AWARDS = [
     name:  'Playoff Bound',
     desc:  'Qualify for the IPL Playoffs (top 4)',
     check: ({ iplPosition }) => iplPosition != null && iplPosition <= 4,
+  },
+  // ── Cult / squad medals ───────────────────────────────────────────────────
+  {
+    id:    'desh_bhakt',
+    icon:  '🇮🇳',
+    name:  'Desh Bhakt',
+    desc:  'Win the IPL with an all-Indian squad',
+    check: ({ iplOutcome, team }) =>
+      iplOutcome === 'champion' &&
+      Array.isArray(team) && team.length > 0 &&
+      team.every(p => p.nationality === 'India'),
+  },
+  {
+    id:    'two_man_army',
+    icon:  '🎯',
+    name:  'Two-Man Army',
+    desc:  'Win the IPL with only 2 bowlers in your squad',
+    check: ({ iplOutcome, composition }) =>
+      iplOutcome === 'champion' &&
+      composition != null &&
+      ((composition['pace-bowler'] ?? 0) + (composition['spin-bowler'] ?? 0)) <= 2,
+  },
+  {
+    id:    'streets_wont_forget',
+    icon:  '🌟',
+    name:  "Streets Won't Forget",
+    desc:  'Win the IPL with a squad averaging 92+ overall',
+    check: ({ iplOutcome, team }) => {
+      if (iplOutcome !== 'champion' || !Array.isArray(team) || team.length === 0) return false
+      const avg = team.reduce((s, p) => s + (p.overall ?? 0), 0) / team.length
+      return avg >= 92
+    },
+  },
+  {
+    id:    'cult_xi',
+    icon:  '👑',
+    name:  'Cult XI',
+    desc:  'Win the IPL with 3 or more players rated 95+ overall',
+    check: ({ iplOutcome, team }) =>
+      iplOutcome === 'champion' &&
+      Array.isArray(team) &&
+      team.filter(p => (p.overall ?? 0) >= 95).length >= 3,
+  },
+  {
+    id:    'spider_web',
+    icon:  '🌀',
+    name:  "Spider's Web",
+    desc:  'Win the IPL using 4+ spinners in your squad',
+    check: ({ iplOutcome, composition }) =>
+      iplOutcome === 'champion' &&
+      composition != null &&
+      (composition['spin-bowler'] ?? 0) >= 4,
+  },
+  {
+    id:    'pace_is_pace',
+    icon:  '💨',
+    name:  'Pace is Pace',
+    desc:  'Win the IPL using 4+ pace bowlers in your squad',
+    check: ({ iplOutcome, composition }) =>
+      iplOutcome === 'champion' &&
+      composition != null &&
+      (composition['pace-bowler'] ?? 0) >= 4,
+  },
+  {
+    id:    'united_nations',
+    icon:  '🌍',
+    name:  'United Nations',
+    desc:  'Win a championship with players from 5+ different countries',
+    check: ({ stageReached, iplOutcome, team }) => {
+      if (!(stageReached === 'Champion' || iplOutcome === 'champion')) return false
+      if (!Array.isArray(team) || team.length === 0) return false
+      return new Set(team.map(p => p.nationality).filter(Boolean)).size >= 5
+    },
+  },
+  {
+    id:    'all_rounders_army',
+    icon:  '⚡',
+    name:  "All-Rounder's Army",
+    desc:  'Win the IPL with 4 or more all-rounders in your squad',
+    check: ({ iplOutcome, composition }) =>
+      iplOutcome === 'champion' &&
+      composition != null &&
+      (composition['all-rounder'] ?? 0) >= 4,
+  },
+  {
+    id:    'batting_blitz',
+    icon:  '💥',
+    name:  'Batting Blitz',
+    desc:  'Win the IPL with 7+ batters (openers + top + middle + keeper)',
+    check: ({ iplOutcome, composition }) => {
+      if (iplOutcome !== 'champion' || composition == null) return false
+      const batters = (composition['opener'] ?? 0) + (composition['top-order'] ?? 0)
+        + (composition['middle-order'] ?? 0) + (composition['wicket-keeper'] ?? 0)
+      return batters >= 7
+    },
+  },
+  {
+    id:    'global_xi',
+    icon:  '🗺️',
+    name:  'Global XI',
+    desc:  'Win a World Cup with players from 4+ different countries',
+    check: ({ stageReached, mode, team }) => {
+      if (stageReached !== 'Champion') return false
+      if (!(mode === 'odi-wc' || mode === 't20-wc')) return false
+      if (!Array.isArray(team) || team.length === 0) return false
+      return new Set(team.map(p => p.nationality).filter(Boolean)).size >= 4
+    },
   },
 ]
 
@@ -237,7 +369,7 @@ export function recordSeason(data) {
 
   // Check awards
   const earnedSet = new Set(p.awards ?? [])
-  const context = { ...data, modesWon: modesWonSet, totalSeasons: p.totalSeasons, iplWins: p.iplWins, history: p.history ?? [] }
+  const context = { ...data, modesWon: modesWonSet, totalSeasons: p.totalSeasons, iplWins: p.iplWins, history: p.history ?? [], runId: data.runId ?? null }
   const newlyEarned = []
 
   for (const award of AWARDS) {
@@ -261,6 +393,8 @@ export function recordSeason(data) {
       iplOutcome:   data.iplOutcome,
       difficulty:   data.difficulty,
       manager:      data.manager?.name ?? null,
+      runId:        data.runId ?? null,
+      seasonNumber: data.seasonNumber ?? null,
       date:         new Date().toISOString(),
     },
     ...(p.history ?? []),

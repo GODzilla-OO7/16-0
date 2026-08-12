@@ -5,5 +5,11 @@
       "destination": "https://tinyurl.com/:code",
       "permanent": false
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/s/:code",
+      "destination": "/index.html"
+    }
   ]
 }

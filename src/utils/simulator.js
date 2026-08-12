@@ -451,6 +451,11 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
       const so = simulateSuperOver(myStr, opp.strength)
       result.superOver = so           // { won, myRuns, oppRuns }
       result.won       = so.won       // override regular match result with SO result
+      // Show equal regulation scores (match was tied, decided by super over)
+      const tiedRuns = Math.min(parseInt(result.myScore), parseInt(result.oppScore))
+      result.myScore  = `${tiedRuns}/${result.myScore.split('/')[1]}`
+      result.oppScore = `${tiedRuns}/${result.oppScore.split('/')[1]}`
+      result.summary  = so.won ? 'Won (Super Over)' : 'Lost (Super Over)'
     }
 
     accumulateMatchStats(result, runTotals, ballTotals, wicketTotals, bowlBallTotals, bowlRunTotals, oppRunTotals, oppWicketTotals, oppRoleMap, oppTeamMap, format, opp.name, opp.strength)
@@ -465,7 +470,14 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   // ── IPL: 14-match league (no elimination during league) ───────────────────
   if (mode === 'ipl') {
     const leagueOpps = makeOpponents(mode, 14)
-    leagueOpps.forEach((opp, i) => playMatch('League', i + 1, opp))
+    // H2H: inject opponent team as match 7 (midway through season)
+    if (options.h2hOpponent) {
+      leagueOpps[6] = { ...options.h2hOpponent, isH2H: true }
+    }
+    leagueOpps.forEach((opp, i) => {
+      const result = playMatch('League', i + 1, opp)
+      if (opp.isH2H) result.isH2HShowdown = true
+    })
     stageReached = 'League'
   }
 
