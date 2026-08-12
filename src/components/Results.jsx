@@ -619,7 +619,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
   // Null-safe destructure
   const cfg     = MODE_CONFIG[mode] || {}
-  const wins    = summary?.wins    ?? 0
+  const wins    = summary?.wins    ?? 0   // league-only (used for rating/writeup)
   const losses  = summary?.losses  ?? 0
   const total   = summary?.total   ?? matchResults?.length ?? 0
   const perfect = summary?.perfect ?? false
@@ -639,6 +639,28 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const actualWinner = summary?.actualWinner ?? null
   const iconPlayer    = summary?.iconPlayer   ?? null
   const impactSubLog  = summary?.impactSubLog ?? null
+
+  // ── Playoff-aware display record (IPL only) ──────────────────────────────
+  // league always = 14 matches; playoffs add 1-3 more; cap final display at 16
+  const isIPLMode      = mode === 'ipl'
+  const didntQualify   = isIPLMode && iplOutcome === 'not_qualified'
+  const playoffMatches = (matchResults ?? []).filter(r => r.stage != null)
+  const madePlayoffs   = isIPLMode && !didntQualify && playoffMatches.length > 0
+  let dispWins, dispLosses, dispTotal
+  if (madePlayoffs) {
+    const pw = playoffMatches.filter(r => r.won).length
+    const pl = playoffMatches.filter(r => !r.won).length
+    let w = wins + pw
+    let l = losses + pl
+    if (w + l > 16) w -= (w + l - 16)   // drop qualifying win(s) to cap at 16
+    dispWins   = w
+    dispLosses = l
+    dispTotal  = w + l
+  } else {
+    dispWins   = wins
+    dispLosses = losses
+    dispTotal  = total
+  }
 
   // Derive impact sub performance: did the sub help?
   // "performed well" = team reached Final or won; player rating >= player they replaced
@@ -663,8 +685,8 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     try {
       // Compact keys to keep the base64 URL short; skip null/undefined fields
       const raw = {
-        w:  wins,
-        l:  losses,
+        w:  dispWins,
+        l:  dispLosses,
         r:  rating.label,
         m:  cfg.label || undefined,
         p:  potm || undefined,
@@ -699,7 +721,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
       })
       prevLine = `\nPrev: ${summaries.join(' · ')}`
     }
-    return `Cricket 16-0\n\n${wins}W–${losses}L · ${rating.label}${potmLine}${seasonLine}${prevLine}\n\nCan you go unbeaten? Check my squad & beat me:\n${url}`
+    return `Cricket 16-0\n\n${dispWins}W–${dispLosses}L · ${rating.label}${potmLine}${seasonLine}${prevLine}\n\nCan you go unbeaten? Check my squad & beat me:\n${url}`
   }
 
   const buildChallengeUrl = () => {
@@ -724,8 +746,8 @@ export default function Results({ team, mode, manager, summary, matchResults, on
       const raw = {
         sq: squadData,
         m:  mode,
-        w:  wins,
-        l:  losses,
+        w:  dispWins,
+        l:  dispLosses,
         rl: rating.label,
         st: stageReached ?? iplOutcome ?? undefined,
       }
@@ -738,7 +760,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
   function cardParams() {
     return {
-      wins, losses, total,
+      wins: dispWins, losses: dispLosses, total: dispTotal,
       ratingLabel: rating.label,
       ratingColor: rating.color,
       modeLabel:   cfg.label,
@@ -763,7 +785,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     const url  = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href     = url
-    link.download = `cricket16-0-${wins}w-${losses}l.png`
+    link.download = `cricket16-0-${dispWins}w-${dispLosses}l.png`
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -843,10 +865,10 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             {rating.label}
           </div>
           <div style={{ fontSize: 'clamp(3rem,10vw,5rem)', fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--text)', lineHeight: 1 }}>
-            {wins}-{losses}
+            {dispWins}-{dispLosses}
           </div>
           <div style={{ fontSize: '0.95rem', color: '#64748b', marginTop: '0.35rem', marginBottom: '0.75rem' }}>
-            {cfg.label} · {total} match{total !== 1 ? 'es' : ''} played
+            {cfg.label} · {dispTotal} match{dispTotal !== 1 ? 'es' : ''}{madePlayoffs ? ' incl. playoffs' : ''}{didntQualify ? ' · Didn\'t make playoffs' : ''}
           </div>
           <div style={{ fontSize: '1rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: '1.5rem' }}>
             {rating.desc}
