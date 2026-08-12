@@ -367,25 +367,7 @@ export default function App() {
     transition: 'border-color 0.2s, color 0.2s',
   }
 
-  const profileBtn = (
-    <div style={{ position: 'fixed', bottom: '1.25rem', right: '1.25rem', zIndex: 800, display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
-      {/* Medals button */}
-      <button
-        onClick={() => { setNewAwards([]); setShowProfile(true) }}
-        title="Medals & Awards"
-        style={{ ...btnBase, color: newAwards.length > 0 ? '#f59e0b' : '#64748b', fontSize: '1.1rem', position: 'relative' }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#f59e0b' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = newAwards.length > 0 ? '#f59e0b' : '#64748b' }}
-      >
-        🏅
-        {newAwards.length > 0 && (
-          <span style={{ position: 'absolute', top: -4, right: -4, width: 14, height: 14, borderRadius: '50%', background: '#f59e0b', fontSize: '0.55rem', fontWeight: 900, color: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {newAwards.length}
-          </span>
-        )}
-      </button>
-    </div>
-  )
+  const profileBtn = null
 
   // Shared League full-page takeover
   if (h2hLeagueRoom) {

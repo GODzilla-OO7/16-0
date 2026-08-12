@@ -211,6 +211,34 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
       overflow: 'hidden',
     }}>
 
+      {/* My Account — top left */}
+      <button
+        onClick={user ? onAccount : onMedals}
+        title={user ? 'My Account' : 'My Medals'}
+        style={{
+          position: 'absolute', top: '1rem', left: '1rem', zIndex: 10,
+          height: 40, borderRadius: '999px',
+          padding: '0 0.875rem',
+          background: dark ? '#1e2235' : C.cardBg,
+          border: `1.5px solid ${dark ? '#4169E155' : C.cardBorder}`,
+          cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
+          display: 'flex', alignItems: 'center', gap: '0.4rem',
+          color: C.muted,
+          transition: 'border-color 0.15s, background 0.15s',
+          whiteSpace: 'nowrap',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#4169E155' : C.cardBorder; e.currentTarget.style.color = C.muted }}
+      >
+        <span style={{ fontSize: '1rem' }}>👤</span>
+        My Account
+        {newAwards.length > 0 && (
+          <span style={{ background: '#f59e0b', color: '#0a0a0f', borderRadius: '999px', fontSize: '0.55rem', fontWeight: 900, padding: '0.1rem 0.35rem', minWidth: 14, textAlign: 'center' }}>
+            {newAwards.length}
+          </span>
+        )}
+      </button>
+
       {/* Theme toggle — top right */}
       <button
         onClick={toggleTheme}
@@ -543,27 +571,6 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
                   <div style={{ fontSize: '0.78rem', fontWeight: 700, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
                   <div style={{ fontSize: '0.65rem', color: C.heroMuted }}>Signed in · progress saved</div>
                 </div>
-              </button>
-              <button
-                onClick={onMedals}
-                title="Medals & Awards"
-                style={{
-                  width: 44, height: 44, flexShrink: 0, borderRadius: '0.625rem',
-                  background: newAwards.length > 0 ? '#f59e0b22' : C.cardBg,
-                  border: `1px solid ${newAwards.length > 0 ? '#f59e0b66' : C.cardBorder}`,
-                  cursor: 'pointer', fontSize: '1.15rem', position: 'relative',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'border-color 0.15s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = '#f59e0b'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = newAwards.length > 0 ? '#f59e0b66' : C.cardBorder}
-              >
-                🏅
-                {newAwards.length > 0 && (
-                  <span style={{ position: 'absolute', top: -4, right: -4, width: 14, height: 14, borderRadius: '50%', background: '#f59e0b', fontSize: '0.55rem', fontWeight: 900, color: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {newAwards.length}
-                  </span>
-                )}
               </button>
             </div>
         </div>

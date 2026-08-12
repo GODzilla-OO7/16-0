@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { fetchProfile } from '../hooks/useAuth'
 import { getSupabase } from '../lib/supabase'
 import { getStreakData } from '../hooks/useStreak'
+import { loadProfile, AWARDS } from '../hooks/useProfile'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -173,6 +174,31 @@ function ResultRow({ result }) {
   )
 }
 
+function TrophyCard({ award, earned }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '0.625rem',
+      padding: '0.625rem 0.75rem',
+      background: earned ? 'var(--card)' : 'var(--bg)',
+      border: `1px solid ${earned ? '#f59e0b33' : 'var(--border)'}`,
+      borderRadius: '0.625rem',
+      opacity: earned ? 1 : 0.4,
+      filter: earned ? 'none' : 'grayscale(1)',
+    }}>
+      <div style={{ fontSize: '1.3rem', flexShrink: 0, width: 28, textAlign: 'center' }}>
+        {earned ? award.icon : '🔒'}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: earned ? 'var(--text)' : 'var(--muted)', lineHeight: 1.2 }}>{award.name}</div>
+        <div style={{ fontSize: '0.58rem', color: 'var(--muted)', marginTop: '0.15rem', lineHeight: 1.3 }}>{award.desc}</div>
+      </div>
+      {earned && (
+        <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>✓</div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function UserProfile({ user, onClose, onSignOut }) {
@@ -219,6 +245,12 @@ export default function UserProfile({ user, onClose, onSignOut }) {
   const worstSeason  = sortedByBest[sortedByBest.length - 1] ?? null
 
   const { streak: loginStreak } = getStreakData()
+
+  // Local awards (stored in localStorage, not Supabase)
+  const localProfile  = loadProfile()
+  const earnedIds     = new Set(localProfile.awards ?? [])
+  const earnedAwards  = AWARDS.filter(a => earnedIds.has(a.id))
+  const lockedAwards  = AWARDS.filter(a => !earnedIds.has(a.id))
 
   const MILESTONES = [
     { count: 1,   icon: '🏏', label: 'First Season' },
@@ -412,6 +444,40 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                 </div>
               </div>
             )}
+
+            {/* ── Trophy Cabinet ───────────────────────────────────────────── */}
+            <div style={{ marginBottom: '1.75rem' }}>
+              <SectionHeader title={`Trophy Cabinet · ${earnedAwards.length} / ${AWARDS.length}`} icon="🏆" />
+              {earnedAwards.length === 0 ? (
+                <div style={{
+                  textAlign: 'center', padding: '1.5rem',
+                  background: 'var(--card)', borderRadius: '0.75rem',
+                  border: '1px solid var(--border)',
+                  color: 'var(--muted)', fontSize: '0.82rem',
+                }}>
+                  No trophies yet — win your first IPL or World Cup to start collecting.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+                  {earnedAwards.map(a => <TrophyCard key={a.id} award={a} earned />)}
+                </div>
+              )}
+              {lockedAwards.length > 0 && earnedAwards.length > 0 && (
+                <details style={{ marginTop: '0.625rem' }}>
+                  <summary style={{ fontSize: '0.65rem', color: 'var(--muted)', cursor: 'pointer', fontWeight: 600, padding: '0.25rem 0', userSelect: 'none' }}>
+                    +{lockedAwards.length} locked {lockedAwards.length === 1 ? 'trophy' : 'trophies'} to discover
+                  </summary>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginTop: '0.4rem' }}>
+                    {lockedAwards.map(a => <TrophyCard key={a.id} award={a} earned={false} />)}
+                  </div>
+                </details>
+              )}
+              {earnedAwards.length === 0 && lockedAwards.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginTop: '0.75rem' }}>
+                  {lockedAwards.slice(0, 4).map(a => <TrophyCard key={a.id} award={a} earned={false} />)}
+                </div>
+              )}
+            </div>
 
             {/* ── Recent Seasons ───────────────────────────────────────────── */}
             <div>
