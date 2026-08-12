@@ -19,7 +19,7 @@ import H2HDraft from './components/H2HDraft.jsx'
 import SharedLeague from './components/SharedLeague.jsx'
 import { STARTING_BUDGET } from './components/WheelSpin.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
-import { getStreakData, recordPlayStreak, consumeStreakBonus } from './hooks/useStreak.js'
+import { getStreakData, recordDailyLogin, recordPlayStreak, consumeStreakBonus } from './hooks/useStreak.js'
 import { useAuth, saveGameResult, incrementTotalPlays, signInWithGoogle } from './hooks/useAuth.js'
 import { generateTournament } from './utils/sharedTournament.js'
 import { getSupabase } from './lib/supabase.js'
@@ -121,7 +121,7 @@ export default function App() {
   const [showDailyChallenge, setShowDailyChallenge] = useState(false)
   const [newAwards,   setNewAwards]     = useState([])
   const [prevSeasons, setPrevSeasons]  = useState([])  // history entries for prior seasons in this run
-  const [streak, setStreak]           = useState(() => getStreakData().streak)
+  const [streak, setStreak]           = useState(() => recordDailyLogin())
   const [streakBonus, setStreakBonus] = useState(() => getStreakData().bonusPending)
   const [previewManager,   setPreviewManager]   = useState(null) // coach landed (spin preview for TeamStrengthPanel)
   const [confirmedManager, setConfirmedManager] = useState(null) // coach confirmed by user click

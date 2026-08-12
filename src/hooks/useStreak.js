@@ -1,5 +1,7 @@
 /**
- * useStreak — play-streak tracking (one increment per calendar day you complete a season).
+ * useStreak — daily login streak tracking.
+ * Increments once per calendar day on first app visit.
+ * Bonus budget milestones granted when completing a season.
  * Stored in localStorage; no server needed.
  */
 
@@ -40,35 +42,45 @@ export function getStreakData() {
 }
 
 /**
- * Called when the user finishes a season.
- * Increments streak if they haven't played today yet.
+ * Called on app load (first visit of the day).
+ * Increments the streak counter — no bonus granted here.
  * Returns the new streak count.
+ */
+export function recordDailyLogin() {
+  try {
+    const today   = todayStr()
+    const lastDay = localStorage.getItem(LAST_DAY_KEY)
+    if (lastDay === today) {
+      // Already recorded today — just return current streak
+      return parseInt(localStorage.getItem(STREAK_KEY) || '0', 10)
+    }
+    const current   = parseInt(localStorage.getItem(STREAK_KEY) || '0', 10)
+    const newStreak = lastDay === yesterdayStr() ? current + 1 : 1
+    localStorage.setItem(STREAK_KEY,   String(newStreak))
+    localStorage.setItem(LAST_DAY_KEY, today)
+    return newStreak
+  } catch {
+    return 1
+  }
+}
+
+/**
+ * Called when the user finishes a season.
+ * Does NOT increment streak (login already did that).
+ * Checks milestone bonuses and queues them if crossed.
+ * Returns the current streak count.
  */
 export function recordPlayStreak() {
   try {
-    const today    = todayStr()
-    const lastDay  = localStorage.getItem(LAST_DAY_KEY)
-
-    // Already played today — no change
-    if (lastDay === today) {
-      return parseInt(localStorage.getItem(STREAK_KEY) || '0', 10)
-    }
-
-    const current   = parseInt(localStorage.getItem(STREAK_KEY) || '0', 10)
-    const newStreak = lastDay === yesterdayStr() ? current + 1 : 1
-
-    localStorage.setItem(STREAK_KEY,   String(newStreak))
-    localStorage.setItem(LAST_DAY_KEY, today)
-
-    // Grant bonus budget at milestones (only once per milestone crossing)
-    const bonus = getStreakBonus(newStreak)
-    const prevBonus = getStreakBonus(current)
+    // Login already incremented the streak — just check bonus milestones
+    const streak  = parseInt(localStorage.getItem(STREAK_KEY) || '1', 10)
+    const prev    = Math.max(0, streak - 1)
+    const bonus    = getStreakBonus(streak)
+    const prevBonus = getStreakBonus(prev)
     if (bonus > prevBonus) {
-      // Milestone just crossed — queue the bonus for their next auction
       localStorage.setItem(BONUS_KEY, String(bonus))
     }
-
-    return newStreak
+    return streak
   } catch {
     return 0
   }
