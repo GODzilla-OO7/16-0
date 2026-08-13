@@ -89,6 +89,17 @@ function getEligiblePlayers(players, team) {
   })
 }
 
+// Can this team legally pick this player? (comp + overseas + WK + slots)
+function canTeamTakePlayer(player, team, comp) {
+  if (team.length >= TOTAL_SLOTS) return false
+  if (!compEligible(player, team, comp)) return false
+  const oc = overseasCount(team)
+  if (oc >= 4 && player.nationality !== 'India') return false
+  const last = team.length === TOTAL_SLOTS - 1
+  if (last && !hasWK(team) && player.role !== 'wicket-keeper') return false
+  return true
+}
+
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
 
 function shuffle(arr) {
@@ -261,6 +272,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
   const [showManualBid, setShowManualBid] = useState(false)
   const [manualBidVal, setManualBidVal]   = useState('')
   const [countdown, setCountdown]         = useState(null)
+  const [skipBanner, setSkipBanner]       = useState(null)   // "Ineligible — skipping X"
   const [turnTimeLeft, setTurnTimeLeft]   = useState(null)  // snake pick timer
 
   const countdownRef  = useRef(null)
@@ -510,14 +522,80 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
   async function postNextPlayer() {
     const pool       = buildAuctionPool()
     const latestRoom = roomRef.current
-    const allPicked  = new Set([...(latestRoom.host_team ?? []), ...(latestRoom.guest_team ?? [])].map(p => p.name))
-    const available  = pool.filter(p => !allPicked.has(p.name))
+    const pickedSet  = new Set([...(latestRoom.host_team ?? []), ...(latestRoom.guest_team ?? [])].map(p => p.name))
+
+    const hComp = compFromSlider(latestRoom.host_comp  ?? 5)
+    const gComp = compFromSlider(latestRoom.guest_comp ?? 5)
+
+    // ── Task 8: Fast-fill teams with ₹0 budget ────────────────────────────────
+    let hostTeam  = [...(latestRoom.host_team  ?? [])]
+    let guestTeam = [...(latestRoom.guest_team ?? [])]
+    const hBudget = latestRoom.host_budget  ?? 0
+    const gBudget = latestRoom.guest_budget ?? 0
+    const usedNames = new Set(pickedSet)
+
+    function fillFromCheap(team, comp) {
+      const filled = [...team]
+      while (filled.length < TOTAL_SLOTS) {
+        const candidates = pool.filter(p => !usedNames.has(p.name) && scaleDisplay(p.overall) <= 65)
+        const idx = candidates.findIndex(p => canTeamTakePlayer(p, filled, comp))
+        if (idx === -1) break
+        const player = candidates[idx]
+        usedNames.add(player.name)
+        filled.push(player)
+      }
+      return filled
+    }
+
+    let fastFilled = false
+    if (hBudget <= 0 && hostTeam.length < TOTAL_SLOTS) {
+      hostTeam  = fillFromCheap(hostTeam, hComp);  fastFilled = true
+    }
+    if (gBudget <= 0 && guestTeam.length < TOTAL_SLOTS) {
+      guestTeam = fillFromCheap(guestTeam, gComp); fastFilled = true
+    }
+
+    if (fastFilled) {
+      const isDone = hostTeam.length >= TOTAL_SLOTS && guestTeam.length >= TOTAL_SLOTS
+      const upd = {
+        host_team: hostTeam, guest_team: guestTeam,
+        current_pick: null, auction_bid: null,
+        status: isDone ? 'done' : 'drafting',
+      }
+      const sb = await getSupabase()
+      if (!sb) return
+      const { error } = await sb.from('h2h_rooms').update(upd).eq('id', latestRoom.id)
+      if (!error) applyRoomUpdate({ ...latestRoom, ...upd })
+      return
+    }
+
+    // ── Task 7: Pick next player, skipping those ineligible for both teams ────
+    const available = pool.filter(p => !pickedSet.has(p.name))
     if (!available.length) return
 
-    const chosen     = pickFromPool(available)
-    const bp         = basePrice(chosen.overall)
-    const deadline   = new Date(Date.now() + BID_SECONDS * 1000).toISOString()
-    const newBid     = {
+    const hT = latestRoom.host_team  ?? []
+    const gT = latestRoom.guest_team ?? []
+    const tried = new Set()
+    let chosen = null
+
+    for (let attempt = 0; attempt < 50 && tried.size < available.length; attempt++) {
+      const remaining = available.filter(p => !tried.has(p.name))
+      if (!remaining.length) break
+      const candidate = pickFromPool(remaining)
+      tried.add(candidate.name)
+      const hostOk  = hT.length  < TOTAL_SLOTS && canTeamTakePlayer(candidate, hT,  hComp)
+      const guestOk = gT.length  < TOTAL_SLOTS && canTeamTakePlayer(candidate, gT, gComp)
+      if (hostOk || guestOk) { chosen = candidate; break }
+      // Both teams can't take this player — show banner and try next
+      setSkipBanner(`Ineligible for all teams — skipping ${candidate.name}`)
+      setTimeout(() => setSkipBanner(null), 3000)
+    }
+
+    if (!chosen) return  // pool exhausted or all remaining ineligible
+
+    const bp       = basePrice(chosen.overall)
+    const deadline = new Date(Date.now() + BID_SECONDS * 1000).toISOString()
+    const newBid   = {
       phase: 'open', base_price: bp,
       current_bid: null, current_bidder_id: null,
       host_folded: false, guest_folded: false,
@@ -686,7 +764,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
     }
   }, [room.auction_bid?.host_folded, room.auction_bid?.guest_folded, room.auction_bid?.phase])
 
-  // Auto-fold when team is full or can't afford base price
+  // Auto-fold when team is full, can't afford, or player is ineligible (comp/overseas/WK)
   useEffect(() => {
     if (isSnake || !currentPlayer || !auctionPhase || myFolded) return
     const myFoldField = isHost ? 'host_folded' : 'guest_folded'
@@ -694,7 +772,13 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
     if (auctionPhase === 'war' && room.auction_bid?.current_bidder_id === uid) return
     const teamFull   = myTeam.length >= TOTAL_SLOTS
     const cantAfford = (myBudget ?? 0) < (room.auction_bid?.base_price ?? 0)
-    if (teamFull || cantAfford) foldBid()
+    // Eligibility: overseas cap, last-slot WK rule, composition quota
+    const oc              = overseasCount(myTeam)
+    const last            = myTeam.length === TOTAL_SLOTS - 1
+    const overseasBlocked = oc >= 4 && currentPlayer.nationality !== 'India'
+    const wkBlocked       = last && !hasWK(myTeam) && currentPlayer.role !== 'wicket-keeper'
+    const compBlocked     = !compEligible(currentPlayer, myTeam, myComp)
+    if (teamFull || cantAfford || overseasBlocked || wkBlocked || compBlocked) foldBid()
   }, [currentPlayer, auctionPhase, myFolded, myTeam.length, myBudget])
 
   // Auto-post next player for auction (host)
@@ -866,7 +950,12 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                     const oppHasFolded    = bid?.[oppFoldField] ?? false
                     const teamFull        = myTeam.length >= TOTAL_SLOTS
                     const cantAfford      = (myBudget ?? 0) < bp
-                    const autoBlocked     = teamFull || cantAfford
+                    const oc2             = overseasCount(myTeam)
+                    const last2           = myTeam.length === TOTAL_SLOTS - 1
+                    const overseasBlocked = oc2 >= 4 && currentPlayer.nationality !== 'India'
+                    const wkBlocked       = last2 && !hasWK(myTeam) && currentPlayer.role !== 'wicket-keeper'
+                    const compBlocked     = !compEligible(currentPlayer, myTeam, myComp)
+                    const autoBlocked     = teamFull || cantAfford || overseasBlocked || wkBlocked || compBlocked
                     const minNextBid      = currentBid != null ? +(currentBid + 0.25).toFixed(2) : bp
                     const canBid          = !autoBlocked && !iHaveFolded && (auctionPhase === 'open' || (auctionPhase === 'war' && !iAmBidder))
 
@@ -904,7 +993,11 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                         <div style={{ padding: '0.875rem 1.25rem' }}>
                           {autoBlocked ? (
                             <div style={{ fontSize: '0.75rem', color: '#f59e0b', fontWeight: 700, textAlign: 'center', padding: '0.6rem', background: '#1a0d00', border: '1px solid #f59e0b33', borderRadius: '0.5rem' }}>
-                              {teamFull ? '⚠️ Squad full — auto-folded' : `⚠️ Can't afford ₹${bp}cr — auto-folded`}
+                              {teamFull        ? '⚠️ Squad full — auto-folded'
+                              : cantAfford     ? `⚠️ Can't afford ₹${bp}cr — auto-folded`
+                              : overseasBlocked ? '⚠️ Overseas limit reached — auto-folded'
+                              : wkBlocked      ? '⚠️ Last slot needs a WK — auto-folded'
+                              :                  '⚠️ Composition full for this role — auto-folded'}
                             </div>
                           ) : iHaveFolded ? (
                             <div style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 700, textAlign: 'center', padding: '0.6rem', background: '#1a0d0d', border: '1px solid #ef444433', borderRadius: '0.5rem' }}>
@@ -996,6 +1089,13 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                   {lastResult.skipped
                     ? `⏭ ${lastResult.player.name} — both folded`
                     : `✅ ${lastResult.winner} got ${lastResult.player.name} for ₹${lastResult.price}cr`}
+                </div>
+              )}
+
+              {/* Skip banner — shown briefly when a player is ineligible for all teams */}
+              {skipBanner && (
+                <div style={{ marginTop: '0.5rem', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 700, animation: 'fade-in 0.2s ease both', background: 'var(--card)', border: '1px solid var(--border)', color: '#64748b' }}>
+                  ⏭ {skipBanner}
                 </div>
               )}
             </>
