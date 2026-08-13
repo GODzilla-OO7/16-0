@@ -26,7 +26,7 @@ import { WHEEL_ENTRIES } from '../data/players.js'
 import { compFromSlider, roleGroup } from './H2HLobby.jsx'
 
 const TOTAL_SLOTS   = 11
-const BID_SECONDS   = 15
+const BID_SECONDS   = 14
 const SNAKE_SECONDS = 20   // time limit per pick in snake draft
 
 // ── IPL squad rules ──────────────────────────────────────────────────────────
@@ -102,8 +102,13 @@ function shuffle(arr) {
 
 function basePrice(overall) {
   const r = scaleDisplay(overall)
-  const raw = 0.5 + Math.pow(Math.max(0, r - 58) / 41, 2) * 29.5
-  return Math.max(0.5, Math.round(Math.min(30, raw) * 2) / 2)
+  if (r >= 87) return 2.00
+  if (r >= 82) return 1.50
+  if (r >= 77) return 1.00
+  if (r >= 72) return 0.75
+  if (r >= 67) return 0.50
+  if (r >= 62) return 0.40
+  return 0.30
 }
 
 function roleColor(role) {
@@ -252,12 +257,11 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
   const auctionPhaseRef = useRef(auctionPhase)
   function setAuctionPhase(p) { auctionPhaseRef.current = p; setAuctionPhaseState(p) }
 
-  const [myInterest, setMyInterest] = useState(null)   // true | false | null
-  const [bidsLocal, setBidsLocal]   = useState({ host: null, guest: null })
-  const [myBid, setMyBid]           = useState('')
-  const [countdown, setCountdown]   = useState(null)
-  const [bidSubmitted, setBidSubmitted] = useState(false)
-  const [turnTimeLeft, setTurnTimeLeft] = useState(null)  // snake pick timer
+  const [myFolded, setMyFolded]         = useState(false)
+  const [showManualBid, setShowManualBid] = useState(false)
+  const [manualBidVal, setManualBidVal]   = useState('')
+  const [countdown, setCountdown]         = useState(null)
+  const [turnTimeLeft, setTurnTimeLeft]   = useState(null)  // snake pick timer
 
   const countdownRef  = useRef(null)
   const snakeTimerRef = useRef(null)
@@ -277,21 +281,6 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
   const oppComp = compFromSlider(isHost ? (room.guest_comp ?? 5) : (room.host_comp ?? 5))
   // bp must be declared here (before any useEffects) to avoid TDZ ReferenceError
   const bp = room.auction_bid?.base_price ?? 0
-
-  // ── Countdown helper (auction bidding) ───────────────────────────────────────
-  function startCountdown() {
-    clearInterval(countdownRef.current)
-    setCountdown(BID_SECONDS)
-    let t = BID_SECONDS
-    countdownRef.current = setInterval(() => {
-      t--
-      setCountdown(t)
-      if (t <= 0) {
-        clearInterval(countdownRef.current)
-        if (isHost) resolveAuctionRef.current?.()
-      }
-    }, 1000)
-  }
 
   // ── Apply room update (shared by realtime + polling) ────────────────────────
   const applyRoomUpdate = useCallback((updated) => {
@@ -317,28 +306,18 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
       if (updated.current_pick) {
         setCurrentPlayer(updated.current_pick)
         const newPhase = updated.auction_bid?.phase ?? null
-        if (newPhase === 'interest' && auctionPhaseRef.current !== 'interest') {
-          setMyInterest(null)
-          setBidSubmitted(false)
-          setMyBid('')
-          clearInterval(countdownRef.current)
-          setCountdown(null)
+        if (newPhase === 'open' && auctionPhaseRef.current !== 'open') {
+          setMyFolded(false)
+          setShowManualBid(false)
+          setManualBidVal('')
         }
-        if (newPhase === 'bidding' && auctionPhaseRef.current !== 'bidding') {
-          setBidsLocal({ host: null, guest: null })
-          setBidSubmitted(false)
-          setMyBid('')
-          startCountdown()
+        if (newPhase === 'war' && auctionPhaseRef.current !== 'war') {
+          setShowManualBid(false)
+          setManualBidVal('')
         }
         setAuctionPhase(newPhase)
-        if (updated.auction_bid) {
-          setBidsLocal({
-            host: updated.auction_bid.host_bid ?? null,
-            guest: updated.auction_bid.guest_bid ?? null,
-          })
-        }
       } else {
-        // No current pick — waiting for next spin
+        // No current pick — waiting for next player
         setCurrentPlayer(null)
         setAuctionPhase(null)
         setCycleEntry(null)
@@ -537,8 +516,14 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
 
     const chosen     = pickFromPool(available)
     const bp         = basePrice(chosen.overall)
-    const newBid     = { phase: 'interest', host_interest: null, guest_interest: null, host_bid: null, guest_bid: null, base_price: bp }
-    const newPickNum = (latestRoom.pick_number ?? 0) + 1   // always bump so stale events get discarded
+    const deadline   = new Date(Date.now() + BID_SECONDS * 1000).toISOString()
+    const newBid     = {
+      phase: 'open', base_price: bp,
+      current_bid: null, current_bidder_id: null,
+      host_folded: false, guest_folded: false,
+      bid_deadline: deadline,
+    }
+    const newPickNum = (latestRoom.pick_number ?? 0) + 1
 
     const sb = await getSupabase()
     if (!sb) { spinRef.current = setTimeout(() => postNextPlayerRef.current?.(), 2000); return }
@@ -552,108 +537,61 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
       spinRef.current = setTimeout(() => postNextPlayerRef.current?.(), 2000)
       return
     }
-    // Apply locally immediately — don't wait for poll
     applyRoomUpdate({ ...latestRoom, current_pick: chosen, auction_bid: newBid, pick_number: newPickNum })
   }
 
-  async function submitInterest(interested) {
-    setMyInterest(interested)
-    const myField = isHost ? 'host_interest' : 'guest_interest'
+  // Place a bid — works in both open (first bid) and war (counter) phases
+  async function placeBid(amount) {
+    const latestRoom = roomRef.current
+    const bid = latestRoom.auction_bid
+    if (!bid) return
+    // In war phase, only the non-bidder can bid
+    if (bid.phase === 'war' && bid.current_bidder_id === uid) return
+    const minBid  = bid.current_bid != null ? +(bid.current_bid + 0.25).toFixed(2) : bid.base_price
+    const val     = +Math.max(minBid, Math.min(isHost ? (latestRoom.host_budget ?? 0) : (latestRoom.guest_budget ?? 0), amount)).toFixed(2)
+    if (val < minBid) return
+
+    const deadline = new Date(Date.now() + BID_SECONDS * 1000).toISOString()
+    const newBid = {
+      ...bid,
+      phase: 'war',
+      current_bid: val,
+      current_bidder_id: uid,
+      bid_deadline: deadline,
+      host_folded: false,
+      guest_folded: false,
+    }
     const sb = await getSupabase()
     if (!sb) return
-    // Retry loop: guards against the race where two simultaneous read-modify-writes
-    // overwrite each other's field in the auction_bid JSON.
-    for (let attempt = 0; attempt < 4; attempt++) {
-      const { data } = await sb.from('h2h_rooms').select('auction_bid').eq('id', room.id).single()
-      if (!data?.auction_bid || data.auction_bid.phase !== 'interest') return  // phase moved on
-      if (data.auction_bid[myField] === interested) return                      // already set
-      await sb.from('h2h_rooms').update({
-        auction_bid: { ...data.auction_bid, [myField]: interested },
-      }).eq('id', room.id)
-      await new Promise(r => setTimeout(r, 120 + attempt * 80))               // back off slightly
-    }
+    const { error } = await sb.from('h2h_rooms').update({ auction_bid: newBid }).eq('id', latestRoom.id)
+    if (!error) applyRoomUpdate({ ...latestRoom, auction_bid: newBid })
+    setShowManualBid(false)
+    setManualBidVal('')
   }
 
-  const resolvingRef = useRef(false)  // re-entrancy guard
-
-  async function resolveInterest() {
-    if (!isHost || resolvingRef.current) return
-    resolvingRef.current = true
-    try {
-      const sb = await getSupabase()
-      const { data } = await sb.from('h2h_rooms').select('*').eq('id', room.id).single()
-      if (!data?.current_pick || !data?.auction_bid) return
-      if (data.auction_bid.phase !== 'interest') return  // already resolved
-      const { host_interest, guest_interest, base_price: bp } = data.auction_bid
-      if (host_interest === null || host_interest === undefined) return
-      if (guest_interest === null || guest_interest === undefined) return
-      const player = data.current_pick
-
-      if (!host_interest && !guest_interest) {
-        // Both No — skip; must increment pick_number so stale realtime events get discarded
-        const newPick = (data.pick_number ?? 0) + 1
-        const upd = { ...data, current_pick: null, auction_bid: null, pick_number: newPick }
-        const { error } = await sb.from('h2h_rooms').update({ current_pick: null, auction_bid: null, pick_number: newPick }).eq('id', room.id)
-        if (!error) { applyRoomUpdate(upd); setLastResult({ player, skipped: true }) }
-
-      } else if (host_interest && !guest_interest) {
-        const newTeam   = [...data.host_team, player]
-        const newBudget = Math.max(0, data.host_budget - bp)
-        const isDone    = newTeam.length >= TOTAL_SLOTS && data.guest_team.length >= TOTAL_SLOTS
-        const fields    = { host_team: newTeam, host_budget: newBudget, current_pick: null, auction_bid: null, pick_number: (data.pick_number ?? 0) + 1, status: isDone ? 'done' : 'drafting' }
-        const { error } = await sb.from('h2h_rooms').update(fields).eq('id', room.id)
-        if (!error) { applyRoomUpdate({ ...data, ...fields }); setLastResult({ player, winner: data.host_name, price: bp }) }
-
-      } else if (!host_interest && guest_interest) {
-        const newTeam   = [...data.guest_team, player]
-        const newBudget = Math.max(0, data.guest_budget - bp)
-        const isDone    = data.host_team.length >= TOTAL_SLOTS && newTeam.length >= TOTAL_SLOTS
-        const fields    = { guest_team: newTeam, guest_budget: newBudget, current_pick: null, auction_bid: null, pick_number: (data.pick_number ?? 0) + 1, status: isDone ? 'done' : 'drafting' }
-        const { error } = await sb.from('h2h_rooms').update(fields).eq('id', room.id)
-        if (!error) { applyRoomUpdate({ ...data, ...fields }); setLastResult({ player, winner: data.guest_name, price: bp }) }
-
-      } else {
-        // Both Yes — move to bidding
-        const newBid = { ...data.auction_bid, phase: 'bidding', host_bid: null, guest_bid: null }
-        const { error } = await sb.from('h2h_rooms').update({ auction_bid: newBid }).eq('id', room.id)
-        if (!error) applyRoomUpdate({ ...data, auction_bid: newBid })
-      }
-    } finally {
-      resolvingRef.current = false
-    }
-  }
-
-  const resolveInterestRef = useRef(resolveInterest)
-  useEffect(() => { resolveInterestRef.current = resolveInterest })
-
-  // Trigger interest resolution when both votes are in (host only)
-  useEffect(() => {
-    if (isSnake || !isHost || !room.current_pick) return
-    const bid = room.auction_bid
-    if (!bid || bid.phase !== 'interest') return
-    if (bid.host_interest === null || bid.host_interest === undefined) return
-    if (bid.guest_interest === null || bid.guest_interest === undefined) return
-    resolveInterestRef.current?.()
-  }, [room.auction_bid?.host_interest, room.auction_bid?.guest_interest])
-
-  async function submitBid() {
-    const bp  = room.auction_bid?.base_price ?? 0
-    const val = Math.max(bp, Math.min(myBudget, parseFloat(myBid) || bp))
-    setBidSubmitted(true)
-    const myField = isHost ? 'host_bid' : 'guest_bid'
+  // Fold — pass on this player (can't fold if you're the current high bidder)
+  async function foldBid() {
+    const latestRoom = roomRef.current
+    const bid = latestRoom.auction_bid
+    if (!bid) return
+    if (bid.phase === 'war' && bid.current_bidder_id === uid) return  // can't fold your own standing bid
+    setMyFolded(true)
+    const myFoldField = isHost ? 'host_folded' : 'guest_folded'
     const sb = await getSupabase()
     if (!sb) return
-    // Same retry pattern as submitInterest to avoid overwriting the other player's bid
-    for (let attempt = 0; attempt < 4; attempt++) {
-      const { data } = await sb.from('h2h_rooms').select('auction_bid').eq('id', room.id).single()
-      if (!data?.auction_bid || data.auction_bid.phase !== 'bidding') return  // phase moved on
-      if (data.auction_bid[myField] !== null && data.auction_bid[myField] !== undefined) return  // already set
-      await sb.from('h2h_rooms').update({
-        auction_bid: { ...data.auction_bid, [myField]: val },
-      }).eq('id', room.id)
-      await new Promise(r => setTimeout(r, 120 + attempt * 80))
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data } = await sb.from('h2h_rooms').select('auction_bid').eq('id', latestRoom.id).single()
+      if (!data?.auction_bid) return
+      if (data.auction_bid[myFoldField]) return
+      const { error } = await sb.from('h2h_rooms').update({
+        auction_bid: { ...data.auction_bid, [myFoldField]: true }
+      }).eq('id', latestRoom.id)
+      if (!error) break
+      await new Promise(r => setTimeout(r, 100 + attempt * 80))
     }
   }
+
+  const resolvingRef = useRef(false)
 
   async function resolveAuction() {
     if (!isHost || resolvingRef.current) return
@@ -662,29 +600,41 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
       const sb = await getSupabase()
       const { data } = await sb.from('h2h_rooms').select('*').eq('id', room.id).single()
       if (!data?.current_pick || !data?.auction_bid) return
-      if (data.auction_bid.phase !== 'bidding') return  // already resolved
-      const player  = data.current_pick
-      const bids    = data.auction_bid
-      const hBid    = bids.host_bid  ?? 0
-      const gBid    = bids.guest_bid ?? 0
-      const hostWon = hBid >= gBid
+      const bid    = data.auction_bid
+      const player = data.current_pick
+      const newPickNum = (data.pick_number ?? 0) + 1
+
+      // Skip: no bid placed OR both folded
+      const noBid = !bid.current_bid
+      const bothFolded = bid.host_folded && bid.guest_folded
+      if (noBid || bothFolded) {
+        const upd = { current_pick: null, auction_bid: null, pick_number: newPickNum }
+        const { error } = await sb.from('h2h_rooms').update(upd).eq('id', data.id)
+        if (!error) { applyRoomUpdate({ ...data, ...upd }); setLastResult({ player, skipped: true }) }
+        return
+      }
+
+      // Award to current high bidder
+      const winnerId    = bid.current_bidder_id
+      const hostWon     = winnerId === data.host_id
+      const price       = bid.current_bid
 
       const newHostTeam    = hostWon  ? [...data.host_team,  player] : data.host_team
       const newGuestTeam   = !hostWon ? [...data.guest_team, player] : data.guest_team
-      const newHostBudget  = hostWon  ? Math.max(0, data.host_budget  - hBid) : data.host_budget
-      const newGuestBudget = !hostWon ? Math.max(0, data.guest_budget - gBid) : data.guest_budget
-      const isDone  = newHostTeam.length >= TOTAL_SLOTS && newGuestTeam.length >= TOTAL_SLOTS
-      const fields  = {
+      const newHostBudget  = hostWon  ? Math.max(0, data.host_budget  - price) : data.host_budget
+      const newGuestBudget = !hostWon ? Math.max(0, data.guest_budget - price) : data.guest_budget
+      const isDone = newHostTeam.length >= TOTAL_SLOTS && newGuestTeam.length >= TOTAL_SLOTS
+      const fields = {
         host_team: newHostTeam, guest_team: newGuestTeam,
         host_budget: newHostBudget, guest_budget: newGuestBudget,
         current_pick: null, auction_bid: null,
-        pick_number: (data.pick_number ?? 0) + 1,
+        pick_number: newPickNum,
         status: isDone ? 'done' : 'drafting',
       }
-      const { error } = await sb.from('h2h_rooms').update(fields).eq('id', room.id)
+      const { error } = await sb.from('h2h_rooms').update(fields).eq('id', data.id)
       if (!error) {
         applyRoomUpdate({ ...data, ...fields })
-        setLastResult({ player, winner: hostWon ? data.host_name : data.guest_name, price: hostWon ? hBid : gBid })
+        setLastResult({ player, winner: hostWon ? data.host_name : data.guest_name, price })
       }
     } finally {
       resolvingRef.current = false
@@ -697,27 +647,55 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
   const postNextPlayerRef = useRef(postNextPlayer)
   useEffect(() => { postNextPlayerRef.current = postNextPlayer })
 
-  // Resolve auction as soon as BOTH bids are in (don't wait for full countdown)
+  // Countdown driven by bid_deadline from DB — accurate even after page refresh
+  useEffect(() => {
+    if (isSnake || !room.auction_bid?.bid_deadline) {
+      clearInterval(countdownRef.current)
+      setCountdown(null)
+      return
+    }
+    clearInterval(countdownRef.current)
+    function tick() {
+      const remaining = Math.max(0, Math.ceil((new Date(room.auction_bid.bid_deadline) - Date.now()) / 1000))
+      setCountdown(remaining)
+      if (remaining <= 0) {
+        clearInterval(countdownRef.current)
+        if (isHost) resolveAuctionRef.current?.()
+      }
+    }
+    tick()
+    countdownRef.current = setInterval(tick, 500)
+    return () => clearInterval(countdownRef.current)
+  }, [room.auction_bid?.bid_deadline])
+
+  // Resolve immediately when opponent folds (host only)
   useEffect(() => {
     if (isSnake || !isHost || !room.current_pick) return
     const bid = room.auction_bid
-    if (!bid || bid.phase !== 'bidding') return
-    if (bid.host_bid === null || bid.host_bid === undefined) return
-    if (bid.guest_bid === null || bid.guest_bid === undefined) return
-    resolveAuctionRef.current?.()
-  }, [room.auction_bid?.host_bid, room.auction_bid?.guest_bid])
-
-  // Auto-No if team is full or can't afford base price
-  useEffect(() => {
-    if (isSnake || !currentPlayer || auctionPhase !== 'interest' || myInterest !== null) return
-    const myField = isHost ? 'host_interest' : 'guest_interest'
-    if (room.auction_bid?.[myField] !== null && room.auction_bid?.[myField] !== undefined) return
-    const teamFull   = myTeam.length >= TOTAL_SLOTS
-    const cantAfford = (myBudget ?? 0) < bp
-    if (teamFull || cantAfford) {
-      submitInterest(false)
+    if (!bid) return
+    // Open phase: both folded
+    if (bid.phase === 'open' && bid.host_folded && bid.guest_folded) {
+      resolveAuctionRef.current?.()
+      return
     }
-  }, [currentPlayer, auctionPhase, myInterest, myTeam.length, myBudget, bp])
+    // War phase: non-bidder folded
+    if (bid.phase === 'war' && bid.current_bidder_id) {
+      const bidderIsHost  = bid.current_bidder_id === room.host_id
+      const opponentFolded = bidderIsHost ? bid.guest_folded : bid.host_folded
+      if (opponentFolded) resolveAuctionRef.current?.()
+    }
+  }, [room.auction_bid?.host_folded, room.auction_bid?.guest_folded, room.auction_bid?.phase])
+
+  // Auto-fold when team is full or can't afford base price
+  useEffect(() => {
+    if (isSnake || !currentPlayer || !auctionPhase || myFolded) return
+    const myFoldField = isHost ? 'host_folded' : 'guest_folded'
+    if (room.auction_bid?.[myFoldField]) return
+    if (auctionPhase === 'war' && room.auction_bid?.current_bidder_id === uid) return
+    const teamFull   = myTeam.length >= TOTAL_SLOTS
+    const cantAfford = (myBudget ?? 0) < (room.auction_bid?.base_price ?? 0)
+    if (teamFull || cantAfford) foldBid()
+  }, [currentPlayer, auctionPhase, myFolded, myTeam.length, myBudget])
 
   // Auto-post next player for auction (host)
   useEffect(() => {
@@ -876,124 +854,139 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                     </div>
                   </div>
 
-                  {/* Base price */}
-                  <div style={{ padding: '0.6rem 1.25rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>Base price</span>
-                    <span style={{ fontSize: '1rem', fontWeight: 900, color: '#22c55e' }}>₹{bp}cr</span>
-                  </div>
+                  {/* Base price + countdown row */}
+                  {(() => {
+                    const bid = room.auction_bid
+                    const currentBid      = bid?.current_bid ?? null
+                    const currentBidderId = bid?.current_bidder_id ?? null
+                    const iAmBidder       = currentBidderId === uid
+                    const myFoldField     = isHost ? 'host_folded' : 'guest_folded'
+                    const oppFoldField    = isHost ? 'guest_folded' : 'host_folded'
+                    const iHaveFolded     = bid?.[myFoldField] ?? false
+                    const oppHasFolded    = bid?.[oppFoldField] ?? false
+                    const teamFull        = myTeam.length >= TOTAL_SLOTS
+                    const cantAfford      = (myBudget ?? 0) < bp
+                    const autoBlocked     = teamFull || cantAfford
+                    const minNextBid      = currentBid != null ? +(currentBid + 0.25).toFixed(2) : bp
+                    const canBid          = !autoBlocked && !iHaveFolded && (auctionPhase === 'open' || (auctionPhase === 'war' && !iAmBidder))
 
-                  {/* Interest phase */}
-                  {auctionPhase === 'interest' && (
-                    <div style={{ padding: '1rem 1.25rem' }}>
-                      {(() => {
-                        const teamFull   = myTeam.length >= TOTAL_SLOTS
-                        const cantAfford = (myBudget ?? 0) < bp
-                        const blocked    = teamFull || cantAfford
-                        const voted      = myInterest !== null
-                        return (
-                          <>
-                            {blocked && !voted && (
-                              <div style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 700, textAlign: 'center', marginBottom: '0.5rem' }}>
-                                {teamFull ? '⚠️ Your squad is full — auto-passing' : `⚠️ Can't afford ₹${bp}cr — auto-passing`}
-                              </div>
+                    return (
+                      <>
+                        {/* Base price + timer */}
+                        <div style={{ padding: '0.6rem 1.25rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div>
+                            <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>Base </span>
+                            <span style={{ fontSize: '1rem', fontWeight: 900, color: '#22c55e' }}>₹{bp}cr</span>
+                            {currentBid && (
+                              <span style={{ marginLeft: '0.75rem', fontSize: '0.72rem', color: '#64748b' }}>
+                                Current: <span style={{ color: '#f59e0b', fontWeight: 900 }}>₹{currentBid}cr</span>
+                              </span>
                             )}
-                            <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, textAlign: 'center', marginBottom: '0.875rem' }}>
-                              Do you want to bid on this player?
-                            </div>
-                            <div style={{ display: 'flex', gap: '0.75rem' }}>
-                              <button
-                                onClick={() => !voted && !blocked && submitInterest(true)}
-                                disabled={voted || blocked}
-                                style={{
-                                  flex: 1, padding: '0.8rem',
-                                  background: myInterest === true ? '#0d1a0d' : (voted || blocked) ? 'var(--card)' : '#0d1a0d',
-                                  border: `2px solid ${myInterest === true ? '#22c55e' : (voted || blocked) ? 'var(--border2)' : '#22c55e44'}`,
-                                  borderRadius: '0.625rem',
-                                  color: myInterest === true ? '#22c55e' : (voted || blocked) ? 'var(--border)' : '#22c55e',
-                                  fontSize: '1rem', fontWeight: 800,
-                                  cursor: (!voted && !blocked) ? 'pointer' : 'not-allowed',
-                                  transition: 'all 0.15s',
-                                }}
-                              >
-                                {myInterest === true ? '✅ Yes!' : '✅ Yes'}
-                              </button>
-                              <button
-                                onClick={() => !voted && submitInterest(false)}
-                                disabled={voted}
-                                style={{
-                                  flex: 1, padding: '0.8rem',
-                                  background: myInterest === false ? '#1a0d0d' : 'var(--card)',
-                                  border: `2px solid ${myInterest === false ? '#ef4444' : voted ? 'var(--border2)' : '#ef444444'}`,
-                                  borderRadius: '0.625rem',
-                                  color: myInterest === false ? '#ef4444' : voted ? 'var(--border)' : '#ef4444',
-                                  fontSize: '1rem', fontWeight: 800,
-                                  cursor: !voted ? 'pointer' : 'not-allowed',
-                                  transition: 'all 0.15s',
-                                }}
-                              >
-                                {myInterest === false ? '❌ No' : '❌ No'}
-                              </button>
-                            </div>
-                          </>
-                        )
-                      })()}
-                      {/* Show opponent status */}
-                      <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                        {[
-                          { name: room.host_name, val: room.auction_bid?.host_interest },
-                          { name: room.guest_name, val: room.auction_bid?.guest_interest },
-                        ].map(({ name, val }) => (
-                          <div key={name} style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '999px', background: val === true ? '#0d1a0d' : val === false ? '#1a0d0d' : 'var(--card)', color: val === true ? '#22c55e' : val === false ? '#ef4444' : '#475569', border: `1px solid ${val === true ? '#22c55e44' : val === false ? '#ef444444' : 'var(--border)'}` }}>
-                            {name}: {val === true ? 'Yes ✅' : val === false ? 'No ❌' : '…'}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                          {countdown != null && (
+                            <span style={{ fontSize: '1.4rem', fontWeight: 900, color: countdown <= 4 ? '#ef4444' : countdown <= 8 ? '#f59e0b' : '#64748b', minWidth: 48, textAlign: 'right' }}>
+                              {countdown}s
+                            </span>
+                          )}
+                        </div>
 
-                  {/* Bidding phase */}
-                  {auctionPhase === 'bidding' && (
-                    <div style={{ padding: '1rem 1.25rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                        <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700 }}>Both interested — bidding war! Min bid: ₹{bp}cr</span>
-                        <span style={{ fontSize: '1.5rem', fontWeight: 900, color: countdown <= 5 ? '#ef4444' : '#f59e0b' }}>
-                          {countdown != null ? `${countdown}s` : ''}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                        <input
-                          type="number" min={bp} max={myBudget ?? bp} step={0.5}
-                          value={myBid}
-                          onChange={e => {
-                            const v = parseFloat(e.target.value)
-                            if (!isNaN(v) && v > (myBudget ?? 80)) return  // block over-budget
-                            setMyBid(e.target.value)
-                          }}
-                          disabled={bidSubmitted}
-                          placeholder={`Min ₹${bp}cr`}
-                          style={{ flex: 1, padding: '0.6rem 0.875rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: 'var(--text)', fontSize: '0.95rem', outline: 'none' }}
-                        />
-                        <button
-                          onClick={submitBid}
-                          disabled={bidSubmitted || !myBid || parseFloat(myBid) < bp}
-                          style={{ padding: '0.6rem 1rem', background: bidSubmitted ? 'var(--border2)' : 'linear-gradient(135deg, #4169E1, #2952CC)', color: bidSubmitted ? '#475569' : '#fff', border: 'none', borderRadius: '0.4rem', fontWeight: 800, cursor: bidSubmitted ? 'not-allowed' : 'pointer', fontSize: '0.875rem', whiteSpace: 'nowrap' }}
-                        >
-                          {bidSubmitted ? '✓ Bid placed' : 'Bid'}
-                        </button>
-                      </div>
-                      {/* Bid status */}
-                      <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        {[
-                          { name: room.host_name, val: bidsLocal.host },
-                          { name: room.guest_name, val: bidsLocal.guest },
-                        ].map(({ name, val }) => (
-                          <div key={name} style={{ flex: 1, padding: '0.4rem 0.75rem', borderRadius: '0.4rem', background: val != null ? '#0d1a0d' : 'var(--card)', border: `1px solid ${val != null ? '#22c55e44' : 'var(--border)'}`, fontSize: '0.75rem', fontWeight: 700, color: val != null ? '#22c55e' : '#475569', textAlign: 'center' }}>
-                            {name}: {val != null ? `₹${val}cr` : '…'}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                        {/* Status bar */}
+                        <div style={{ padding: '0.5rem 1.25rem', borderBottom: '1px solid var(--border2)', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span>
+                            {auctionPhase === 'open' && !currentBid && '🔔 Open — place the first bid or fold'}
+                            {auctionPhase === 'war' && iAmBidder && `⏳ Your bid of ₹${currentBid}cr — waiting for ${oppName}…`}
+                            {auctionPhase === 'war' && !iAmBidder && currentBid && `🔥 ${oppName} bid ₹${currentBid}cr — counter or fold`}
+                          </span>
+                          {oppHasFolded && <span style={{ color: '#ef4444', fontSize: '0.68rem' }}>{oppName} folded</span>}
+                        </div>
+
+                        {/* Bid actions */}
+                        <div style={{ padding: '0.875rem 1.25rem' }}>
+                          {autoBlocked ? (
+                            <div style={{ fontSize: '0.75rem', color: '#f59e0b', fontWeight: 700, textAlign: 'center', padding: '0.6rem', background: '#1a0d00', border: '1px solid #f59e0b33', borderRadius: '0.5rem' }}>
+                              {teamFull ? '⚠️ Squad full — auto-folded' : `⚠️ Can't afford ₹${bp}cr — auto-folded`}
+                            </div>
+                          ) : iHaveFolded ? (
+                            <div style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 700, textAlign: 'center', padding: '0.6rem', background: '#1a0d0d', border: '1px solid #ef444433', borderRadius: '0.5rem' }}>
+                              ❌ You folded
+                            </div>
+                          ) : iAmBidder && auctionPhase === 'war' ? (
+                            <div style={{ fontSize: '0.78rem', color: '#4169E1', fontWeight: 700, textAlign: 'center', padding: '0.6rem', background: '#0d1020', border: '1px solid #4169E133', borderRadius: '0.5rem' }}>
+                              ✅ You bid ₹{currentBid}cr — waiting for opponent
+                            </div>
+                          ) : (
+                            <>
+                              {/* Quick-raise buttons */}
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                                {[1, 2, 3, 5].map(inc => {
+                                  const bidVal = +(minNextBid + inc - 0.25).toFixed(2)
+                                  // First bid in open phase: bid at base + inc; war phase: current + inc
+                                  const actualBid = auctionPhase === 'open' && !currentBid
+                                    ? +(bp + inc - 1).toFixed(2)   // e.g. base 2cr + click +1 = 2cr open → bid 2cr; +2 = 3cr
+                                    : +(( currentBid ?? bp) + inc).toFixed(2)
+                                  const affordable = actualBid <= (myBudget ?? 0)
+                                  return (
+                                    <button
+                                      key={inc}
+                                      onClick={() => canBid && affordable && placeBid(actualBid)}
+                                      disabled={!canBid || !affordable}
+                                      style={{
+                                        padding: '0.65rem 0.25rem', fontWeight: 900, fontSize: '0.78rem',
+                                        background: (!canBid || !affordable) ? 'var(--border2)' : 'linear-gradient(135deg, #22c55e22, #22c55e11)',
+                                        color: (!canBid || !affordable) ? '#475569' : '#22c55e',
+                                        border: `1px solid ${(!canBid || !affordable) ? 'var(--border)' : '#22c55e55'}`,
+                                        borderRadius: '0.4rem', cursor: (!canBid || !affordable) ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.12s',
+                                      }}
+                                    >
+                                      +₹{inc}cr
+                                    </button>
+                                  )
+                                })}
+                              </div>
+
+                              {/* Manual bid */}
+                              {!showManualBid ? (
+                                <button
+                                  onClick={() => setShowManualBid(true)}
+                                  style={{ width: '100%', padding: '0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: '#94a3b8', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', marginBottom: '0.5rem' }}
+                                >
+                                  ✏️ Manual Bid
+                                </button>
+                              ) : (
+                                <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                                  <input
+                                    type="number" step={0.25} min={minNextBid} max={myBudget ?? minNextBid}
+                                    value={manualBidVal}
+                                    onChange={e => setManualBidVal(e.target.value)}
+                                    autoFocus
+                                    placeholder={`Min ₹${minNextBid}cr`}
+                                    style={{ flex: 1, padding: '0.5rem 0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: 'var(--text)', fontSize: '0.9rem', outline: 'none' }}
+                                  />
+                                  <button
+                                    onClick={() => { const v = parseFloat(manualBidVal); if (!isNaN(v) && v >= minNextBid) placeBid(v) }}
+                                    disabled={!manualBidVal || parseFloat(manualBidVal) < minNextBid || parseFloat(manualBidVal) > (myBudget ?? 0)}
+                                    style={{ padding: '0.5rem 0.875rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: '#fff', border: 'none', borderRadius: '0.4rem', fontWeight: 800, cursor: 'pointer', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
+                                  >
+                                    Bid
+                                  </button>
+                                  <button onClick={() => { setShowManualBid(false); setManualBidVal('') }} style={{ padding: '0.5rem 0.5rem', background: 'none', border: '1px solid var(--border)', borderRadius: '0.4rem', color: '#64748b', cursor: 'pointer', fontSize: '0.75rem' }}>✕</button>
+                                </div>
+                              )}
+
+                              {/* Fold button */}
+                              <button
+                                onClick={foldBid}
+                                style={{ width: '100%', padding: '0.6rem', background: '#1a0d0d', border: '1px solid #ef444444', borderRadius: '0.4rem', color: '#ef4444', fontSize: '0.82rem', fontWeight: 800, cursor: 'pointer' }}
+                              >
+                                ❌ Fold — Pass on this player
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )
+                  })()}
                 </div>
               )}
 
@@ -1001,7 +994,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
               {lastResult && (
                 <div style={{ marginTop: '0.75rem', padding: '0.6rem 1rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 700, animation: 'fade-in 0.3s ease both', background: lastResult.skipped ? 'var(--card)' : '#0d1a0d', border: `1px solid ${lastResult.skipped ? 'var(--border)' : '#22c55e44'}`, color: lastResult.skipped ? '#475569' : '#86efac' }}>
                   {lastResult.skipped
-                    ? `⏭ ${lastResult.player.name} skipped — no interest`
+                    ? `⏭ ${lastResult.player.name} — both folded`
                     : `✅ ${lastResult.winner} got ${lastResult.player.name} for ₹${lastResult.price}cr`}
                 </div>
               )}
