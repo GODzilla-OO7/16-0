@@ -266,39 +266,53 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
       <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
 
         {/* 🔥 Play streak banner */}
-        {streak >= 1 && (
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '0.6rem 1rem',
-            marginBottom: '1rem',
-            background: streak >= 7 ? 'linear-gradient(135deg,#78350f28,#92400e28)' : 'linear-gradient(135deg,#431407, #7c2d1228)',
-            border: `1.5px solid ${streak >= 7 ? '#f59e0b55' : '#f97316' + '44'}`,
-            borderRadius: '0.875rem',
-            animation: 'fade-in-up 0.4s ease both',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{'🔥'.repeat(Math.min(streak >= 14 ? 3 : streak >= 7 ? 2 : 1, 3))}</span>
-              <div>
-                <div style={{ fontSize: '0.78rem', fontWeight: 900, color: streak >= 7 ? '#f59e0b' : '#fb923c' }}>
-                  {streak}-day streak
-                </div>
-                {streakBonus > 0 ? (
-                  <div style={{ fontSize: '0.64rem', color: '#22c55e', fontWeight: 700 }}>+₹{streakBonus}cr bonus ready for your next auction!</div>
-                ) : (
-                  <div style={{ fontSize: '0.62rem', color: '#94a3b8' }}>
-                    {streak >= 14 ? 'Max milestone reached 🏆' : `Play today to keep it alive`}
+        {streak >= 1 && (() => {
+          const isLight = document.body.classList.contains('light')
+          const isHot   = streak >= 7
+          const bg   = isLight
+            ? (isHot ? 'linear-gradient(135deg,#fff7ed,#ffedd5)' : 'linear-gradient(135deg,#fff7ed,#fef3c7)')
+            : (isHot ? 'linear-gradient(135deg,#78350f28,#92400e28)' : 'linear-gradient(135deg,#431407,#7c2d1228)')
+          const bdr  = isLight
+            ? (isHot ? '#f59e0b' : '#f97316')
+            : (isHot ? '#f59e0b55' : '#f9741644')
+          const subColor = isLight ? '#78350f' : '#94a3b8'
+          const nextColor = isLight
+            ? (streak >= 14 ? '#b45309' : '#92400e')
+            : (streak >= 14 ? '#f59e0b' : '#94a3b8')
+          return (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0.6rem 1rem',
+              marginBottom: '1rem',
+              background: bg,
+              border: `1.5px solid ${bdr}`,
+              borderRadius: '0.875rem',
+              animation: 'fade-in-up 0.4s ease both',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{'🔥'.repeat(Math.min(streak >= 14 ? 3 : streak >= 7 ? 2 : 1, 3))}</span>
+                <div>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 900, color: isHot ? '#f59e0b' : '#fb923c' }}>
+                    {streak}-day streak
                   </div>
-                )}
+                  {streakBonus > 0 ? (
+                    <div style={{ fontSize: '0.64rem', color: '#16a34a', fontWeight: 700 }}>+₹{streakBonus}cr bonus ready for your next auction!</div>
+                  ) : (
+                    <div style={{ fontSize: '0.62rem', color: subColor }}>
+                      {streak >= 14 ? 'Max milestone reached 🏆' : 'Play today to keep it alive'}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '0.58rem', color: isLight ? '#92400e' : '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Next reward</div>
+                <div style={{ fontSize: '0.68rem', fontWeight: 800, color: nextColor }}>
+                  {streak >= 14 ? '🏆 Max' : streak >= 7 ? '+₹15cr at 14' : streak >= 3 ? '+₹10cr at 7' : '+₹5cr at 3'}
+                </div>
               </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Next reward</div>
-              <div style={{ fontSize: '0.68rem', fontWeight: 800, color: streak >= 14 ? '#f59e0b' : '#94a3b8' }}>
-                {streak >= 14 ? '🏆 Max' : streak >= 7 ? `+₹15cr at 14` : streak >= 3 ? `+₹10cr at 7` : `+₹5cr at 3`}
-              </div>
-            </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* Badge */}
         <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
