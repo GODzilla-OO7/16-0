@@ -203,7 +203,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
   const [compReady, setCompReady] = useState(false)
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(false)
-  const [draftMode,  setDraftMode]  = useState('snake')
+  const [draftMode,  setDraftMode]  = useState('auction')
   const [leagueMode, setLeagueMode] = useState('classic')
   const channelRef = useRef(null)
 
@@ -257,7 +257,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
     if (!sb) { setError('No connection'); setLoading(false); return }
     const id = genRoomId()
     const { error: e } = await sb.from('h2h_rooms').insert({
-      id, host_id: uid, host_name: myName, status: 'waiting', draft_mode: draftMode,
+      id, host_id: uid, host_name: myName, status: 'waiting', draft_mode: 'auction',
       league_mode: leagueMode,
       current_turn: uid, pick_number: 0, host_team: [], guest_team: [],
       host_budget: 100, guest_budget: 100,
@@ -437,35 +437,12 @@ export default function H2HLobby({ onClose, onStartDraft }) {
               </div>
             </div>
 
-            {/* Draft Mode — bottom row */}
-            <div>
-              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Draft Mode</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                {[
-                  { id: 'snake',   icon: '🐍', label: 'Snake Draft',  desc: 'Take turns, order reverses each round' },
-                  { id: 'auction', icon: '🔨', label: 'Live Auction', desc: 'Bid on players, highest bid wins' },
-                ].map(m => {
-                  const sel = draftMode === m.id
-                  return (
-                    <div
-                      key={m.id}
-                      onClick={() => setDraftMode(m.id)}
-                      style={{
-                        padding: '0.75rem', borderRadius: '0.625rem', cursor: 'pointer',
-                        border: `2px solid ${sel ? '#4169E1' : '#2a2a3a'}`,
-                        background: sel ? '#4169E118' : '#1a1a28',
-                        transition: 'border-color 0.15s, background 0.15s',
-                        minHeight: 80, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                      }}
-                    >
-                      <div style={{ fontSize: '1.2rem' }}>{m.icon}</div>
-                      <div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 800, color: sel ? '#4169E1' : '#e2e8f0', marginBottom: '0.2rem' }}>{m.label}</div>
-                        <div style={{ fontSize: '0.62rem', color: '#64748b', lineHeight: 1.3 }}>{m.desc}</div>
-                      </div>
-                    </div>
-                  )
-                })}
+            {/* Draft Mode — Live Auction only (snake hidden for now) */}
+            <div style={{ padding: '0.75rem', borderRadius: '0.625rem', border: '2px solid #4169E1', background: '#4169E118', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ fontSize: '1.4rem' }}>🔨</div>
+              <div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#4169E1' }}>Live Auction</div>
+                <div style={{ fontSize: '0.62rem', color: '#64748b', lineHeight: 1.3 }}>Bid on players in real time — highest bid wins</div>
               </div>
             </div>
 
