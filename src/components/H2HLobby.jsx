@@ -217,6 +217,9 @@ export default function H2HLobby({ onClose, onStartDraft }) {
     if (data.status === 'composition' && screen !== 'composition') {
       setScreen('composition')
     }
+    if (data.status === 'comp_ready' && screen !== 'comp_ready') {
+      setScreen('comp_ready')
+    }
     if (data.status === 'drafting') {
       onStartDraft(data, uid)
     }
@@ -238,7 +241,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
 
   // Polling fallback — in case Supabase Realtime isn't enabled for h2h_rooms
   useEffect(() => {
-    if ((screen !== 'waiting' && screen !== 'composition') || !roomId) return
+    if ((screen !== 'waiting' && screen !== 'composition' && screen !== 'comp_ready') || !roomId) return
     const interval = setInterval(async () => {
       const sb = await getSupabase()
       if (!sb) return
@@ -323,25 +326,34 @@ export default function H2HLobby({ onClose, onStartDraft }) {
     const compField = isHost ? 'host_comp' : 'guest_comp'
     await sb.from('h2h_rooms').update({ [field]: true, [compField]: myComp }).eq('id', roomId)
 
-    // If host and both are ready, start the draft
+    // If host and both are ready, move to comp_ready for the reveal step
     if (isHost) {
       const { data } = await sb.from('h2h_rooms').select('*').eq('id', roomId).single()
       if (data?.guest_comp_ready) {
-        await sb.from('h2h_rooms').update({ status: 'drafting' }).eq('id', roomId)
+        await sb.from('h2h_rooms').update({ status: 'comp_ready' }).eq('id', roomId)
+        setScreen('comp_ready')
+        setRoom(r => r ? { ...r, status: 'comp_ready' } : r)
       }
     }
   }
 
-  // Watch for both ready → start draft (host triggers it, guest watches)
+  // ── Host starts the auction after composition reveal ──────────────────────
+  async function startAuction() {
+    const sb = await getSupabase()
+    if (!sb) return
+    await sb.from('h2h_rooms').update({ status: 'drafting' }).eq('id', roomId)
+  }
+
+  // Watch for both ready → comp_ready (host triggers it, guest watches via poll)
   useEffect(() => {
     if (!room || room.status !== 'composition') return
     if (!room.host_comp_ready || !room.guest_comp_ready || !isHost) return
-    // Both ready and we're the host — push drafting status (safety net for page refresh / race)
+    // Safety net for refresh race — push comp_ready if still stuck on composition
     getSupabase().then(async sb => {
       if (!sb) return
       const { data } = await sb.from('h2h_rooms').select('status').eq('id', roomId).single()
       if (data?.status === 'composition') {
-        await sb.from('h2h_rooms').update({ status: 'drafting' }).eq('id', roomId)
+        await sb.from('h2h_rooms').update({ status: 'comp_ready' }).eq('id', roomId)
       }
     })
   }, [room?.host_comp_ready, room?.guest_comp_ready])
@@ -357,6 +369,76 @@ export default function H2HLobby({ onClose, onStartDraft }) {
     width: '100%', padding: '0.75rem 1rem', background: 'var(--bg)',
     border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--text)',
     fontSize: '1rem', outline: 'none', boxSizing: 'border-box',
+  }
+
+  // ── Full-page composition screen (Tasks 2 & 3) ───────────────────────────
+  if (screen === 'composition' || screen === 'comp_ready') {
+    const bothReady   = room?.host_comp_ready && room?.guest_comp_ready
+    const oppCompVal  = isHost ? (room?.guest_comp ?? 5) : (room?.host_comp ?? 5)
+    const oppReady    = isHost ? room?.guest_comp_ready  : room?.host_comp_ready
+    const oppName     = isHost ? room?.guest_name        : room?.host_name
+    const myName2     = isHost ? room?.host_name         : room?.guest_name
+    const myCompData  = compFromSlider(myComp)
+    const oppCompData = compFromSlider(oppCompVal)
+
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2.5rem 1.25rem' }}>
+        {/* Header */}
+        <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.4rem' }}>⚖️ Team Composition</div>
+        <div style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '2.5rem', textAlign: 'center', maxWidth: 480 }}>
+          Pick your squad shape. You'll only be able to bid on players that fit your chosen slots.
+        </div>
+
+        {!bothReady ? (
+          // ── Pre-reveal: my big card + opponent placeholder ──────────────
+          <div style={{ width: '100%', maxWidth: 560, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* My card — full DraftSettings size */}
+            <div style={{ background: 'var(--card)', border: `1px solid ${compReady ? '#22c55e66' : 'var(--border)'}`, borderRadius: '1.25rem', overflow: 'hidden' }}>
+              <div style={{ padding: '1rem 1.75rem', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 800, color: compReady ? '#22c55e' : '#4169E1', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>
+                  Your Composition {compReady ? '· ✓ Locked' : ''}
+                </div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>{myName2}</div>
+              </div>
+              <div style={{ padding: '1.1rem 1.75rem', borderBottom: '1px solid var(--border)' }}>
+                <CompSlider value={myComp} onChange={updateMyComp} disabled={compReady} />
+              </div>
+              <div style={{ padding: '1rem 1.75rem' }}>
+                {!compReady
+                  ? <button onClick={confirmComposition} style={{ width: '100%', padding: '0.875rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}>✓ Lock In Composition</button>
+                  : <div style={{ padding: '0.75rem', background: '#0d1a0d', border: '1px solid #22c55e44', borderRadius: '0.625rem', color: '#86efac', fontSize: '0.88rem', fontWeight: 700, textAlign: 'center' }}>✓ Locked in — waiting for opponent…</div>
+                }
+              </div>
+            </div>
+
+            {/* Opponent placeholder */}
+            <div style={{ background: 'var(--card)', border: `1px solid ${oppReady ? '#22c55e44' : 'var(--border)'}`, borderRadius: '1.25rem', padding: '1.25rem 1.75rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ fontSize: '1.6rem' }}>{oppReady ? '✅' : '⏳'}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text)' }}>{oppName}</div>
+                <div style={{ fontSize: '0.75rem', color: oppReady ? '#86efac' : '#64748b', marginTop: '0.15rem' }}>
+                  {oppReady ? 'Locked in — waiting for you to lock in' : 'Still selecting their composition…'}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // ── Post-reveal: both composition cards ─────────────────────────
+          <div style={{ width: '100%', maxWidth: 1180, display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', padding: '0 1rem' }}>
+              <CompRevealCard name={myName2}  compData={myCompData}  isMe />
+              <CompRevealCard name={oppName}  compData={oppCompData} isMe={false} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              {isHost
+                ? <button onClick={startAuction} style={{ padding: '1rem 3.5rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#0a0a0f', border: 'none', borderRadius: '0.875rem', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 20px #f59e0b44' }}>🔨 Go to Auction →</button>
+                : <div style={{ padding: '1rem 2rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', color: '#64748b', fontSize: '0.9rem', fontWeight: 700 }}>⏳ Waiting for host to start the auction…</div>
+              }
+            </div>
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -489,57 +571,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
           </div>
         )}
 
-        {/* ── Composition screen ── */}
-        {screen === 'composition' && room && (() => {
-          const oppComp      = isHost ? (room.guest_comp ?? 5) : (room.host_comp ?? 5)
-          const oppReady     = isHost ? room.guest_comp_ready  : room.host_comp_ready
-          const oppName      = isHost ? room.guest_name        : room.host_name
-          const oppCompData  = compFromSlider(oppComp)
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <p style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: 1.5, margin: 0, textAlign: 'center' }}>
-                Each player picks their team composition. You'll only be able to draft players that fit your chosen slots.
-              </p>
-
-              {/* Split view */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                {/* My side */}
-                <div style={{ background: 'var(--card)', border: `1px solid ${compReady ? '#22c55e44' : '#4169E144'}`, borderRadius: '0.875rem', padding: '0.875rem' }}>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 800, color: compReady ? '#22c55e' : '#4169E1', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-                    You {compReady ? '✓ Locked' : ''}
-                  </div>
-                  <CompSlider value={myComp} onChange={updateMyComp} disabled={compReady} />
-                </div>
-
-                {/* Opponent side */}
-                <div style={{ background: 'var(--card)', border: `1px solid ${oppReady ? '#22c55e44' : 'var(--border)'}`, borderRadius: '0.875rem', padding: '0.875rem', opacity: oppReady ? 1 : 0.75 }}>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 800, color: oppReady ? '#22c55e' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
-                    {oppName ?? 'Opponent'} {oppReady ? '✓ Locked' : '…choosing'}
-                  </div>
-                  <CompSlider value={oppComp} onChange={() => {}} disabled />
-                  {!oppReady && (
-                    <div style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.7rem', color: '#475569', fontStyle: 'italic' }}>
-                      Waiting for opponent…
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {!compReady ? (
-                <button
-                  onClick={confirmComposition}
-                  style={{ padding: '0.9rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
-                >
-                  ✓ Lock In Composition
-                </button>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '0.875rem', background: '#0d1a0d', border: '1px solid #22c55e44', borderRadius: '0.625rem', color: '#86efac', fontSize: '0.88rem', fontWeight: 700 }}>
-                  {oppReady ? '🏏 Starting draft…' : '⏳ Waiting for opponent to lock in…'}
-                </div>
-              )}
-            </div>
-          )
-        })()}
+        {/* Composition screen now renders as full-page above the modal — nothing here */}
 
         {/* ── Waiting room ── */}
         {screen === 'waiting' && room && (
@@ -584,6 +616,42 @@ export default function H2HLobby({ onClose, onStartDraft }) {
             )}
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function CompRevealCard({ name, compData, isMe }) {
+  return (
+    <div style={{
+      background: 'var(--card)',
+      border: `2px solid ${isMe ? '#4169E166' : 'var(--border)'}`,
+      borderRadius: '1.25rem', overflow: 'hidden',
+    }}>
+      <div style={{ padding: '1rem 1.75rem', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ fontSize: '0.68rem', fontWeight: 800, color: isMe ? '#4169E1' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>
+          {isMe ? 'Your Composition' : "Opponent's Composition"}
+        </div>
+        <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>{name}</div>
+        <div style={{ fontSize: '1.3rem' }}>{compData.emoji} <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-dim)' }}>{compData.label}</span></div>
+      </div>
+      <div style={{ padding: '1.1rem 1.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {[
+            { label: `${compData.batters} Batters`,      color: '#f59e0b' },
+            { label: `${compData.wk} WK`,                color: '#a78bfa' },
+            { label: `${compData.ar} All-rounders`,      color: '#22c55e' },
+            { label: `${compData.bowlers} Bowlers`,      color: '#ef4444' },
+          ].map(pill => (
+            <div key={pill.label} style={{
+              fontSize: '0.8rem', fontWeight: 800, color: pill.color,
+              background: pill.color + '18', padding: '0.35rem 0.875rem',
+              borderRadius: '999px', border: `1px solid ${pill.color}33`,
+            }}>
+              {pill.label}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
