@@ -204,7 +204,7 @@ export default function H2HLobby({ onClose, onStartDraft }) {
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(false)
   const [draftMode,  setDraftMode]  = useState('auction')
-  const [leagueMode, setLeagueMode] = useState('classic')
+  const leagueMode = 'shared'  // auction always uses shared tournament
   const channelRef = useRef(null)
 
   const uid = getUserId()
@@ -486,38 +486,6 @@ export default function H2HLobby({ onClose, onStartDraft }) {
             <p style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.5, margin: 0 }}>
               Draft real-time with a friend. Your teams clash in the IPL — more intense QTEs decide the showdown.
             </p>
-
-            {/* League Mode — top row */}
-            <div>
-              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>League Mode</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                {[
-                  { id: 'classic', icon: '⚔️', label: 'Classic H2H',   desc: 'Separate seasons, compare at end' },
-                  { id: 'shared',  icon: '🏟️', label: 'Shared League', desc: 'Same IPL, shared table & playoffs' },
-                ].map(m => {
-                  const sel = leagueMode === m.id
-                  return (
-                    <div
-                      key={m.id}
-                      onClick={() => setLeagueMode(m.id)}
-                      style={{
-                        padding: '0.75rem', borderRadius: '0.625rem', cursor: 'pointer',
-                        border: `2px solid ${sel ? '#f59e0b' : '#2a2a3a'}`,
-                        background: sel ? '#f59e0b18' : '#1a1a28',
-                        transition: 'border-color 0.15s, background 0.15s',
-                        minHeight: 80, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                      }}
-                    >
-                      <div style={{ fontSize: '1.2rem' }}>{m.icon}</div>
-                      <div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 800, color: sel ? '#f59e0b' : '#e2e8f0', marginBottom: '0.2rem' }}>{m.label}</div>
-                        <div style={{ fontSize: '0.62rem', color: '#64748b', lineHeight: 1.3 }}>{m.desc}</div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
 
             {/* Draft Mode — Live Auction only (snake hidden for now) */}
             <div style={{ padding: '0.75rem', borderRadius: '0.625rem', border: '2px solid #4169E1', background: '#4169E118', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
