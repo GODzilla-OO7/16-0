@@ -56,6 +56,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { getSupabase } from '../lib/supabase.js'
+import { createShortUrl } from '../lib/shortUrl.js'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -192,7 +193,7 @@ function CompSlider({ value, onChange, disabled }) {
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 
-export default function H2HLobby({ onClose, onStartDraft }) {
+export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
   const [screen, setScreen]       = useState('home')   // home | join | waiting | composition
   const [roomId, setRoomId]       = useState('')
   const [joinCode, setJoinCode]   = useState('')
@@ -205,6 +206,9 @@ export default function H2HLobby({ onClose, onStartDraft }) {
   const [loading, setLoading]     = useState(false)
   const [draftMode,  setDraftMode]  = useState('auction')
   const leagueMode = 'shared'  // auction always uses shared tournament
+  const [inviteLink, setInviteLink] = useState(null)
+  const [copied, setCopied]         = useState(false)
+  const autoJoinedRef = useRef(false)
   const channelRef = useRef(null)
 
   const uid = getUserId()
@@ -273,18 +277,21 @@ export default function H2HLobby({ onClose, onStartDraft }) {
     subscribeRoom(id)
     setScreen('waiting')
     setLoading(false)
+    // Generate short invite link in background
+    const longUrl = window.location.origin + '/#h2h=' + id
+    createShortUrl(longUrl).then(short => setInviteLink(short))
   }
 
-  // ── Join room ─────────────────────────────────────────────────────────────
-  async function joinRoom() {
+  // ── Join room (codeOverride used for auto-join via link) ──────────────────
+  async function joinRoom(codeOverride) {
     setLoading(true); setError('')
     const sb = await getSupabase()
     if (!sb) { setError('No connection'); setLoading(false); return }
-    const code = joinCode.trim().toUpperCase()
+    const code = (codeOverride ?? joinCode).trim().toUpperCase()
     const { data: existing } = await sb.from('h2h_rooms').select('*').eq('id', code).single()
     if (!existing) { setError('Room not found'); setLoading(false); return }
     if (existing.status !== 'waiting') { setError('Room already started'); setLoading(false); return }
-    if (existing.guest_id) { setError('Room is full'); setLoading(false); return }
+    if (existing.guest_id && existing.guest_id !== uid) { setError('Room is full'); setLoading(false); return }
     const { error: e } = await sb.from('h2h_rooms').update({ guest_id: uid, guest_name: myName }).eq('id', code)
     if (e) { setError(e.message); setLoading(false); return }
     const { data: updated } = await sb.from('h2h_rooms').select('*').eq('id', code).single()
@@ -293,7 +300,16 @@ export default function H2HLobby({ onClose, onStartDraft }) {
     subscribeRoom(code)
     setScreen('waiting')
     setLoading(false)
+    // Clean up hash so it doesn't linger
+    if (window.location.hash.startsWith('#h2h=')) history.replaceState(null, '', window.location.pathname)
   }
+
+  // ── Auto-join when arriving via invite link ───────────────────────────────
+  useEffect(() => {
+    if (!joinRoomId || !nameSet || autoJoinedRef.current) return
+    autoJoinedRef.current = true
+    joinRoom(joinRoomId)
+  }, [joinRoomId, nameSet])
 
   // ── Host moves to composition screen ─────────────────────────────────────
   async function startComposition() {
@@ -466,10 +482,17 @@ export default function H2HLobby({ onClose, onStartDraft }) {
         {/* Name gate */}
         {!nameSet && (
           <div style={{ marginBottom: '1.25rem', padding: '1rem', background: '#13131f', border: '1px solid #2a2a3a', borderRadius: '0.75rem' }}>
+            {joinRoomId && (
+              <div style={{ fontSize: '0.78rem', color: '#f59e0b', fontWeight: 700, marginBottom: '0.5rem' }}>
+                🏏 You've been invited to a match!
+              </div>
+            )}
             <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Your display name</div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input style={{ ...inp, flex: 1 }} value={myName} onChange={e => setMyName(e.target.value)} placeholder="Enter your name" onKeyDown={e => e.key === 'Enter' && saveName()} />
-              <button onClick={saveName} style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: '#fff', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>✓</button>
+              <input style={{ ...inp, flex: 1 }} value={myName} onChange={e => setMyName(e.target.value)} placeholder="Enter your name" onKeyDown={e => e.key === 'Enter' && saveName()} autoFocus={!!joinRoomId} />
+              <button onClick={saveName} style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: '#fff', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>
+                {joinRoomId ? 'Join →' : '✓'}
+              </button>
             </div>
           </div>
         )}
@@ -544,10 +567,43 @@ export default function H2HLobby({ onClose, onStartDraft }) {
         {/* ── Waiting room ── */}
         {screen === 'waiting' && room && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem' }}>
-              <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>Room Code</div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#4169E1', letterSpacing: '0.25em' }}>{roomId}</div>
-              <div style={{ fontSize: '0.75rem', color: '#475569', marginTop: '0.3rem' }}>Share this with your opponent</div>
+            {/* Invite link card */}
+            <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem' }}>
+              <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Invite Link</div>
+              <div style={{
+                padding: '0.5rem 0.75rem', background: '#13131f', border: '1px solid #2a2a3a',
+                borderRadius: '0.5rem', fontSize: '0.75rem', color: '#94a3b8',
+                fontFamily: 'monospace', marginBottom: '0.625rem',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {inviteLink ?? '⏳ Generating…'}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                <button
+                  onClick={() => {
+                    if (!inviteLink) return
+                    navigator.clipboard.writeText(inviteLink).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+                  }}
+                  disabled={!inviteLink}
+                  style={{ padding: '0.6rem', background: copied ? '#0d1a0d' : '#13131f', border: `1px solid ${copied ? '#22c55e55' : '#2a2a3a'}`, borderRadius: '0.5rem', color: copied ? '#22c55e' : '#94a3b8', fontSize: '0.78rem', fontWeight: 700, cursor: inviteLink ? 'pointer' : 'default' }}
+                >
+                  {copied ? '✅ Copied!' : '📋 Copy Link'}
+                </button>
+                <button
+                  onClick={() => {
+                    if (!inviteLink) return
+                    const text = encodeURIComponent(`Join my Cricket 38-0 H2H auction! 🏏\n${inviteLink}`)
+                    window.open(`https://wa.me/?text=${text}`, '_blank')
+                  }}
+                  disabled={!inviteLink}
+                  style={{ padding: '0.6rem', background: '#0a1a0a', border: '1px solid #22c55e44', borderRadius: '0.5rem', color: '#22c55e', fontSize: '0.78rem', fontWeight: 700, cursor: inviteLink ? 'pointer' : 'default' }}
+                >
+                  💬 WhatsApp
+                </button>
+              </div>
+              <div style={{ marginTop: '0.5rem', fontSize: '0.6rem', color: '#3a4a5a', textAlign: 'center' }}>
+                Room code: <span style={{ fontWeight: 800, letterSpacing: '0.1em', color: '#475569' }}>{roomId}</span>
+              </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

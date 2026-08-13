@@ -102,6 +102,9 @@ export default function App() {
         const decoded = JSON.parse(decodeURIComponent(escape(atob(encoded))))
         setChallengeData(decoded)
       } catch { /* ignore bad hashes */ }
+    } else if (hash.startsWith('#h2h=')) {
+      const roomId = hash.slice('#h2h='.length).trim().toUpperCase()
+      if (roomId) { setH2hJoinId(roomId); setShowH2H(true) }
     }
   }, [])
   const { user, signOut } = useAuth()
@@ -136,6 +139,7 @@ export default function App() {
   const [prevBudgetLeftover, setPrevBudgetLeftover] = useState(0)    // leftover from last auction
   const [retentionTeam, setRetentionTeam]     = useState([])         // full season-end team snapshot for retention screen
   const [showH2H,      setShowH2H]        = useState(false)
+  const [h2hJoinId,    setH2hJoinId]      = useState(null)   // room ID from invite link
   const [h2hRoom,      setH2hRoom]        = useState(null)   // active H2H draft room
   const [h2hLeagueRoom, setH2hLeagueRoom] = useState(null)  // active shared league room
   const [h2hSimContext, setH2hSimContext] = useState(null)   // { roomId, opponentName, opponentTeam, myUserId } during sim
@@ -439,11 +443,12 @@ export default function App() {
       )}
       {showH2H && (
         <H2HLobby
-          onClose={() => setShowH2H(false)}
+          onClose={() => { setShowH2H(false); setH2hJoinId(null) }}
           onStartDraft={(room, uid) => {
             setShowH2H(false)
             setH2hRoom(room)
           }}
+          joinRoomId={h2hJoinId}
         />
       )}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} onSuccess={() => setShowAuth(false)} />}
