@@ -616,7 +616,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
 
         {/* Name gate */}
         {!nameSet && (
-          <div style={{ marginBottom: '1.25rem', padding: '1rem', background: '#13131f', border: '1px solid #2a2a3a', borderRadius: '0.75rem' }}>
+          <div style={{ marginBottom: '1.25rem', padding: '1rem', background: '#13131f', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
             {joinRoomId && (
               <div style={{ fontSize: '0.78rem', color: '#f59e0b', fontWeight: 700, marginBottom: '0.5rem' }}>
                 🏏 You've been invited to a match!
@@ -745,7 +745,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
               <button
                 onClick={() => setScreen('join')}
                 disabled={!nameSet}
-                style={{ padding: '0.75rem', background: 'transparent', color: nameSet ? '#94a3b8' : '#475569', border: '1px solid #2a2a3a', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 700, cursor: nameSet ? 'pointer' : 'not-allowed' }}
+                style={{ padding: '0.75rem', background: 'transparent', color: nameSet ? '#94a3b8' : '#475569', border: '1px solid var(--border)', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 700, cursor: nameSet ? 'pointer' : 'not-allowed' }}
               >
                 🚪 Join Room
               </button>
@@ -786,7 +786,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
             <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem' }}>
               <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Invite Link</div>
               <div style={{
-                padding: '0.5rem 0.75rem', background: '#13131f', border: '1px solid #2a2a3a',
+                padding: '0.5rem 0.75rem', background: '#13131f', border: '1px solid var(--border)',
                 borderRadius: '0.5rem', fontSize: '0.75rem', color: '#94a3b8',
                 fontFamily: 'monospace', marginBottom: '0.625rem',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -800,7 +800,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
                     navigator.clipboard.writeText(inviteLink).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
                   }}
                   disabled={!inviteLink}
-                  style={{ padding: '0.6rem', background: copied ? '#0d1a0d' : '#13131f', border: `1px solid ${copied ? '#22c55e55' : '#2a2a3a'}`, borderRadius: '0.5rem', color: copied ? '#22c55e' : '#94a3b8', fontSize: '0.78rem', fontWeight: 700, cursor: inviteLink ? 'pointer' : 'default' }}
+                  style={{ padding: '0.6rem', background: copied ? '#0d1a0d' : '#13131f', border: `1px solid ${copied ? '#22c55e55' : 'var(--border)'}`, borderRadius: '0.5rem', color: copied ? '#22c55e' : '#94a3b8', fontSize: '0.78rem', fontWeight: 700, cursor: inviteLink ? 'pointer' : 'default' }}
                 >
                   {copied ? '✅ Copied!' : '📋 Copy Link'}
                 </button>
