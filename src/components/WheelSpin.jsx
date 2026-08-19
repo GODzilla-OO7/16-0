@@ -142,7 +142,7 @@ function extractYear(season) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────
 
-const MARQUEE_THRESHOLD = 90  // display overall at/above this triggers a bidding war
+const MARQUEE_THRESHOLD = 86  // display overall at/above this triggers a bidding war
 
 export default function WheelSpin({
   mode, settings, composition, slotIndex, totalSlots,
@@ -319,7 +319,7 @@ export default function WheelSpin({
     const basePrice  = calcPrice(displayRating(player, 'season').overall)
     const isMarquee  = displayOvr >= MARQUEE_THRESHOLD && !player._budgetBlocked
     const canBid     = budget != null && biddingWarsUsed < 4
-    if (isMarquee && canBid && Math.random() < 0.6) {
+    if (isMarquee && canBid && Math.random() < 0.5) {
       setActiveBiddingPlayer({ player, basePrice })
       onBiddingWar?.()
       return
