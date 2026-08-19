@@ -35,7 +35,7 @@ class H2HErrorBoundary extends Component {
       return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', padding: '2rem', textAlign: 'center' }}>
           <div style={{ fontSize: '2rem' }}>⚠️</div>
-          <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>H2H Draft crashed</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>Multiplayer Draft crashed</div>
           <div style={{ fontSize: '0.8rem', color: '#64748b', fontFamily: 'monospace', background: 'var(--card)', padding: '0.75rem', borderRadius: '0.5rem', maxWidth: 480, wordBreak: 'break-all' }}>
             {this.state.error?.message ?? String(this.state.error)}
           </div>
@@ -79,12 +79,15 @@ export default function App() {
   const [challengeData, setChallengeData] = useState(null)  // decoded challenge from URL
   const [challengerResult, setChallengerResult] = useState(null) // shown in Results for comparison
   useEffect(() => {
-    // Handle short URLs: /s/<code> → resolve to long URL and redirect
+    // Handle short URLs: /s/<code> or /<code> → resolve to long URL and redirect
     const path = window.location.pathname
-    if (path.startsWith('/s/')) {
-      const code = path.slice(3)
-      resolveShortUrl(code).then(longUrl => {
+    const shortCode = path.startsWith('/s/')
+      ? path.slice(3)
+      : (/^\/([a-z0-9]{5,7})$/.exec(path)?.[1] ?? null)
+    if (shortCode) {
+      resolveShortUrl(shortCode).then(longUrl => {
         if (longUrl) window.location.replace(longUrl)
+        // else: not a valid code — just show the menu normally (path ignored)
       })
       return  // Don't parse hash until redirect resolves
     }
@@ -135,7 +138,7 @@ export default function App() {
   const [runId] = useState(() => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`)
   const [releasedPlayerNames, setReleasedPlayerNames] = useState(new Set()) // blocked by name for immediate next auction only
   const [impactSubOutName, setImpactSubOutName]     = useState(null)       // impact sub outgoing player name (added to released next retention)
-  const [biddingWarsUsed, setBiddingWarsUsed]   = useState(0)          // max 2 bidding wars per draft
+  const [biddingWarsUsed, setBiddingWarsUsed]   = useState(0)          // max 4 bidding wars per draft
   const [prevBudgetLeftover, setPrevBudgetLeftover] = useState(0)    // leftover from last auction
   const [retentionTeam, setRetentionTeam]     = useState([])         // full season-end team snapshot for retention screen
   const [showH2H,      setShowH2H]        = useState(false)
@@ -159,7 +162,8 @@ export default function App() {
     setManager(null)
     setPreviewManager(null); setConfirmedManager(null)
     setRerollsLeft(s.rerolls ?? 3)
-    const bonus = consumeStreakBonus()
+    // Streak bonus only rewarded to signed-in users
+    const bonus = user ? consumeStreakBonus() : 0
     setBudgetLeft(STARTING_BUDGET + bonus)
     setStreakBonus(0)  // shown on banner — now consumed
     setBiddingWarsUsed(0)
@@ -399,13 +403,15 @@ export default function App() {
           const myTeam   = sortByBattingOrder(amHost ? (finalRoom.host_team ?? []) : (finalRoom.guest_team ?? []))
           const oppTeam  = amHost ? (finalRoom.guest_team ?? []) : (finalRoom.host_team ?? [])
           const oppName  = amHost ? (finalRoom.guest_name ?? 'Opponent XI') : (finalRoom.host_name ?? 'Opponent XI')
+          const myName   = amHost ? (finalRoom.host_name ?? 'My XI') : (finalRoom.guest_name ?? 'My XI')
+          const oppUid   = amHost ? (finalRoom.guest_id ?? '') : (finalRoom.host_id ?? '')
           setH2hRoom(null)
           setShowH2H(false)
           setTeam(myTeam)
           setMode('ipl')
           setSettings({ ratingType: 'overall', difficulty: 'normal', rerolls: 0 })
           setManager(null)
-          setH2hSimContext({ roomId: finalRoom.id, myUserId: myUid, opponentName: oppName, opponentTeam: oppTeam })
+          setH2hSimContext({ roomId: finalRoom.id, myUserId: myUid, myName, opponentName: oppName, opponentUserId: oppUid, opponentTeam: oppTeam })
           setPhase('simulate')
         }}
         onInitSharedLeague={async (finalRoom) => {
@@ -598,9 +604,16 @@ export default function App() {
           position: 'sticky', top: activeChallenge ? 36 : 0, background: 'var(--card)',
           backdropFilter: 'blur(8px)', zIndex: 10,
         }}>
-          <button onClick={handleBackToComposition} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer' }}>
-            ← Back
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button onClick={handleBackToComposition} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer' }}>
+              ← Back
+            </button>
+            {seasonNumber > 1 && (
+              <button onClick={handlePlayAgain} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 700 }}>
+                🏠 Home
+              </button>
+            )}
+          </div>
           <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>
             {cfg.icon} {cfg.label}
             {settings?.hardMode && <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginLeft: '0.5rem' }}>🔒 HARD</span>}
@@ -758,6 +771,25 @@ export default function App() {
 
   if (phase === 'retention') return (
     <>
+      {/* Home button bar for S2+ retention screen */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 20,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0.625rem 1.25rem',
+        background: 'var(--card)', borderBottom: '1px solid var(--border)',
+        backdropFilter: 'blur(8px)',
+      }}>
+        <button
+          onClick={handlePlayAgain}
+          style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 700 }}
+        >
+          🏠 Home
+        </button>
+        <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#f59e0b' }}>
+          Season {seasonNumber + 1} Retention
+        </div>
+        <div style={{ width: 60 }} />
+      </div>
       <RetentionScreen
         team={retentionTeam}          // snapshot of full season-end XI, not the live (possibly cleared) team
         prevBudgetLeftover={prevBudgetLeftover}
@@ -780,6 +812,7 @@ export default function App() {
         prevSeasons={prevSeasons}
         challengerResult={challengerResult}
         h2hContext={h2hResultCtx}
+        user={user}
       />
       {profileBtn}
       {globalOverlays}

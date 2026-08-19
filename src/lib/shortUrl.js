@@ -17,10 +17,10 @@
 
 import { getSupabase } from './supabase.js'
 
-const BASE = 'https://16zero.in/s/'
+const BASE = 'https://16zero.in/'
 const CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
 
-function genCode(len = 5) {
+function genCode(len = 6) {
   return Array.from({ length: len }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join('')
 }
 

@@ -9,10 +9,12 @@
  *   onReorder   — (newTeam: player[]) => void   (undefined = read-only)
  */
 
+import { getPrimeRatings } from '../data/players.js'
+
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
-function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 14))) }
-function scaledOverall(player, ratingType) {
-  if (ratingType === 'prime') return scalePrime(player.primeOverall ?? player.overall)
+function scalePrime(v)   { return Math.max(1, Math.min(99, v)) }
+function scaledOverall(player, ratingType, mode) {
+  if (ratingType === 'prime') return scalePrime(getPrimeRatings(mode)[player.name] ?? player.overall)
   return scaleDisplay(player.overall)
 }
 
@@ -64,10 +66,10 @@ function lastName(name) {
 
 // ─── Single player card ───────────────────────────────────────────────────────
 
-function PlayerCard({ player, idx, isMispos, ratingType, onMoveUp, onMoveDown, isFirst, isLast }) {
+function PlayerCard({ player, idx, isMispos, ratingType, mode, onMoveUp, onMoveDown, isFirst, isLast }) {
   const color  = roleColor[player.role]  ?? '#94a3b8'
   const tag    = roleTag[player.role]    ?? '—'
-  const rating = scaledOverall(player, ratingType)
+  const rating = scaledOverall(player, ratingType, mode)
   const canLeft  = !isFirst && !!onMoveUp
   const canRight = !isLast  && !!onMoveDown
 
@@ -172,7 +174,7 @@ function PlayerCard({ player, idx, isMispos, ratingType, onMoveUp, onMoveDown, i
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function CricketOval({ team = [], ratingType = 'season', onReorder }) {
+export default function CricketOval({ team = [], ratingType = 'season', mode = 'ipl', onReorder }) {
   if (!team || team.length === 0) return null
 
   const topRow    = team.slice(0, 6)
@@ -231,6 +233,7 @@ export default function CricketOval({ team = [], ratingType = 'season', onReorde
               isFirst={ri === 0}
               isLast={ri === team.length - 1}
               ratingType={ratingType}
+              mode={mode}
             />
           ))}
         </div>

@@ -211,70 +211,74 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
       overflow: 'hidden',
     }}>
 
-      {/* My Account — top left */}
-      <button
-        onClick={user ? onAccount : onMedals}
-        title={user ? 'My Account' : 'My Medals'}
-        style={{
-          position: 'absolute', top: '1rem', left: '1rem', zIndex: 10,
-          height: 40, borderRadius: '999px',
-          padding: '0 0.875rem',
-          background: dark ? '#1e2235' : C.cardBg,
-          border: `1.5px solid ${dark ? '#4169E155' : C.cardBorder}`,
-          cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
-          display: 'flex', alignItems: 'center', gap: '0.4rem',
-          color: C.muted,
-          transition: 'border-color 0.15s, background 0.15s',
-          whiteSpace: 'nowrap',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#4169E155' : C.cardBorder; e.currentTarget.style.color = C.muted }}
-      >
-        <span style={{ fontSize: '1rem' }}>👤</span>
-        My Account
-        {newAwards.length > 0 && (
-          <span style={{ background: '#f59e0b', color: '#0a0a0f', borderRadius: '999px', fontSize: '0.55rem', fontWeight: 900, padding: '0.1rem 0.35rem', minWidth: 14, textAlign: 'center' }}>
-            {newAwards.length}
-          </span>
-        )}
-      </button>
-
-      {/* Theme toggle — top right */}
-      <button
-        onClick={toggleTheme}
-        title={dark ? 'Switch to light mode' : 'Switch to night mode'}
-        style={{
-          position: 'absolute', top: '1rem', right: '1rem', zIndex: 10,
-          height: 40, borderRadius: '999px',
-          padding: '0 0.875rem',
-          background: dark ? '#1e2235' : C.cardBg,
-          border: `1.5px solid ${dark ? '#4169E155' : C.cardBorder}`,
-          cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
-          display: 'flex', alignItems: 'center', gap: '0.4rem',
-          color: C.muted,
-          transition: 'border-color 0.15s, background 0.15s, box-shadow 0.15s',
-          boxShadow: dark ? '0 0 12px #4169E118' : '0 1px 6px rgba(0,0,0,0.1)',
-          whiteSpace: 'nowrap',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#4169E155' : C.cardBorder; e.currentTarget.style.color = C.muted }}
-      >
-        <span style={{ fontSize: '1rem' }}>{dark ? '☀️' : '🌙'}</span>
-        {dark ? 'Light' : 'Night'}
-      </button>
-
       <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
 
-        {/* 🔥 Play streak banner */}
-        {streak >= 1 && (() => {
+        {/* Top bar: My Account (left) + Theme toggle (right) — inside content column */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', gap: '0.5rem' }}>
+          <button
+            onClick={user ? onAccount : onMedals}
+            title={user ? 'My Account' : 'My Medals'}
+            style={{
+              height: 40, borderRadius: '999px',
+              padding: '0 0.875rem',
+              background: dark ? '#1e2235' : C.cardBg,
+              border: `1.5px solid ${dark ? '#4169E155' : C.cardBorder}`,
+              cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              color: C.muted,
+              transition: 'border-color 0.15s, background 0.15s',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#4169E155' : C.cardBorder; e.currentTarget.style.color = C.muted }}
+          >
+            <span style={{ fontSize: '1rem' }}>👤</span>
+            My Account
+            {newAwards.length > 0 && (
+              <span style={{ background: '#f59e0b', color: '#0a0a0f', borderRadius: '999px', fontSize: '0.55rem', fontWeight: 900, padding: '0.1rem 0.35rem', minWidth: 14, textAlign: 'center' }}>
+                {newAwards.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={toggleTheme}
+            title={dark ? 'Switch to light mode' : 'Switch to night mode'}
+            style={{
+              height: 40, borderRadius: '999px',
+              padding: '0 0.875rem',
+              background: dark ? '#1e2235' : C.cardBg,
+              border: `1.5px solid ${dark ? '#4169E155' : C.cardBorder}`,
+              cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              color: C.muted,
+              transition: 'border-color 0.15s, background 0.15s, box-shadow 0.15s',
+              boxShadow: dark ? '0 0 12px #4169E118' : '0 1px 6px rgba(0,0,0,0.1)',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#4169E155' : C.cardBorder; e.currentTarget.style.color = C.muted }}
+          >
+            <span style={{ fontSize: '1rem' }}>{dark ? '☀️' : '🌙'}</span>
+            {dark ? 'Light' : 'Night'}
+          </button>
+        </div>
+
+        {/* 🔥 Login streak banner — always shown; rewards only granted when signed in */}
+        {(() => {
           const isLight = document.body.classList.contains('light')
           const isHot   = streak >= 7
-          const bg   = isLight
-            ? (isHot ? 'linear-gradient(135deg,#fff7ed,#ffedd5)' : 'linear-gradient(135deg,#fff7ed,#fef3c7)')
-            : (isHot ? 'linear-gradient(135deg,#78350f28,#92400e28)' : 'linear-gradient(135deg,#431407,#7c2d1228)')
-          const bdr  = isLight
-            ? (isHot ? '#f59e0b' : '#f97316')
-            : (isHot ? '#f59e0b55' : '#f9741644')
+          const noStreak = streak === 0
+          const bg   = noStreak
+            ? (isLight ? 'linear-gradient(135deg,#f8faff,#f0f4ff)' : 'linear-gradient(135deg,#12121a,#1a1a28)')
+            : isLight
+              ? (isHot ? 'linear-gradient(135deg,#fff7ed,#ffedd5)' : 'linear-gradient(135deg,#fff7ed,#fef3c7)')
+              : (isHot ? 'linear-gradient(135deg,#78350f28,#92400e28)' : 'linear-gradient(135deg,#431407,#7c2d1228)')
+          const bdr  = noStreak
+            ? (isLight ? C.cardBorder : '#2a2a3a')
+            : isLight
+              ? (isHot ? '#f59e0b' : '#f97316')
+              : (isHot ? '#f59e0b55' : '#f9741644')
           const subColor = isLight ? '#78350f' : '#94a3b8'
           const nextColor = isLight
             ? (streak >= 14 ? '#b45309' : '#92400e')
@@ -290,26 +294,37 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
               animation: 'fade-in-up 0.4s ease both',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{'🔥'.repeat(Math.min(streak >= 14 ? 3 : streak >= 7 ? 2 : 1, 3))}</span>
+                <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>
+                  {noStreak ? '🔥' : '🔥'.repeat(Math.min(streak >= 14 ? 3 : streak >= 7 ? 2 : 1, 3))}
+                </span>
                 <div>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 900, color: isHot ? '#f59e0b' : '#fb923c' }}>
-                    {streak}-day streak
+                  <div style={{ fontSize: '0.78rem', fontWeight: 900, color: noStreak ? C.muted : isHot ? '#f59e0b' : '#fb923c' }}>
+                    {noStreak ? 'No streak yet' : `${streak}-day streak`}
                   </div>
-                  {streakBonus > 0 ? (
-                    <div style={{ fontSize: '0.64rem', color: '#16a34a', fontWeight: 700 }}>+₹{streakBonus}cr bonus ready for your next auction!</div>
+                  {noStreak ? (
+                    <div style={{ fontSize: '0.62rem', color: C.muted }}>Login daily to build your streak</div>
+                  ) : streakBonus > 0 ? (
+                    <div style={{ fontSize: '0.64rem', color: '#16a34a', fontWeight: 700 }}>+₹{streakBonus}cr bonus ready — login to claim it!</div>
                   ) : (
                     <div style={{ fontSize: '0.62rem', color: subColor }}>
-                      {streak >= 14 ? 'Max milestone reached 🏆' : 'Play today to keep it alive'}
+                      {streak >= 14 ? 'Max milestone reached 🏆' : 'Login daily to keep it alive'}
                     </div>
                   )}
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.58rem', color: isLight ? '#92400e' : '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Next reward</div>
-                <div style={{ fontSize: '0.68rem', fontWeight: 800, color: nextColor }}>
-                  {streak >= 14 ? '🏆 Max' : streak >= 7 ? '+₹15cr at 14' : streak >= 3 ? '+₹10cr at 7' : '+₹5cr at 3'}
+              {!noStreak && (
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.58rem', color: isLight ? '#92400e' : '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Next reward</div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 800, color: nextColor }}>
+                    {streak >= 14 ? '🏆 Max' : streak >= 7 ? '+₹15cr at 14' : streak >= 3 ? '+₹10cr at 7' : '+₹5cr at 3'}
+                  </div>
                 </div>
-              </div>
+              )}
+              {noStreak && (
+                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: C.accent, opacity: 0.7 }}>
+                  Sign in →
+                </div>
+              )}
             </div>
           )
         })()}
@@ -529,7 +544,7 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
 
           <ModeCard
             icon="⚔️"
-            title="H2H Challenge"
+            title="Multiplayer"
             desc="Draft your XI vs a friend — snake or live auction. Most points wins."
             onClick={onH2H}
             C={C}

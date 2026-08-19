@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MODE_CONFIG } from '../data/players.js'
 import { loadProfile } from '../hooks/useProfile.js'
 import { createShortUrl } from '../lib/shortUrl.js'
@@ -595,10 +595,11 @@ function getRating(wins, losses, total, perfect, targetWins, iplOutcome) {
   return { label: 'TOUGH RUN', color: '#ef4444', emoji: '😬', desc: 'Even legends have bad seasons.' }
 }
 
-export default function Results({ team, mode, manager, summary, matchResults, onPlayAgain, onNextSeason, seasonNumber = 1, newAwards = [], prevSeasons = [], challengerResult = null, h2hContext = null }) {
+export default function Results({ team, mode, manager, summary, matchResults, onPlayAgain, onNextSeason, seasonNumber = 1, newAwards = [], prevSeasons = [], challengerResult = null, h2hContext = null, user = null }) {
   const [tab, setTab] = useState('overview') // overview | playerstats | matches
   const [h2hOppStats, setH2hOppStats] = useState(null) // { wins, losses, oppName }
   const [waSharing2, setWaSharing2]   = useState(false)
+  const h2hResultWritten = useRef(false)
 
   // Fetch H2H opponent's results from Supabase when in H2H mode
   useEffect(() => {
@@ -616,6 +617,29 @@ export default function Results({ team, mode, manager, summary, matchResults, on
       setH2hOppStats({ wins: oppWins, losses: oppLosses, oppName: h2hContext.opponentName })
     })
   }, [h2hContext?.roomId])
+
+  // Write final H2H result to h2h_results once opponent stats load (winner writes the row)
+  useEffect(() => {
+    if (!h2hOppStats || !h2hContext || h2hResultWritten.current) return
+    if (!h2hContext.opponentUserId || !h2hContext.myUserId) return
+    const myWins  = summary?.wins ?? 0
+    const iWon    = myWins > h2hOppStats.wins
+    const tied    = myWins === h2hOppStats.wins
+    if (!iWon || tied) return // only the winner writes to avoid duplicate rows
+    h2hResultWritten.current = true
+    import('../lib/supabase.js').then(({ getSupabase }) => getSupabase()).then(async sb => {
+      if (!sb) return
+      try {
+        await sb.from('h2h_results').insert({
+          room_id:     h2hContext.roomId,
+          winner_id:   h2hContext.myUserId,
+          loser_id:    h2hContext.opponentUserId,
+          winner_name: h2hContext.myName ?? (user?.user_metadata?.full_name ?? user?.email ?? 'Player'),
+          loser_name:  h2hContext.opponentName,
+        })
+      } catch { /* ignore — best effort */ }
+    })
+  }, [h2hOppStats])
 
   // Null-safe destructure
   const cfg     = MODE_CONFIG[mode] || {}
@@ -724,7 +748,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     return `Cricket 16-0\n\n${dispWins}W–${dispLosses}L · ${rating.label}${potmLine}${seasonLine}${prevLine}\n\nCan you go unbeaten? Check my squad & beat me:\n${url}`
   }
 
-  const buildChallengeUrl = () => {
+  const buildChallengeUrl = async () => {
     try {
       // Encode minimal player data needed for simulation + the challenger's result
       const squadData = (team ?? []).map(p => ({
@@ -752,7 +776,8 @@ export default function Results({ team, mode, manager, summary, matchResults, on
         st: stageReached ?? iplOutcome ?? undefined,
       }
       const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(raw))))
-      return `https://16zero.in/#challenge=${encoded}`
+      const long = `https://16zero.in/#challenge=${encoded}`
+      return createShortUrl(long)  // returns 16zero.in/abcdef on success, long URL as fallback
     } catch {
       return 'https://16zero.in'
     }
@@ -1157,7 +1182,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             animation: 'fade-in-up 0.4s ease both',
           }}>
             <div style={{ fontSize: '0.62rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.875rem', textAlign: 'center' }}>
-              ⚔️ H2H Bragging Rights
+              ⚔️ Multiplayer Bragging Rights
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '0.75rem', alignItems: 'center', marginBottom: '0.875rem' }}>
               {/* My column */}
@@ -1203,7 +1228,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                   const oppLine = h2hOppStats ? ` · ${h2hContext.opponentName}: ${h2hOppStats.wins}W–${h2hOppStats.losses}L` : ''
                   const long = buildShareUrl()
                   const url = await createShortUrl(long)
-                  const text = `⚔️ H2H RESULT\nMe: ${wins}W–${losses}L${oppLine}\n\nPlayed on Cricket 16-0 • ${url}`
+                  const text = `⚔️ MULTIPLAYER RESULT\nMe: ${wins}W–${losses}L${oppLine}\n\nPlayed on Cricket 16-0 • ${url}`
                   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
                 } finally {
                   setWaSharing2(false)
@@ -1218,7 +1243,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
               }}
             >
-              📣 {waSharing2 ? 'Shortening…' : 'Share H2H Result on WhatsApp'}
+              📣 {waSharing2 ? 'Shortening…' : 'Share Multiplayer Result on WhatsApp'}
             </button>
           </div>
         )}
@@ -1240,14 +1265,15 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             Can they beat your {wins}W–{losses}L record with the <strong style={{ color: 'var(--text)' }}>exact same squad?</strong> Send them your squad — they play blind.
           </div>
           <button
-            onClick={() => {
-              const url = buildChallengeUrl()
+            onClick={async () => {
+              const btn = document.getElementById('challenge-copy-btn')
+              if (btn) btn.textContent = '⏳ Generating link…'
+              const url = await buildChallengeUrl()
               navigator.clipboard?.writeText(url).then(() => {
-                // Brief flash feedback — swap button text
-                const btn = document.getElementById('challenge-copy-btn')
                 if (btn) { btn.textContent = '✅ Link Copied!'; setTimeout(() => { btn.textContent = '📋 Copy Challenge Link' }, 2000) }
               }).catch(() => {
                 window.prompt('Copy this challenge link:', url)
+                if (btn) btn.textContent = '📋 Copy Challenge Link'
               })
             }}
             id="challenge-copy-btn"

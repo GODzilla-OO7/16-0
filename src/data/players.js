@@ -7784,14 +7784,15 @@ export const MODE_CONFIG = {
   },
 }
 
-// ─── Prime Ratings ────────────────────────────────────────────────────────────
-// For each player, their prime rating = their highest `overall` across all IPL
-// season entries. Computed once at load time from the data; no manual curation.
-// Used in Prime Mode for both display and simulation.
-export const PRIME_RATINGS = (() => {
+// ─── Prime Ratings (per competition) ─────────────────────────────────────────
+// For each competition, a player's prime = their highest `overall` across all
+// editions of THAT competition. Computed once at load time from WHEEL_ENTRIES.
+// IPL prime ≠ T20 WC prime ≠ ODI WC prime — each list is separate.
+
+function _buildPrimeMap(competition) {
   const map = {}
   for (const entry of WHEEL_ENTRIES) {
-    if (!entry.competition.includes('ipl')) continue
+    if (!entry.competition.includes(competition)) continue
     for (const p of entry.players) {
       if (map[p.name] === undefined || p.overall > map[p.name]) {
         map[p.name] = p.overall
@@ -7799,12 +7800,36 @@ export const PRIME_RATINGS = (() => {
     }
   }
   return map
-})()
+}
 
-/** Apply prime overalls to a team array (returns a new array, does not mutate). */
-export function applyPrimeRatings(team) {
+export const PRIME_RATINGS_IPL   = _buildPrimeMap('ipl')
+export const PRIME_RATINGS_T20WC = _buildPrimeMap('t20-wc')
+export const PRIME_RATINGS_ODIWC = _buildPrimeMap('odi-wc')
+
+/** Returns the correct prime map for the given game mode. */
+export function getPrimeRatings(mode) {
+  if (mode === 't20-wc') return PRIME_RATINGS_T20WC
+  if (mode === 'odi-wc') return PRIME_RATINGS_ODIWC
+  return PRIME_RATINGS_IPL
+}
+
+// Backward-compat alias (IPL is the default)
+export const PRIME_RATINGS = PRIME_RATINGS_IPL
+
+/** Apply prime ratings (career peak) to a team array for simulation. Returns a new array, does not mutate.
+ *  Uses the per-competition prime map — mode determines which competition's peak is used.
+ */
+export function applyPrimeRatings(team, mode = 'ipl') {
+  const primeMap = getPrimeRatings(mode)
   return team.map(p => {
-    const prime = PRIME_RATINGS[p.name]
-    return prime !== undefined ? { ...p, overall: prime } : p
+    const primeBase = primeMap[p.name] ?? p.overall
+    const primeBat  = p.primeBatting ?? p.batting
+    const primeBowl = p.primeBowling ?? p.bowling
+    return {
+      ...p,
+      overall: Math.min(99, primeBase),
+      batting: Math.min(99, primeBat),
+      bowling: Math.min(99, primeBowl),
+    }
   })
 }

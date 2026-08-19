@@ -1,12 +1,16 @@
 import { calcTeamStrength } from '../utils/simulator.js'
+import { getPrimeRatings } from '../data/players.js'
 
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
-function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 10))) }
-function getRating(player, ratingType) {
-  if (ratingType === 'prime') return {
-    overall: scalePrime(player.primeOverall ?? player.overall),
-    batting: scalePrime(player.primeBatting ?? player.batting),
-    bowling: scalePrime(player.primeBowling ?? player.bowling),
+function scalePrime(v)   { return Math.max(1, Math.min(99, v)) }
+function getRating(player, ratingType, mode) {
+  if (ratingType === 'prime') {
+    const primeMap = getPrimeRatings(mode)
+    return {
+      overall: scalePrime(primeMap[player.name] ?? player.overall),
+      batting: scalePrime(player.primeBatting ?? player.batting),
+      bowling: scalePrime(player.primeBowling ?? player.bowling),
+    }
   }
   return { overall: scaleDisplay(player.overall), batting: scaleDisplay(player.batting), bowling: scaleDisplay(player.bowling) }
 }
@@ -108,7 +112,7 @@ function OverseasTracker({ team }) {
 export default function TeamStrengthPanel({ team, manager, mode, ratingType = 'season', showPenalty = false, onStart }) {
   if (!team || team.length === 0) return null
 
-  const rawStr = calcTeamStrength(team, manager, mode)
+  const rawStr = calcTeamStrength(team, manager, mode, ratingType === 'prime' ? 'prime' : 'overall')
 
   // ── New formula: batsmen avg | bowlers avg | all-rounders split 50/50 ──
   // Batting side: openers, top-order, middle-order, wk + half of AR
@@ -120,7 +124,7 @@ export default function TeamStrengthPanel({ team, manager, mode, ratingType = 's
   let bowlSum = 0, bowlCount = 0
 
   team.forEach(p => {
-    const r = getRating(p, ratingType)
+    const r = getRating(p, ratingType, mode)
     if (p.role === 'all-rounder') {
       const mid = (r.batting + r.bowling) / 2
       batSum  += mid / 2;  batCount  += 0.5

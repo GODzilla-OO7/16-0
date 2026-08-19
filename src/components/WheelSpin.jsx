@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { getPrimeRatings } from '../data/players.js'
 
 function shuffle(arr) {
   const a = [...arr]
@@ -58,14 +59,17 @@ function fmtCr(cr) {
 // ─── Rating scaling + prime ───────────────────────────────────────────────
 
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
-// Prime uses a much more generous curve — elite legends hit 97-99, making prime feel truly special
-function scalePrime(v)   { return Math.max(1, Math.min(99, Math.round(v * 0.96 + 10))) }
+// Prime shows the player's career peak — no inflation, raw historical best
+function scalePrime(v)   { return Math.max(1, Math.min(99, v)) }
 
-function displayRating(player, ratingType) {
-  if (ratingType === 'prime') return {
-    overall: scalePrime(player.primeOverall ?? player.overall),
-    batting: scalePrime(player.primeBatting ?? player.batting),
-    bowling: scalePrime(player.primeBowling ?? player.bowling),
+function displayRating(player, ratingType, mode) {
+  if (ratingType === 'prime') {
+    const primeMap = getPrimeRatings(mode)
+    return {
+      overall: scalePrime(primeMap[player.name] ?? player.overall),
+      batting: scalePrime(player.primeBatting ?? player.batting),
+      bowling: scalePrime(player.primeBowling ?? player.bowling),
+    }
   }
   return { overall: scaleDisplay(player.overall), batting: scaleDisplay(player.batting), bowling: scaleDisplay(player.bowling) }
 }
@@ -138,7 +142,7 @@ function extractYear(season) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────
 
-const MARQUEE_THRESHOLD = 87  // display overall at/above this triggers a bidding war
+const MARQUEE_THRESHOLD = 90  // display overall at/above this triggers a bidding war
 
 export default function WheelSpin({
   mode, settings, composition, slotIndex, totalSlots,
@@ -199,7 +203,7 @@ export default function WheelSpin({
       if (overseasFull && isOverseas(p)) return false
       // Over budget? (skip check if budget exhausted — must always be able to proceed)
       if (!budgetExhausted && budget != null) {
-        const price = calcPrice(displayRating(p, ratingType).overall)
+        const price = calcPrice(displayRating(p, ratingType, mode).overall)
         if (price > budget) return false
       }
       return true
@@ -311,11 +315,11 @@ export default function WheelSpin({
 
   function tryPickPlayer(player) {
     // Check if this is a marquee player that should trigger a bidding war
-    const displayOvr = displayRating(player, ratingType).overall
+    const displayOvr = displayRating(player, ratingType, mode).overall
     const basePrice  = calcPrice(displayRating(player, 'season').overall)
     const isMarquee  = displayOvr >= MARQUEE_THRESHOLD && !player._budgetBlocked
-    const canBid     = budget != null && biddingWarsUsed < 2
-    if (isMarquee && canBid) {
+    const canBid     = budget != null && biddingWarsUsed < 4
+    if (isMarquee && canBid && Math.random() < 0.6) {
       setActiveBiddingPlayer({ player, basePrice })
       onBiddingWar?.()
       return
@@ -335,7 +339,7 @@ export default function WheelSpin({
 
   // Always sort by overall descending
   const sortByOvr = arr => [...arr].sort((a, b) =>
-    displayRating(b, ratingType).overall - displayRating(a, ratingType).overall
+    displayRating(b, ratingType, mode).overall - displayRating(a, ratingType, mode).overall
   )
 
   const budgetExhaustedDisplay = budget != null && budget < 0.5
@@ -434,6 +438,7 @@ export default function WheelSpin({
           budgetStuck={isBudgetStuck}
           hardMode={hardMode}
           ratingType={ratingType}
+          mode={mode}
           needs={needs}
           mustPick={mustPick}
           slotIndex={slotIndex}
@@ -607,7 +612,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
 
 // ─── Select phase ─────────────────────────────────────────────────────────
 
-function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetExhausted, budgetStuck, hardMode, ratingType, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, isIPLMode, budget, onPick, onSpinAgain, onRetryFromBeginning, onRetryBidding }) {
+function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetExhausted, budgetStuck, hardMode, ratingType, mode, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, isIPLMode, budget, onPick, onSpinAgain, onRetryFromBeginning, onRetryBidding }) {
   const canReroll = rerollsLeft > 0
   const year      = extractYear(entry.season)
   const rarity    = spinRarity(entry)
@@ -770,6 +775,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
                   player={player}
                   hardMode={hardMode}
                   ratingType={ratingType}
+                  mode={mode}
                   teamColor={entry.color}
                   isLast={i === players.length - 1}
                   isNeeded={isNeeded}
@@ -791,11 +797,11 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
 
 // ─── Player row ───────────────────────────────────────────────────────────
 
-function PlayerRow({ player, hardMode, ratingType, teamColor, isLast, isNeeded, isMustPick, isIneligible, isOverseas, isOverseasBlocked, isBudgetBlocked, onPick }) {
+function PlayerRow({ player, hardMode, ratingType, mode, teamColor, isLast, isNeeded, isMustPick, isIneligible, isOverseas, isOverseasBlocked, isBudgetBlocked, onPick }) {
   const [hovered, setHovered] = useState(false)
   const cat     = roleCategory(player.role)
   const catClr  = CAT_COLOR[cat]
-  const ratings = displayRating(player, ratingType)
+  const ratings = displayRating(player, ratingType, mode)
   const highlight = isMustPick ? '#f59e0b' : isNeeded ? '#4169E1' : null
   const blocked = isIneligible || isOverseasBlocked || isBudgetBlocked
 
@@ -888,30 +894,106 @@ const RIVAL_FRANCHISES = [
   { name: 'Sunrisers Hyderabad',   color: '#f7a721', icon: '🟠' },
 ]
 
-export function BiddingWarOverlay({ player, basePrice, ratingType, onWin, onPass }) {
+// Probabilities per round: [lowerWins, higherWins, continues]
+// Round 3 has no continues — 33/67 split and it ends
+const ROUND_PROBS = [
+  { lower: 0.22, higher: 0.39, continues: 0.39 },
+  { lower: 0.30, higher: 0.60, continues: 0.10 },
+  { lower: 0.33, higher: 0.67, continues: 0    },
+]
+const TIMER_SECS = 14
+
+export function BiddingWarOverlay({ player, basePrice, ratingType, mode = 'ipl', onWin, onPass }) {
   const rival = useState(() => RIVAL_FRANCHISES[Math.floor(Math.random() * RIVAL_FRANCHISES.length)])[0]
-  // Rival will drop out once bid exceeds their secret max (1.3–1.9× base, min +5)
-  const rivalMax = useState(() => Math.round((basePrice * (1.3 + Math.random() * 0.6)) * 2) / 2)[0]
 
-  const [currentBid, setCurrentBid] = useState(basePrice)
-  const [phase, setBidPhase] = useState('bidding')  // 'bidding' | 'won' | 'lost'
-  const [rivalDropped, setRivalDropped] = useState(false)
+  const [round, setRound]           = useState(1)
+  const [rivalBid, setRivalBid]     = useState(basePrice)
+  const [phase, setPhase]           = useState('bidding')  // 'bidding'|'won'|'lost'|'coinflip'
+  const [timeLeft, setTimeLeft]     = useState(TIMER_SECS)
+  const [resultMsg, setResultMsg]   = useState('')
+  const [finalBid, setFinalBid]     = useState(null)
+  const [coinFlipping, setCoinFlipping] = useState(false)
 
-  const raise = (amount) => {
-    const newBid = Math.round((currentBid + amount) * 2) / 2
-    setCurrentBid(newBid)
-    if (newBid > rivalMax) {
-      setRivalDropped(true)
-      setBidPhase('won')
+  const timerRef = useRef(null)
+
+  // Timer — resets on each new round
+  useEffect(() => {
+    if (phase !== 'bidding') return
+    setTimeLeft(TIMER_SECS)
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current)
+          setPhase('lost')
+          setResultMsg("Time's up — you missed out!")
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timerRef.current)
+  }, [round, phase])
+
+  function stopTimer() { clearInterval(timerRef.current) }
+
+  function resolve(choice) {  // choice: 'lower' | 'higher'
+    stopTimer()
+    const probs = ROUND_PROBS[round - 1]
+    const roll  = Math.random()
+
+    if (roll < probs.lower) {
+      // Lower was enough — both choices win; lower pays less
+      const bid = rivalBid + (choice === 'lower' ? 3 : 6)
+      setFinalBid(bid)
+      setResultMsg(choice === 'lower' ? 'Your cautious raise was enough!' : 'Won! (the rival had already folded)')
+      setPhase('won')
+    } else if (roll < probs.lower + probs.higher) {
+      // Higher was needed
+      if (choice === 'higher') {
+        const bid = rivalBid + 6
+        setFinalBid(bid)
+        setResultMsg('Your aggressive raise sealed it!')
+        setPhase('won')
+      } else {
+        // Chose lower but higher was needed — rival wins this round
+        setResultMsg(`${rival.name} outbid you! Not enough.`)
+        setPhase('lost')
+      }
+    } else {
+      // Continues — rival counter-raises by 1–3cr
+      const counter = 1 + Math.floor(Math.random() * 3)
+      setRivalBid(prev => Math.round((prev + counter) * 2) / 2)
+      setRound(r => r + 1)
+      // phase stays 'bidding'; useEffect fires on round change → resets timer
     }
   }
 
-  const displayOvr = displayRating(player, ratingType).overall
+  function matchBid() {
+    stopTimer()
+    setCoinFlipping(true)
+    setPhase('coinflip')
+    setTimeout(() => {
+      setCoinFlipping(false)
+      if (Math.random() < 0.5) {
+        setFinalBid(rivalBid)
+        setResultMsg('Coin flip — heads! You win!')
+        setPhase('won')
+      } else {
+        setResultMsg('Coin flip — tails. Rival wins.')
+        setPhase('lost')
+      }
+    }, 1800)
+  }
+
+  const displayOvr = displayRating(player, ratingType, mode).overall
+  const timerPct   = (timeLeft / TIMER_SECS) * 100
+  const timerColor = timeLeft <= 4 ? '#ef4444' : timeLeft <= 8 ? '#f59e0b' : '#22c55e'
+  const showMatchBid = phase === 'bidding' && round >= 2
 
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(0,0,0,0.85)',
+      background: 'rgba(0,0,0,0.88)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '1.5rem',
       animation: 'fade-in 0.2s ease',
@@ -926,69 +1008,135 @@ export function BiddingWarOverlay({ player, basePrice, ratingType, onWin, onPass
         textAlign: 'center',
         animation: 'fade-in-up 0.3s ease',
       }}>
-        {/* Header */}
-        <div style={{ fontSize: '0.62rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '0.5rem' }}>
-          🔥 Bidding War
-        </div>
 
-        {/* Player being bid on */}
-        <div style={{ marginBottom: '1rem' }}>
-          <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text)' }}>{player.name}</div>
-          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{player.nationality} · {player.role} · {displayOvr} OVR</div>
-        </div>
-
-        {/* Rival */}
-        <div style={{
-          padding: '0.625rem 1rem', marginBottom: '1rem',
-          background: `${rival.color}18`, border: `1px solid ${rival.color}44`,
-          borderRadius: '0.75rem', fontSize: '0.8rem', fontWeight: 800,
-          color: rival.color,
-        }}>
-          {rival.icon} {rival.name} {rivalDropped ? 'dropped out!' : 'is also bidding'}
-        </div>
-
-        {/* Current bid */}
-        <div style={{ marginBottom: '1.25rem' }}>
-          <div style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-            {phase === 'won' ? 'You won at' : 'Current bid'}
-          </div>
-          <div style={{
-            fontSize: '2.5rem', fontWeight: 900,
-            color: phase === 'won' ? '#22c55e' : '#f59e0b',
-            lineHeight: 1,
-          }}>
-            {fmtCr(currentBid)}
+        {/* Header + round indicator */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+            🔥 Bidding War
           </div>
           {phase === 'bidding' && (
-            <div style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '0.2rem' }}>
-              Normal price: {fmtCr(basePrice)}
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Round {round}{round === 3 ? ' (Final)' : ''}
             </div>
           )}
         </div>
 
-        {/* Buttons */}
+        {/* Timer bar */}
+        {phase === 'bidding' && (
+          <div style={{ marginBottom: '0.875rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+              <span style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Decide in</span>
+              <span style={{ fontSize: '0.72rem', fontWeight: 900, color: timerColor }}>{timeLeft}s</span>
+            </div>
+            <div style={{ height: 4, background: 'var(--border2)', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{
+                width: `${timerPct}%`, height: '100%',
+                background: timerColor,
+                borderRadius: 2,
+                transition: 'width 1s linear, background 0.3s',
+              }} />
+            </div>
+          </div>
+        )}
+
+        {/* Player */}
+        <div style={{ marginBottom: '0.875rem' }}>
+          <div style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--text)' }}>{player.name}</div>
+          <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{player.nationality} · {player.role} · {displayOvr} OVR</div>
+        </div>
+
+        {/* Rival chip */}
+        <div style={{
+          padding: '0.5rem 0.875rem', marginBottom: '1rem',
+          background: `${rival.color}18`, border: `1px solid ${rival.color}44`,
+          borderRadius: '0.625rem', fontSize: '0.78rem', fontWeight: 800,
+          color: rival.color,
+        }}>
+          {phase === 'coinflip'
+            ? (coinFlipping ? `${rival.icon} ${rival.name} — flipping coin…` : `${rival.icon} ${rival.name}`)
+            : `${rival.icon} ${rival.name} ${phase === 'bidding' ? 'is bidding against you' : ''}`
+          }
+        </div>
+
+        {/* Rival's current bid */}
+        <div style={{ marginBottom: '1.1rem' }}>
+          <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.2rem' }}>
+            {phase === 'won' ? 'You signed at' : phase === 'lost' ? 'Final bid' : `${rival.name}'s bid`}
+          </div>
+          <div style={{
+            fontSize: '2.4rem', fontWeight: 900, lineHeight: 1,
+            color: phase === 'won' ? '#22c55e' : phase === 'lost' ? '#ef4444' : '#f59e0b',
+          }}>
+            {phase === 'won' ? fmtCr(finalBid) : fmtCr(rivalBid)}
+          </div>
+          {phase === 'bidding' && (
+            <div style={{ fontSize: '0.62rem', color: '#64748b', marginTop: '0.2rem' }}>
+              Base price: {fmtCr(basePrice)}
+            </div>
+          )}
+          {(phase === 'won' || phase === 'lost') && resultMsg && (
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: phase === 'won' ? '#22c55e' : '#ef4444', marginTop: '0.35rem' }}>
+              {resultMsg}
+            </div>
+          )}
+          {phase === 'coinflip' && coinFlipping && (
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f59e0b', marginTop: '0.35rem', animation: 'pulse-glow 0.6s ease infinite' }}>
+              🪙 Flipping…
+            </div>
+          )}
+        </div>
+
+        {/* Action buttons */}
         {phase === 'bidding' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button onClick={() => raise(5)} style={{ flex: 1, padding: '0.75rem', background: 'linear-gradient(135deg,#15803d,#16a34a)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer' }}>
-                Raise +₹5cr
+              <button
+                onClick={() => resolve('lower')}
+                style={{ flex: 1, padding: '0.75rem', background: 'linear-gradient(135deg,#15803d,#16a34a)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer' }}
+              >
+                Raise +₹3cr
               </button>
-              <button onClick={() => raise(10)} style={{ flex: 1, padding: '0.75rem', background: 'linear-gradient(135deg,#b45309,#d97706)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer' }}>
-                Raise +₹10cr
+              <button
+                onClick={() => resolve('higher')}
+                style={{ flex: 1, padding: '0.75rem', background: 'linear-gradient(135deg,#b45309,#d97706)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 800, cursor: 'pointer' }}
+              >
+                Raise +₹6cr
               </button>
             </div>
-            <button onClick={onPass} style={{ width: '100%', padding: '0.75rem', background: 'transparent', color: '#94a3b8', border: '1px solid var(--border)', borderRadius: '0.625rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+
+            {showMatchBid && (
+              <button
+                onClick={matchBid}
+                style={{ width: '100%', padding: '0.65rem', background: 'linear-gradient(135deg,#4c1d95,#7c3aed)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.82rem', fontWeight: 800, cursor: 'pointer' }}
+              >
+                🪙 Match Bid — Coin Flip (50/50)
+              </button>
+            )}
+
+            <button
+              onClick={onPass}
+              style={{ width: '100%', padding: '0.65rem', background: 'transparent', color: '#94a3b8', border: '1px solid var(--border)', borderRadius: '0.625rem', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+            >
               Let {rival.name} have it → spin again
             </button>
           </div>
         )}
 
-        {phase === 'won' && (
+        {phase === 'won' && finalBid != null && (
           <button
-            onClick={() => onWin(currentBid)}
+            onClick={() => onWin(finalBid)}
             style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg,#15803d,#22c55e)', color: '#fff', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 16px #22c55e33' }}
           >
-            🎉 Sign {player.name} for {fmtCr(currentBid)}
+            🎉 Sign {player.name} for {fmtCr(finalBid)}
+          </button>
+        )}
+
+        {phase === 'lost' && (
+          <button
+            onClick={onPass}
+            style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg,#7f1d1d,#dc2626)', color: '#fff', border: 'none', borderRadius: '0.75rem', fontSize: '0.9rem', fontWeight: 900, cursor: 'pointer' }}
+          >
+            Back to auction →
           </button>
         )}
       </div>

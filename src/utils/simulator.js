@@ -1,8 +1,13 @@
-import { MODE_CONFIG } from '../data/players.js'
+import { MODE_CONFIG, getPrimeRatings } from '../data/players.js'
 
 // ─── Team Strength ─────────────────────────────────────────────────────────
 
-export function calcTeamStrength(team, manager, mode) {
+function primeOvr(p, mode) {
+  const map = getPrimeRatings(mode)
+  return Math.min(99, map[p.name] ?? p.overall)
+}
+
+export function calcTeamStrength(team, manager, mode, ratingType = 'overall') {
   if (!team || team.length === 0) return 50
 
   // Batting: avg overall of batsmen + half of all-rounders
@@ -15,7 +20,7 @@ export function calcTeamStrength(team, manager, mode) {
   let bowlSum = 0, bowlCount = 0
 
   team.forEach(p => {
-    const ovr = p.overall
+    const ovr = ratingType === 'prime' ? primeOvr(p, mode) : p.overall
     if (p.role === 'all-rounder') {
       batSum  += ovr / 2;  batCount  += 0.5
       bowlSum += ovr / 2;  bowlCount += 0.5

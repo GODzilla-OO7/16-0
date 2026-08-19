@@ -207,6 +207,8 @@ export default function UserProfile({ user, onClose, onSignOut }) {
   const [loading,     setLoading]     = useState(true)
   const [editingName, setEditingName] = useState(false)
   const [nameInput,   setNameInput]   = useState('')
+  const [rivals,      setRivals]      = useState([])
+  const [cabinetShared, setCabinetShared] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -216,6 +218,31 @@ export default function UserProfile({ user, onClose, onSignOut }) {
       setNameInput(profile?.display_name ?? '')
       setLoading(false)
     })
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    async function loadRivals() {
+      const sb = await getSupabase()
+      if (!sb) return
+      const { data } = await sb
+        .from('h2h_results')
+        .select('*')
+        .or(`winner_id.eq.${user.id},loser_id.eq.${user.id}`)
+        .order('played_at', { ascending: false })
+      if (!data) return
+      const rivalMap = {}
+      for (const r of data) {
+        const iWon   = r.winner_id === user.id
+        const oppId  = iWon ? r.loser_id   : r.winner_id
+        const oppName = iWon ? r.loser_name : r.winner_name
+        if (!rivalMap[oppId]) rivalMap[oppId] = { name: oppName, wins: 0, losses: 0 }
+        if (iWon) rivalMap[oppId].wins++
+        else      rivalMap[oppId].losses++
+      }
+      setRivals(Object.values(rivalMap).sort((a, b) => (b.wins + b.losses) - (a.wins + a.losses)))
+    }
+    loadRivals()
   }, [user])
 
   async function saveName() {
@@ -447,7 +474,35 @@ export default function UserProfile({ user, onClose, onSignOut }) {
 
             {/* ── Trophy Cabinet ───────────────────────────────────────────── */}
             <div style={{ marginBottom: '1.75rem' }}>
-              <SectionHeader title={`Trophy Cabinet · ${earnedAwards.length} / ${AWARDS.length}`} icon="🏆" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', marginTop: '0.25rem' }}>
+                <span style={{ fontSize: '0.9rem' }}>🏆</span>
+                <div style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Trophy Cabinet · {earnedAwards.length} / {AWARDS.length}
+                </div>
+                <div style={{ flex: 1, height: 1, background: 'var(--border)', marginLeft: '0.25rem' }} />
+                {earnedAwards.length > 0 && (
+                  <button
+                    onClick={() => {
+                      const text = `🏆 My Cricket 38-0 Cabinet: ${earnedAwards.map(a => `${a.icon} ${a.name}`).join(' · ')}\n16zero.in`
+                      if (navigator.share) {
+                        navigator.share({ text }).catch(() => {})
+                      } else {
+                        navigator.clipboard.writeText(text).then(() => { setCabinetShared(true); setTimeout(() => setCabinetShared(false), 2000) })
+                      }
+                    }}
+                    style={{
+                      background: 'none', border: '1px solid var(--border)',
+                      borderRadius: '0.4rem', color: cabinetShared ? '#22c55e' : 'var(--muted)',
+                      fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
+                      padding: '0.2rem 0.5rem', flexShrink: 0,
+                      transition: 'color 0.15s, border-color 0.15s',
+                      borderColor: cabinetShared ? '#22c55e55' : undefined,
+                    }}
+                  >
+                    {cabinetShared ? '✅ Copied!' : '↗ Share'}
+                  </button>
+                )}
+              </div>
               {earnedAwards.length === 0 ? (
                 <div style={{
                   textAlign: 'center', padding: '1.5rem',
@@ -475,6 +530,56 @@ export default function UserProfile({ user, onClose, onSignOut }) {
               {earnedAwards.length === 0 && lockedAwards.length > 0 && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginTop: '0.75rem' }}>
                   {lockedAwards.slice(0, 4).map(a => <TrophyCard key={a.id} award={a} earned={false} />)}
+                </div>
+              )}
+            </div>
+
+            {/* ── Rivals ──────────────────────────────────────────────────── */}
+            <div style={{ marginBottom: '1.75rem' }}>
+              <SectionHeader title="Multiplayer Rivals" icon="⚔️" />
+              {rivals.length === 0 ? (
+                <div style={{
+                  textAlign: 'center', padding: '1.5rem',
+                  background: 'var(--card)', borderRadius: '0.75rem',
+                  border: '1px solid var(--border)',
+                  color: 'var(--muted)', fontSize: '0.82rem',
+                }}>
+                  No multiplayer matches yet — play an H2H draft to see your rivals here.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                  {rivals.map((r, i) => {
+                    const total = r.wins + r.losses
+                    const winPct = total > 0 ? Math.round((r.wins / total) * 100) : 0
+                    const leading = r.wins > r.losses
+                    const behind  = r.losses > r.wins
+                    return (
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'center', gap: '0.75rem',
+                        padding: '0.625rem 0.875rem',
+                        background: 'var(--card)', borderRadius: '0.625rem',
+                        border: `1px solid ${leading ? '#4169E144' : behind ? '#ef444433' : 'var(--border)'}`,
+                      }}>
+                        <div style={{ fontSize: '0.9rem', flexShrink: 0 }}>⚔️</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)' }}>{r.name}</div>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--muted)', marginTop: '0.1rem' }}>
+                            {total} match{total !== 1 ? 'es' : ''} · {winPct}% win rate
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 900, lineHeight: 1 }}>
+                            <span style={{ color: '#4169E1' }}>{r.wins}W</span>
+                            <span style={{ color: 'var(--text-dim)', margin: '0 0.2rem' }}>–</span>
+                            <span style={{ color: '#ef4444' }}>{r.losses}L</span>
+                          </div>
+                          <div style={{ fontSize: '0.58rem', fontWeight: 700, marginTop: '0.2rem', color: leading ? '#22c55e' : behind ? '#ef4444' : 'var(--muted)' }}>
+                            {leading ? 'You lead' : behind ? 'They lead' : 'Even'}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>

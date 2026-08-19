@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { WHEEL_ENTRIES } from '../data/players.js'
+import { WHEEL_ENTRIES, getPrimeRatings } from '../data/players.js'
 
 // ─── Legendary icon players — appear with 0.05% chance in player spin ────────
 // These are all-time greats NOT present in the regular WHEEL_ENTRIES pool.
@@ -27,136 +27,119 @@ const ICON_PLAYERS = [
 ]
 
 // ─── Event types that can land on the wheel ──────────────────────────────────
-// All 10 events have equal probability. minRating/maxRating filter the incoming player pool.
+// 9 events, equal probability. minRating/maxRating filter by scaleDisplay(overall).
+// replaceTarget: 'weakest' = lowest-rated of same role leaves; 'best' = highest-rated leaves.
+// legendsPool: true = incoming player is drawn from ICON_PLAYERS only (pre-2008 greats).
 
 const EVENTS = [
-  // ─── Original 5 ──────────────────────────────────────────────────────────
+  // ─── Upgrades ─────────────────────────────────────────────────────────────
   {
     id: 'team-raid',
     icon: '🎯',
     label: 'Team Raid',
     color: '#4169E1',
-    desc: 'You raid a rival squad. A quality player spins in — replaces your weakest of the same role.',
+    desc: 'You raid a rival squad. A quality player (85+) spins in — your weakest of that role exits.',
     replaceTarget: 'weakest',
-    minRating: 78,
+    minRating: 85,
   },
-  {
-    id: 'best-is-lost',
-    icon: '💔',
-    label: 'Best is Lost',
-    color: '#ef4444',
-    desc: 'Your highest-rated player walks out. Spin for a replacement of the same role.',
-    replaceTarget: 'best',
-  },
-  {
-    id: 'rising-star',
-    icon: '⭐',
-    label: 'Rising Star',
-    color: '#f59e0b',
-    desc: 'A rising star joins your camp. Young and hungry — replaces your weakest of that role.',
-    replaceTarget: 'weakest',
-    maxRating: 80,
-  },
-  {
-    id: 'rival-sends',
-    icon: '🔄',
-    label: 'Rival Sends',
-    color: '#a855f7',
-    desc: 'A rival team offloads their 12th man to you. Fringe player — replaces your weakest of that role.',
-    replaceTarget: 'weakest',
-    maxRating: 76,
-  },
-  {
-    id: 'wildcard',
-    icon: '🎲',
-    label: 'Wildcard',
-    color: '#22c55e',
-    desc: 'Complete chaos. Anyone can spin in — replaces your worst player of that role.',
-    replaceTarget: 'weakest',
-  },
-  // ─── 5 New events ────────────────────────────────────────────────────────
   {
     id: 'headhunt',
     icon: '🦅',
     label: 'Headhunt',
     color: '#f97316',
-    desc: 'Your scouts poach elite talent from another franchise. An exceptional player arrives — replaces your weakest of that role.',
+    desc: 'Your scouts secure elite talent (82+). An exceptional player arrives — weakest of that role leaves.',
     replaceTarget: 'weakest',
     minRating: 82,
-  },
-  {
-    id: 'youth-academy',
-    icon: '🌱',
-    label: 'Youth Academy',
-    color: '#10b981',
-    desc: 'A raw academy prospect earns their debut. Unproven but passionate — replaces your weakest of that role.',
-    replaceTarget: 'weakest',
-    maxRating: 72,
-  },
-  {
-    id: 'deadline-deal',
-    icon: '⏰',
-    label: 'Deadline Deal',
-    color: '#94a3b8',
-    desc: 'Transfer window is closing. Whoever is available gets the nod — replaces your weakest of that role.',
-    replaceTarget: 'weakest',
-  },
-  {
-    id: 'swap-deal',
-    icon: '🔀',
-    label: 'Swap Deal',
-    color: '#8b5cf6',
-    desc: 'Both teams agree to a player exchange. Your best player of that role departs — a fresh arrival takes their place.',
-    replaceTarget: 'best',
   },
   {
     id: 'franchise-buy',
     icon: '🏟️',
     label: 'Franchise Buy',
     color: '#0ea5e9',
-    desc: 'The franchise opens the purse strings. A solid, reputable player joins — replaces your weakest of that role.',
+    desc: 'The franchise opens the purse strings. A reliable star (88+) joins — weakest of that role goes.',
     replaceTarget: 'weakest',
-    minRating: 74,
+    minRating: 88,
+  },
+  {
+    id: 'legends',
+    icon: '🏛️',
+    label: 'Legends',
+    color: '#f59e0b',
+    desc: 'A pre-2008 legend steps out of retirement. An all-time great joins — your player in that role departs.',
+    replaceTarget: 'weakest',
+    legendsPool: true,
+  },
+  // ─── Gamble ────────────────────────────────────────────────────────────────
+  {
+    id: 'wildcard',
+    icon: '🎲',
+    label: 'Wildcard',
+    color: '#22c55e',
+    desc: 'Complete chaos — anyone can spin in, any rating. Your weakest of that same role exits.',
+    replaceTarget: 'weakest',
+  },
+  // ─── Downgrades / youth signings ───────────────────────────────────────────
+  {
+    id: 'rising-star',
+    icon: '⭐',
+    label: 'Rising Star',
+    color: '#f59e0b',
+    desc: 'A young, hungry player (max 85) arrives — replaces your weakest of that role. Slight gamble on potential.',
+    replaceTarget: 'weakest',
+    maxRating: 85,
+  },
+  {
+    id: 'rival-sends',
+    icon: '🔄',
+    label: 'Rival Sends',
+    color: '#a855f7',
+    desc: 'A rival offloads their fringe player (max 75). Your BEST in that role leaves. Likely a downgrade.',
+    replaceTarget: 'best',
+    maxRating: 75,
+  },
+  {
+    id: 'youth-academy',
+    icon: '🌱',
+    label: 'Youth Academy',
+    color: '#10b981',
+    desc: 'A raw academy prospect (max 78) earns a debut. Your strongest in that role departs. Biggest gamble.',
+    replaceTarget: 'best',
+    maxRating: 78,
+  },
+  // ─── Painful ───────────────────────────────────────────────────────────────
+  {
+    id: 'best-is-lost',
+    icon: '💔',
+    label: 'Best is Lost',
+    color: '#ef4444',
+    desc: 'Your highest-rated player walks out. A replacement (max 80) of the same role spins in.',
+    replaceTarget: 'best',
+    maxRating: 80,
   },
 ]
 
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
+function scalePrime(v)   { return Math.max(1, Math.min(99, v)) }
 const isOverseas = p => p.nationality !== 'India'
 
-// ─── Build candidate replacement pool ────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getReplacementPool(team, role, mode) {
-  const teamIds   = new Set(team.map(p => p.id))
-  const teamNames = new Set(team.map(p => p.name))
-  const overseasCount = team.filter(p => isOverseas(p)).length
-
-  const allPlayers = []
-  for (const entry of WHEEL_ENTRIES) {
-    if (!entry.competition?.includes(mode)) continue
-    for (const p of entry.players) {
-      if (p.role !== role) continue
-      if (teamIds.has(p.id) || teamNames.has(p.name)) continue
-      // Overseas quota: if full and outgoing player is domestic, only domestic can come in
-      // (handled per-call based on who's going out)
-      allPlayers.push(p)
-    }
-  }
-  // Deduplicate by name (same player can appear in multiple seasons)
-  const seen = new Set()
-  return allPlayers.filter(p => {
-    if (seen.has(p.name)) return false
-    seen.add(p.name)
-    return true
-  })
+/** Who leaves for a given role + replaceTarget. Falls back to overall weakest if role not in team. */
+function pickOutgoing(team, replaceTarget, role) {
+  const sameRole = team.filter(p => p.role === role)
+  const pool     = sameRole.length ? sameRole : team
+  return replaceTarget === 'best'
+    ? pool.reduce((a, b) => (a.overall > b.overall ? a : b))
+    : pool.reduce((a, b) => (a.overall < b.overall ? a : b))
 }
 
-function pickOutgoing(team, event, incomingRole) {
-  const sameRole = team.filter(p => p.role === incomingRole)
-  if (!sameRole.length) return team.reduce((a, b) => (a.overall < b.overall ? a : b))
-  if (event.replaceTarget === 'best') {
-    return sameRole.reduce((a, b) => (a.overall > b.overall ? a : b))
-  }
-  return sameRole.reduce((a, b) => (a.overall < b.overall ? a : b))
+/** Would adding incomingPlayer (who is overseas) violate the 4-overseas cap?
+ *  outgoingPlayer is the one leaving — if they are also overseas, the slot is freed. */
+function overseasOk(team, incoming, outgoing) {
+  if (!isOverseas(incoming)) return true          // domestic in → always fine
+  if (isOverseas(outgoing))  return true          // overseas out + overseas in → net 0
+  const currentOverseas = team.filter(p => isOverseas(p)).length
+  return currentOverseas < 4                      // domestic out + overseas in → check cap
 }
 
 // Cubic ease-out animation helper (same as WheelSpin)
@@ -167,7 +150,15 @@ function getInterval(tick, total) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function ImpactSub({ team, mode, onComplete, onSkip }) {
+export default function ImpactSub({ team, mode, ratingType = 'season', onComplete, onSkip }) {
+  const showRating = (player) => {
+    if (!player) return '—'
+    if (ratingType === 'prime') {
+      const primeMap = getPrimeRatings(mode)
+      return scalePrime(primeMap[player.name] ?? player.overall)
+    }
+    return scaleDisplay(player.overall)
+  }
   const [phase, setPhase] = useState('offer')  // offer → event-spin → event-landed → player-spin → player-landed → confirm
   const [eventEntry, setEventEntry]   = useState(null)   // landed event
   const [cycleEvent, setCycleEvent]   = useState(null)   // currently cycling event (spin anim)
@@ -214,44 +205,70 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
     const teamIds   = new Set(team.map(p => p.id))
     const teamNames = new Set(team.map(p => p.name))
 
-    // For "best-is-lost" and "swap-deal": determine who walks out FIRST (highest overall in team),
-    // then restrict incoming to the same role.
-    let requiredRole = null
+    // ── For best-is-lost: outgoing is globally highest-rated player ──────────
+    // Determine outgoing first so we know required role and overseas slot.
     let preOut = null
-    if (eventEntry.id === 'best-is-lost' || eventEntry.id === 'swap-deal') {
+    let requiredRole = null
+    if (eventEntry.id === 'best-is-lost') {
       preOut = [...team].sort((a, b) => b.overall - a.overall)[0] ?? null
       requiredRole = preOut?.role ?? null
       if (preOut) setOutgoing(preOut)
     }
 
-    // Build filtered candidate pool using event's minRating / maxRating properties
     const minR = eventEntry.minRating ?? null
     const maxR = eventEntry.maxRating ?? null
 
+    // ── Build candidate pool ─────────────────────────────────────────────────
+    // Rules enforced per-candidate:
+    //   1. Same role as a role that exists in the team (composition check)
+    //   2. If event pre-determines the role (best-is-lost), only that role
+    //   3. Overseas rule: incoming overseas player can only join if outgoing is
+    //      also overseas, OR the team currently has < 4 overseas players
     const seen = new Set()
     const fullPool = []
-    for (const entry of WHEEL_ENTRIES) {
-      if (!entry.competition?.includes(mode)) continue
-      for (const p of entry.players) {
-        if (teamIds.has(p.id) || teamNames.has(p.name)) continue
-        if (seen.has(p.name)) continue
-        if (requiredRole && p.role !== requiredRole) continue
-        const scaled = scaleDisplay(p.overall)
-        if (minR !== null && scaled < minR) continue
-        if (maxR !== null && scaled > maxR) continue
-        seen.add(p.name)
-        fullPool.push(p)
+
+    if (eventEntry.legendsPool) {
+      // Legends event: pool is ICON_PLAYERS only (pre-2008 greats)
+      for (const ic of ICON_PLAYERS) {
+        if (teamIds.has(ic.id) || teamNames.has(ic.name)) continue
+        const roleExists = team.some(p => p.role === ic.role)
+        if (!roleExists) continue
+        const out = preOut ?? pickOutgoing(team, eventEntry.replaceTarget, ic.role)
+        if (!overseasOk(team, ic, out)) continue
+        fullPool.push(ic)
+      }
+    } else {
+      for (const entry of WHEEL_ENTRIES) {
+        if (!entry.competition?.includes(mode)) continue
+        for (const p of entry.players) {
+          if (teamIds.has(p.id) || teamNames.has(p.name)) continue
+          if (seen.has(p.name)) continue
+          // Role: must match pre-determined role (best-is-lost) or exist in team
+          if (requiredRole ? p.role !== requiredRole : !team.some(t => t.role === p.role)) continue
+          // Rating filter
+          const scaled = scaleDisplay(p.overall)
+          if (minR !== null && scaled < minR) continue
+          if (maxR !== null && scaled > maxR) continue
+          // Overseas + composition check
+          const out = preOut ?? pickOutgoing(team, eventEntry.replaceTarget, p.role)
+          if (!overseasOk(team, p, out)) continue
+          seen.add(p.name)
+          fullPool.push(p)
+        }
       }
     }
 
-    // If filters yield nothing, fall back to full unfiltered pool (safety net)
-    if (!fullPool.length) {
+    // Fallback: relax rating filter but keep role + overseas rules
+    if (!fullPool.length && !eventEntry.legendsPool) {
       const seen2 = new Set()
       for (const entry of WHEEL_ENTRIES) {
         if (!entry.competition?.includes(mode)) continue
         for (const p of entry.players) {
           if (teamIds.has(p.id) || teamNames.has(p.name)) continue
           if (seen2.has(p.name)) continue
+          if (requiredRole ? p.role !== requiredRole : !team.some(t => t.role === p.role)) continue
+          const out = preOut ?? pickOutgoing(team, eventEntry.replaceTarget, p.role)
+          if (!overseasOk(team, p, out)) continue
           seen2.add(p.name)
           fullPool.push(p)
         }
@@ -260,22 +277,11 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
 
     if (!fullPool.length) { onSkip(); return }
 
-    // Double-shuffle to break any latent ordering bias
+    // Double-shuffle to remove ordering bias
     const shuffled = [...fullPool]
       .sort(() => Math.random() - 0.5)
       .sort(() => Math.random() - 0.5)
-    let chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
-
-    // ── 0.05% chance of a legendary icon player appearing ─────────────────
-    if (Math.random() < 0.0005) {
-      const eligible = ICON_PLAYERS
-        .filter(ic => !teamIds.has(ic.id) && !teamNames.has(ic.name))
-        .filter(ic => !requiredRole || ic.role === requiredRole)
-      if (eligible.length > 0) {
-        chosen = eligible[Math.floor(Math.random() * eligible.length)]
-      }
-    }
-    // ──────────────────────────────────────────────────────────────────────
+    const chosen = shuffled[Math.floor(Math.random() * shuffled.length)]
 
     setPool(shuffled)
 
@@ -284,16 +290,12 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
     function tick() {
       i++
       const last = i >= TICKS
-      // Cycle through normal pool visually; land on chosen (could be icon)
       setCyclePlayer(last ? chosen : shuffled[i % shuffled.length])
       if (last) {
         timerRef.current = setTimeout(() => {
-          // For best-is-lost: outgoing was already set to team's best player.
-          // For all others: outgoing is the weakest/best of same role as incoming.
-          if (eventEntry.id !== 'best-is-lost') {
-            const out = pickOutgoing(team, eventEntry, chosen.role)
-            setOutgoing(out)
-          }
+          // Determine who leaves (pre-set for best-is-lost, derived for all others)
+          const out = preOut ?? pickOutgoing(team, eventEntry.replaceTarget, chosen.role)
+          setOutgoing(out)
           setPlayerEntry(chosen)
           setPool(shuffled)
           setPhase('player-landed')
@@ -451,7 +453,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
               </div>
               {displayedPlayer && !isPlayerSpinning && (
                 <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>
-                  {scaleDisplay(displayedPlayer.overall)}
+                  {showRating(displayedPlayer)}
                 </div>
               )}
             </div>
@@ -465,7 +467,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
                     <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#f87171' }}>{outgoing.name}</div>
                     <div style={{ fontSize: '0.67rem', color: '#64748b' }}>{outgoing.nationality} · {outgoing.role}</div>
                   </div>
-                  <div style={{ fontSize: '1rem', fontWeight: 900, color: '#ef4444' }}>{scaleDisplay(outgoing.overall)}</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 900, color: '#ef4444' }}>{showRating(outgoing)}</div>
                 </div>
                 <div style={{ borderTop: '1px solid #ef444422', margin: '0.5rem 0' }} />
                 <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>In</div>
@@ -474,7 +476,7 @@ export default function ImpactSub({ team, mode, onComplete, onSkip }) {
                     <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#86efac' }}>{playerEntry?.name}</div>
                     <div style={{ fontSize: '0.67rem', color: '#64748b' }}>{playerEntry?.nationality} · {playerEntry?.role}</div>
                   </div>
-                  <div style={{ fontSize: '1rem', fontWeight: 900, color: '#22c55e' }}>{playerEntry ? scaleDisplay(playerEntry.overall) : '—'}</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 900, color: '#22c55e' }}>{showRating(playerEntry)}</div>
                 </div>
               </div>
             )}

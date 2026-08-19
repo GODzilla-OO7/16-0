@@ -139,11 +139,14 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
     const groupStageCount = mode === 'odi-wc' ? 9 : mode === 't20-wc' ? 4 : 0
     const groupOppNames   = drawnAllOpponents ? drawnAllOpponents.slice(0, groupStageCount) : null
-    // H2H: inject opponent team as match 7 + compute their strength
-    const h2hOpp = h2hContext?.opponentTeam?.length > 0
-      ? { name: h2hContext.opponentName, strength: calcTeamStrength(h2hContext.opponentTeam, null, 'ipl') }
+    // H2H: inject opponent team as match 7 + compute their strength (prime-rated if in prime mode)
+    const oppTeamForSim = h2hContext?.opponentTeam?.length > 0
+      ? (ratingType === 'prime' ? applyPrimeRatings(h2hContext.opponentTeam, mode) : h2hContext.opponentTeam)
       : null
-    const season = simulateFullSeason(ratingType === 'prime' ? applyPrimeRatings(team) : team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp })
+    const h2hOpp = oppTeamForSim
+      ? { name: h2hContext.opponentName, strength: calcTeamStrength(oppTeamForSim, null, mode) }
+      : null
+    const season = simulateFullSeason(ratingType === 'prime' ? applyPrimeRatings(team, mode) : team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp })
     setLeagueSeason(season)
 
     let i = 0
@@ -315,7 +318,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   }, [iplPhase, h2hContext])
 
   function startPlayoffs() {
-    const pd = simulateIPLPlayoffs(ratingType === 'prime' ? applyPrimeRatings(activeTeam) : activeTeam, manager, iplPosition, iplTable?.table ?? [])
+    const pd = simulateIPLPlayoffs(ratingType === 'prime' ? applyPrimeRatings(activeTeam, mode) : activeTeam, manager, iplPosition, iplTable?.table ?? [])
     if (!pd?.results?.length) { setIplPhase('done'); return }
     setPlayoffData(pd)
     setIplPhase('playoffs')
@@ -504,6 +507,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         <ImpactSub
           team={activeTeam}
           mode={mode}
+          ratingType={ratingType}
           onComplete={(newTeam, outPlayer, inPlayer, event) => {
             setActiveTeam(newTeam)
             setImpactSubLog({ out: outPlayer, in: inPlayer, event })
