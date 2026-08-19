@@ -511,7 +511,7 @@ function OverseasTracker({ overseasInTeam, limitReached }) {
       display: 'flex', alignItems: 'center', gap: '0.6rem',
       padding: '0.5rem 0.875rem',
       background: limitReached ? '#ef444410' : 'var(--card2)',
-      border: `1.5px solid ${limitReached ? '#ef444455' : 'var(--border)'}`,
+      border: `1.5px solid ${limitReached ? '#ef444455' : 'var(--card-border)'}`,
       borderRadius: '0.625rem',
     }}>
       <span style={{ fontSize: '0.75rem' }}>✈️</span>
@@ -524,7 +524,7 @@ function OverseasTracker({ overseasInTeam, limitReached }) {
             <div key={i} style={{
               width: 16, height: 16, borderRadius: '50%',
               background: i < overseasInTeam ? '#4169E1' : 'transparent',
-              border: `2px solid ${i < overseasInTeam ? '#4169E1' : 'var(--border)'}`,
+              border: `2px solid ${i < overseasInTeam ? '#4169E1' : 'var(--card-border)'}`,
               transition: 'background 0.2s, border-color 0.2s',
             }} />
           ))}
@@ -567,7 +567,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
       {/* Ticker — now shows "Team Year" prominently */}
       <div className="wheel-ticker" style={{
         width: '100%', maxWidth: 360, minHeight: 110, borderRadius: '1rem',
-        border: `2px solid ${cycleEntry ? cycleEntry.color + '88' : 'var(--border)'}`,
+        border: `2px solid ${cycleEntry ? cycleEntry.color + '88' : 'var(--card-border)'}`,
         background: cycleEntry ? cycleEntry.color + '14' : 'var(--card)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         padding: '1.25rem',
@@ -598,7 +598,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
           padding: '0.875rem 2.75rem',
           background: isSpinning ? 'transparent' : 'linear-gradient(135deg, #4169E1, #2952CC)',
           color: isSpinning ? '#64748b' : 'var(--bg)',
-          border: isSpinning ? '1px solid var(--border)' : 'none',
+          border: isSpinning ? '1px solid var(--card-border)' : 'none',
           borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800,
           cursor: isSpinning ? 'default' : 'pointer', minWidth: 180,
           letterSpacing: '0.06em', textTransform: 'uppercase',
@@ -678,7 +678,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
             <span style={{
               padding: '0.15rem 0.6rem',
               background: 'var(--border2)',
-              border: '1.5px solid var(--border)',
+              border: '1.5px solid var(--card-border)',
               borderRadius: '999px',
               fontSize: '0.8rem', fontWeight: 900, color: 'var(--text)',
             }}>

@@ -10,6 +10,7 @@
   --card2:   #0b0b16;
   --border:  #2a2a3a;
   --border2: #1a1a26;
+  --card-border: #D4172C;
   --text:    #f1f5f9;
   --muted:   #64748b;
   --dim:     #2a3855;
@@ -40,6 +41,7 @@ body.light {
   --card2:   #eef3ff;
   --border:  #dce6f7;
   --border2: #e8edf7;
+  --card-border: #D4172C;
   --text:    #0f172a;
   --muted:   #64748b;
   --dim:     #94a3b8;

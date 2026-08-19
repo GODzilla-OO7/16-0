@@ -201,7 +201,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
     row: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap' },
     pill: (active, color = '#4169E1') => ({
       padding: '0.45rem 1rem', background: active ? color + '22' : 'var(--border2)',
-      color: active ? color : '#64748b', border: `1px solid ${active ? color + '66' : 'var(--border)'}`,
+      color: active ? color : '#64748b', border: `1px solid ${active ? color + '66' : 'var(--card-border)'}`,
       borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
     }),
     yearChip: (on) => ({
@@ -281,7 +281,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
                         fontSize: '0.72rem',
                         color: isActive ? '#4169E1' : '#64748b',
                         background: isActive ? 'rgba(31,111,235,0.15)' : 'var(--border2)',
-                        border: `1px solid ${isActive ? 'rgba(31,111,235,0.45)' : 'var(--border)'}`,
+                        border: `1px solid ${isActive ? 'rgba(31,111,235,0.45)' : 'var(--card-border)'}`,
                         borderRadius: '0.4rem',
                         padding: '0.3rem 0.6rem',
                         cursor: 'pointer',

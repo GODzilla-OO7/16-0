@@ -228,7 +228,7 @@ function XIPanel({ name, team, isMe, comp, budget, ratingType = 'overall' }) {
   return (
     <div style={{
       background: 'var(--card2)',
-      border: `1px solid ${isMe ? '#4169E144' : 'var(--border)'}`,
+      border: `1px solid ${isMe ? '#4169E144' : 'var(--card-border)'}`,
       borderRadius: '0.75rem', overflow: 'hidden',
       position: 'sticky', top: '4.5rem',
     }}>
@@ -1301,7 +1301,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                                         padding: '0.65rem 0.25rem', fontWeight: 900, fontSize: '0.78rem',
                                         background: (!canBid || !affordable) ? 'var(--border2)' : 'linear-gradient(135deg, #22c55e22, #22c55e11)',
                                         color: (!canBid || !affordable) ? '#475569' : '#22c55e',
-                                        border: `1px solid ${(!canBid || !affordable) ? 'var(--border)' : '#22c55e55'}`,
+                                        border: `1px solid ${(!canBid || !affordable) ? 'var(--card-border)' : '#22c55e55'}`,
                                         borderRadius: '0.4rem', cursor: (!canBid || !affordable) ? 'not-allowed' : 'pointer',
                                         transition: 'all 0.12s',
                                       }}

@@ -9,7 +9,7 @@ function AwardBadge({ award, earned }) {
       display: 'flex', alignItems: 'center', gap: '0.75rem',
       padding: '0.625rem 0.875rem',
       background: earned ? 'var(--win-bg)' : 'var(--card)',
-      border: `1px solid ${earned ? 'var(--win-border)' : 'var(--border)'}`,
+      border: `1px solid ${earned ? 'var(--win-border)' : 'var(--card-border)'}`,
       borderRadius: '0.75rem',
       opacity: earned ? 1 : 0.45,
       transition: 'all 0.2s',
@@ -19,7 +19,7 @@ function AwardBadge({ award, earned }) {
         <div style={{
           width: 40, height: 40, borderRadius: '50%',
           background: earned ? 'rgba(245,158,11,0.12)' : 'var(--border2)',
-          border: `2px solid ${earned ? '#f59e0b88' : 'var(--border)'}`,
+          border: `2px solid ${earned ? '#f59e0b88' : 'var(--card-border)'}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '1.25rem',
           filter: earned ? 'none' : 'grayscale(1)',
@@ -101,7 +101,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
       <div style={{
         width: '100%', maxWidth: 480,
         background: 'var(--card)',
-        border: '1px solid var(--border)',
+        border: '1px solid var(--card-border)',
         borderRadius: '1.25rem',
         overflow: 'hidden',
         maxHeight: '90vh',
@@ -201,7 +201,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                   placeholder="e.g. Ricky Ponting"
                   style={{
                     width: '100%', padding: '0.625rem 0.875rem',
-                    background: 'var(--border2)', border: '1px solid var(--border)',
+                    background: 'var(--border2)', border: '1px solid var(--card-border)',
                     borderRadius: '0.625rem', color: 'var(--text)', fontSize: '0.875rem',
                     outline: 'none', boxSizing: 'border-box',
                     fontFamily: 'inherit',
@@ -220,7 +220,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                   placeholder="you@example.com"
                   style={{
                     width: '100%', padding: '0.625rem 0.875rem',
-                    background: 'var(--border2)', border: '1px solid var(--border)',
+                    background: 'var(--border2)', border: '1px solid var(--card-border)',
                     borderRadius: '0.625rem', color: 'var(--text)', fontSize: '0.875rem',
                     outline: 'none', boxSizing: 'border-box',
                     fontFamily: 'inherit',
@@ -266,7 +266,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
                   padding: '0.625rem 0.875rem',
-                  background: 'var(--border2)', border: '1px solid var(--border)',
+                  background: 'var(--border2)', border: '1px solid var(--card-border)',
                   borderRadius: '0.625rem',
                 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>

@@ -128,7 +128,7 @@ export default function TeamSheet({
 
   return (
     <div style={{
-      background: 'var(--card)', border: '1px solid var(--border)',
+      background: 'var(--card)', border: '1px solid var(--card-border)',
       borderRadius: '1rem', overflow: 'hidden',
     }}>
       {/* Header */}
