@@ -101,7 +101,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
       <div style={{
         width: '100%', maxWidth: 480,
         background: 'var(--card)',
-        border: '2px solid var(--border)',
+        border: '1px solid var(--border)',
         borderRadius: '1.25rem',
         overflow: 'hidden',
         maxHeight: '90vh',
@@ -110,7 +110,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
       }}>
 
         {/* Header */}
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
             <div style={{ fontSize: '0.65rem', color: '#4169E1', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>Cricket 16-0</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>
@@ -146,7 +146,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
         )}
 
         {/* Tab bar */}
-        <div style={{ display: 'flex', padding: '0.5rem', gap: '0.375rem', background: 'var(--bg)', borderBottom: '2px solid var(--border)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', padding: '0.5rem', gap: '0.375rem', background: 'var(--bg)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
           {[
             { id: 'awards',  label: `🏅 Awards (${earnedCount}/${totalCount})` },
             { id: 'profile', label: '👤 Profile' },
@@ -201,7 +201,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                   placeholder="e.g. Ricky Ponting"
                   style={{
                     width: '100%', padding: '0.625rem 0.875rem',
-                    background: 'var(--border2)', border: '2px solid var(--border)',
+                    background: 'var(--border2)', border: '1px solid var(--border)',
                     borderRadius: '0.625rem', color: 'var(--text)', fontSize: '0.875rem',
                     outline: 'none', boxSizing: 'border-box',
                     fontFamily: 'inherit',
@@ -220,7 +220,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                   placeholder="you@example.com"
                   style={{
                     width: '100%', padding: '0.625rem 0.875rem',
-                    background: 'var(--border2)', border: '2px solid var(--border)',
+                    background: 'var(--border2)', border: '1px solid var(--border)',
                     borderRadius: '0.625rem', color: 'var(--text)', fontSize: '0.875rem',
                     outline: 'none', boxSizing: 'border-box',
                     fontFamily: 'inherit',
@@ -266,7 +266,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
                   padding: '0.625rem 0.875rem',
-                  background: 'var(--border2)', border: '2px solid var(--border)',
+                  background: 'var(--border2)', border: '1px solid var(--border)',
                   borderRadius: '0.625rem',
                 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>

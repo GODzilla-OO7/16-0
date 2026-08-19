@@ -652,7 +652,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
                 { label: 'Losses', value: leagueLosses,  color: '#ef4444' },
                 { label: 'Played', value: revealed.length, color: '#94a3b8' },
               ].map(s => (
-                <div key={s.label} className="score-box" style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.75rem' }}>
+                <div key={s.label} className="score-box" style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
                   <div style={{ fontSize: '1.75rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
                   <div style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.2rem' }}>{s.label}</div>
                 </div>
@@ -688,7 +688,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
           {/* H2H Opponent Live Results (left column, H2H only) */}
           {h2hContext && revealed.length > 0 && (
             <div style={{ position: 'sticky', top: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '80vh', overflow: 'hidden' }}>
-              <div style={{ padding: '0.5rem 0.75rem', background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.625rem' }}>
+              <div style={{ padding: '0.5rem 0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
                 <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>⚔️ {h2hContext.opponentName}</div>
                 <div style={{ fontSize: '0.6rem', color: '#64748b' }}>
                   {h2hOppResults.length === 0 ? 'Waiting for results…' : `${h2hOppResults.filter(r => r.won).length}W – ${h2hOppResults.filter(r => !r.won).length}L`}
@@ -755,7 +755,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
             {/* WC non-Final elimination: show results button once all matches are done */}
             {iplPhase === 'done' && !isIPL && finalPhase === 'idle' && (
-              <div style={{ textAlign: 'center', padding: '1.25rem', background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', marginBottom: '0.5rem' }}>
+              <div style={{ textAlign: 'center', padding: '1.25rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', marginBottom: '0.5rem' }}>
                 <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: '0.75rem' }}>Tournament over for your team</div>
                 <button
                   onClick={callOnDone}
@@ -1001,7 +1001,7 @@ function FinalBat({ result, format, myBatting, onComplete }) {
 
   return (
     <div style={{ marginBottom: '1.5rem', animation: 'final-entrance 0.5s ease both' }}>
-      <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '1.25rem', padding: '1.5rem' }}>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1.25rem', padding: '1.5rem' }}>
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
@@ -1302,7 +1302,7 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
               <div style={{ fontSize: '1.5rem', fontWeight: 900, color: isDeathCrunch ? '#ef4444' : 'var(--text)', lineHeight: 1 }}>{pt.ballsLeft}</div>
               <div style={{ fontSize: '0.5rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.1rem' }}>balls</div>
             </div>
-            <div style={{ flex: 1, padding: '0.5rem 0.25rem', textAlign: 'center', background: 'var(--border2)', border: '2px solid var(--border)', borderRadius: '0.5rem' }}>
+            <div style={{ flex: 1, padding: '0.5rem 0.25rem', textAlign: 'center', background: 'var(--border2)', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
               <div style={{ fontSize: '1.2rem', fontWeight: 900, color: pressureColor, lineHeight: 1 }}>{pt.rrr}</div>
               <div style={{ fontSize: '0.5rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.1rem' }}>req rr</div>
             </div>
@@ -1519,8 +1519,8 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
         </div>
       </div>
 
-      <div style={{ background:'var(--card)', border:'2px solid var(--border)', borderRadius:'1rem', overflow:'hidden', marginBottom:'1.25rem' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', background:'var(--border2)', borderBottom:'2px solid var(--border)', fontSize:'0.58rem', fontWeight:800, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'1rem', overflow:'hidden', marginBottom:'1.25rem' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', background:'var(--border2)', borderBottom:'1px solid var(--border)', fontSize:'0.58rem', fontWeight:800, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.08em' }}>
           <div>#</div><div>Team</div><div style={{ textAlign:'center' }}>W</div><div style={{ textAlign:'center' }}>L</div><div style={{ textAlign:'center' }}>Pts</div><div style={{ textAlign:'right' }}>NRR</div>
         </div>
         {table.map((row, i) => (
@@ -1803,7 +1803,7 @@ function GroupDraw({ mode, drawnOpponents, onStart }) {
 function LeaderboardPanel({ title, entries, valueKey, unit, color }) {
   if (!entries.length) return null
   return (
-    <div style={{ background:'var(--card)', border:'2px solid var(--border)', borderRadius:'0.875rem', overflow:'hidden' }}>
+    <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'0.875rem', overflow:'hidden' }}>
       <div style={{ padding:'0.6rem 1rem', borderBottom:'1px solid var(--border2)', fontSize:'0.72rem', fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.08em' }}>{title}</div>
       {entries.map((e, i) => (
         <div key={e.name} style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.5rem 1rem', borderBottom: i < entries.length-1 ? '1px solid var(--border2)' : 'none' }}>

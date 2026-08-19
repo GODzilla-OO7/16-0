@@ -47,7 +47,7 @@ function SectionHeader({ title, icon }) {
 function StatCard({ label, value, color = 'var(--text)', sub }) {
   return (
     <div style={{
-      background: 'var(--card)', border: '2px solid var(--border)',
+      background: 'var(--card)', border: '1px solid var(--border)',
       borderRadius: '0.75rem', padding: '0.875rem 0.75rem', textAlign: 'center',
     }}>
       <div style={{ fontSize: '1.5rem', fontWeight: 900, color, lineHeight: 1 }}>{value}</div>
@@ -60,7 +60,7 @@ function StatCard({ label, value, color = 'var(--text)', sub }) {
 function HighlightCard({ icon, value, label, desc, color = 'var(--text)' }) {
   return (
     <div style={{
-      background: 'var(--card)', border: '2px solid var(--border)',
+      background: 'var(--card)', border: '1px solid var(--border)',
       borderRadius: '0.75rem', padding: '0.875rem',
       display: 'flex', flexDirection: 'column', gap: '0.2rem',
     }}>
@@ -84,7 +84,7 @@ function MilestoneBadge({ icon, label, count, unlocked }) {
       <div style={{
         width: 44, height: 44, borderRadius: '50%',
         background: 'var(--card)',
-        border: unlocked ? '2px solid #f59e0b55' : '2px solid var(--border)',
+        border: unlocked ? '2px solid #f59e0b55' : '1px solid var(--border)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: '1.2rem',
         boxShadow: unlocked ? '0 0 12px #f59e0b22' : 'none',
@@ -105,7 +105,7 @@ function MilestoneBadge({ icon, label, count, unlocked }) {
 function BestWorstCard({ result, type }) {
   if (!result) return (
     <div style={{
-      background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.75rem',
+      background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem',
       padding: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
       minHeight: 70,
     }}>
@@ -147,7 +147,7 @@ function ResultRow({ result }) {
       display: 'flex', alignItems: 'center', gap: '0.75rem',
       padding: '0.625rem 0.875rem',
       background: 'var(--card)', borderRadius: '0.625rem',
-      border: '2px solid var(--border)',
+      border: '1px solid var(--border)',
     }}>
       <div style={{ fontSize: '0.9rem', flexShrink: 0 }}>{MODE_EMOJI[result.mode] ?? '🏏'}</div>
       <div style={{ flex: 1 }}>
@@ -311,7 +311,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
           <button
             onClick={onSignOut}
             style={{
-              background: 'none', border: '2px solid var(--border)',
+              background: 'none', border: '1px solid var(--border)',
               borderRadius: '0.4rem', color: 'var(--muted)',
               fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
               padding: '0.3rem 0.65rem', transition: 'border-color 0.15s, color 0.15s',
@@ -349,7 +349,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                     style={{ padding: '0.4rem 0.75rem', background: 'var(--bg)', border: '1px solid #4169E1', borderRadius: '0.4rem', color: 'var(--text)', fontSize: '1rem', fontWeight: 700, textAlign: 'center' }}
                   />
                   <button onClick={saveName} style={{ background: '#4169E1', border: 'none', borderRadius: '0.4rem', color: '#fff', fontWeight: 800, padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✓</button>
-                  <button onClick={() => setEditingName(false)} style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.4rem', color: 'var(--muted)', padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✕</button>
+                  <button onClick={() => setEditingName(false)} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: 'var(--muted)', padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✕</button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
@@ -491,7 +491,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                       }
                     }}
                     style={{
-                      background: 'none', border: '2px solid var(--border)',
+                      background: 'none', border: '1px solid var(--border)',
                       borderRadius: '0.4rem', color: cabinetShared ? '#22c55e' : 'var(--muted)',
                       fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
                       padding: '0.2rem 0.5rem', flexShrink: 0,
@@ -507,7 +507,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                 <div style={{
                   textAlign: 'center', padding: '1.5rem',
                   background: 'var(--card)', borderRadius: '0.75rem',
-                  border: '2px solid var(--border)',
+                  border: '1px solid var(--border)',
                   color: 'var(--muted)', fontSize: '0.82rem',
                 }}>
                   No trophies yet — win your first IPL or World Cup to start collecting.
@@ -541,7 +541,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                 <div style={{
                   textAlign: 'center', padding: '1.5rem',
                   background: 'var(--card)', borderRadius: '0.75rem',
-                  border: '2px solid var(--border)',
+                  border: '1px solid var(--border)',
                   color: 'var(--muted)', fontSize: '0.82rem',
                 }}>
                   No multiplayer matches yet — play an H2H draft to see your rivals here.
@@ -594,7 +594,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                 <div style={{
                   textAlign: 'center', padding: '2.5rem',
                   background: 'var(--card)', borderRadius: '0.75rem',
-                  border: '2px solid var(--border)',
+                  border: '1px solid var(--border)',
                   color: 'var(--muted)', fontSize: '0.85rem',
                 }}>
                   No seasons yet — play a run to see your history here.

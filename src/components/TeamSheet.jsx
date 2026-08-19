@@ -128,13 +128,13 @@ export default function TeamSheet({
 
   return (
     <div style={{
-      background: 'var(--card)', border: '2px solid var(--border)',
+      background: 'var(--card)', border: '1px solid var(--border)',
       borderRadius: '1rem', overflow: 'hidden',
     }}>
       {/* Header */}
       <div style={{
         padding: compact ? '0.625rem 0.875rem' : '0.875rem 1.1rem',
-        borderBottom: '2px solid var(--border)',
+        borderBottom: '1px solid var(--border)',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
         <span style={{ fontWeight: 800, fontSize: compact ? '0.78rem' : '0.9rem', color: 'var(--text)' }}>
@@ -272,7 +272,7 @@ export default function TeamSheet({
 
       {/* Simulate button (only when XI done and caller provides the handler) */}
       {isDone && onSimulate && (
-        <div style={{ padding: '0.625rem', borderTop: '2px solid var(--border)' }}>
+        <div style={{ padding: '0.625rem', borderTop: '1px solid var(--border)' }}>
           <button
             onClick={onSimulate}
             style={{

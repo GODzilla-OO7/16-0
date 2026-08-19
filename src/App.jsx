@@ -369,7 +369,7 @@ export default function App() {
 
   const btnBase = {
     width: 44, height: 44, borderRadius: '50%',
-    background: 'var(--card)', border: '2px solid var(--border)',
+    background: 'var(--card)', border: '1px solid var(--border)',
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
     transition: 'border-color 0.2s, color 0.2s',
@@ -499,10 +499,10 @@ export default function App() {
           <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.5rem' }}>
             {modeLabel} · {cd.rl} · You'll play with their exact squad — squad is locked. Can you do better?
           </div>
-          <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', padding: '1rem', marginBottom: '1.5rem', textAlign: 'left' }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', padding: '1rem', marginBottom: '1.5rem', textAlign: 'left' }}>
             <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Their Squad</div>
             {(cd.sq || []).map((p, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0', borderBottom: i < cd.sq.length - 1 ? '2px solid var(--border)' : 'none', fontSize: '0.78rem' }}>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0', borderBottom: i < cd.sq.length - 1 ? '1px solid var(--border)' : 'none', fontSize: '0.78rem' }}>
                 <span style={{ color: 'var(--text)', fontWeight: 700 }}>{p.n}</span>
                 <span style={{ color: '#64748b' }}>{p.r} · {p.o}</span>
               </div>
@@ -600,7 +600,7 @@ export default function App() {
         {/* Sticky header */}
         <div className="draft-header" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0.875rem 1.5rem', borderBottom: '2px solid var(--border)',
+          padding: '0.875rem 1.5rem', borderBottom: '1px solid var(--border)',
           position: 'sticky', top: activeChallenge ? 36 : 0, background: 'var(--card)',
           backdropFilter: 'blur(8px)', zIndex: 10,
         }}>
@@ -636,7 +636,7 @@ export default function App() {
 
           {/* Left column — wheel or done banner */}
           <div>
-            <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '1rem', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1rem', overflow: 'hidden' }}>
               {!isDone ? (
                 <WheelSpin
                   mode={mode}
@@ -776,7 +776,7 @@ export default function App() {
         position: 'sticky', top: 0, zIndex: 20,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0.625rem 1.25rem',
-        background: 'var(--card)', borderBottom: '2px solid var(--border)',
+        background: 'var(--card)', borderBottom: '1px solid var(--border)',
         backdropFilter: 'blur(8px)',
       }}>
         <button
@@ -857,7 +857,7 @@ function SharedResultView({ data, onPlay }) {
         </div>
 
         {/* Main card */}
-        <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '1.25rem', padding: '1.5rem', marginBottom: '1rem' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1.25rem', padding: '1.5rem', marginBottom: '1rem' }}>
 
           {/* Record */}
           <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
@@ -871,27 +871,27 @@ function SharedResultView({ data, onPlay }) {
           {/* Stats row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem', marginBottom: '1.25rem' }}>
             {potm && (
-              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '2px solid var(--border)', borderRadius: '0.625rem' }}>
+              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
                 <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Player of Tournament</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>{potm}</div>
               </div>
             )}
             {topScorer && (
-              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '2px solid var(--border)', borderRadius: '0.625rem' }}>
+              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
                 <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Top Run Scorer</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>{topScorer}</div>
                 {topScorerRuns && <div style={{ fontSize: '0.72rem', color: '#4169E1', fontWeight: 700 }}>{topScorerRuns} runs</div>}
               </div>
             )}
             {topWicketTaker && (
-              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '2px solid var(--border)', borderRadius: '0.625rem' }}>
+              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
                 <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Top Wicket Taker</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>{topWicketTaker}</div>
                 {topWicketTakerWkts && <div style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 700 }}>{topWicketTakerWkts} wickets</div>}
               </div>
             )}
             {manager && (
-              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '2px solid var(--border)', borderRadius: '0.625rem' }}>
+              <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
                 <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Manager</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>{manager}</div>
               </div>
@@ -904,7 +904,7 @@ function SharedResultView({ data, onPlay }) {
               <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>Their XI</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                 {team.map((name, i) => (
-                  <span key={i} style={{ padding: '0.2rem 0.6rem', background: 'var(--bg)', border: '2px solid var(--border)', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 600, color: 'var(--text)' }}>
+                  <span key={i} style={{ padding: '0.2rem 0.6rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 600, color: 'var(--text)' }}>
                     {name}
                   </span>
                 ))}
@@ -915,7 +915,7 @@ function SharedResultView({ data, onPlay }) {
 
         {/* Medal cards */}
         {awards.length > 0 && (
-          <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '1.25rem', padding: '1rem 1.25rem', marginBottom: '1rem' }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1.25rem', padding: '1rem 1.25rem', marginBottom: '1rem' }}>
             <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>
               🏅 Medals Earned
             </div>

@@ -183,7 +183,7 @@ export default function TeamStrengthPanel({ team, manager, mode, ratingType = 's
   )
 
   return (
-    <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '1rem', padding: '1rem 1.1rem', marginTop: '0.75rem', animation: 'fade-in 0.3s ease both' }}>
+    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1rem', padding: '1rem 1.1rem', marginTop: '0.75rem', animation: 'fade-in 0.3s ease both' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
         <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Team Strength</span>

@@ -1035,7 +1035,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
         <button
           onClick={onBack}
           title="Back to home"
-          style={{ background: 'none', border: '2px solid var(--border)', borderRadius: '0.375rem', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '0.3rem 0.6rem', flexShrink: 0, transition: 'border-color 0.15s, color 0.15s' }}
+          style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '0.375rem', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '0.3rem 0.6rem', flexShrink: 0, transition: 'border-color 0.15s, color 0.15s' }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = '#64748b' }}
         >
@@ -1074,7 +1074,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
               </div>
 
               {(spinning || cycleEntry) && !currentEntry && (
-                <div style={{ padding: '1.25rem', background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', textAlign: 'center', marginBottom: '0.875rem' }}>
+                <div style={{ padding: '1.25rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', textAlign: 'center', marginBottom: '0.875rem' }}>
                   <div style={{ fontSize: '1.1rem', fontWeight: 900, color: cycleEntry?.color ?? '#4169E1' }}>
                     {cycleEntry?.teamName ?? '—'}
                   </div>
@@ -1148,10 +1148,10 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
 
               {/* Player card */}
               {currentPlayer && (
-                <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
 
                   {/* Player header */}
-                  <div style={{ padding: '1rem 1.25rem', background: 'var(--card)', borderBottom: '2px solid var(--border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ padding: '1rem 1.25rem', background: 'var(--card)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>{currentPlayer.name}</div>
                       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1231,7 +1231,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                             // Driven by countdown (= room.auction_bid.bid_deadline from DB),
                             // so it resets automatically the moment applyRoomUpdate fires
                             // with a new player or null pick. Cannot get permanently stuck.
-                            <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 700, textAlign: 'center', padding: '0.75rem', background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.5rem' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 700, textAlign: 'center', padding: '0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
                               ⏳ Resolving auction…
                             </div>
                           ) : autoBlocked ? (
@@ -1316,7 +1316,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                               {!showManualBid ? (
                                 <button
                                   onClick={() => setShowManualBid(true)}
-                                  style={{ width: '100%', padding: '0.5rem', background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.4rem', color: '#94a3b8', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', marginBottom: '0.5rem' }}
+                                  style={{ width: '100%', padding: '0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: '#94a3b8', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', marginBottom: '0.5rem' }}
                                 >
                                   ✏️ Manual Bid
                                 </button>
@@ -1328,7 +1328,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                                     onChange={e => setManualBidVal(e.target.value)}
                                     autoFocus
                                     placeholder={`Min ₹${minNextBid}cr`}
-                                    style={{ flex: 1, padding: '0.5rem 0.75rem', background: 'var(--bg)', border: '2px solid var(--border)', borderRadius: '0.4rem', color: 'var(--text)', fontSize: '0.9rem', outline: 'none' }}
+                                    style={{ flex: 1, padding: '0.5rem 0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: 'var(--text)', fontSize: '0.9rem', outline: 'none' }}
                                   />
                                   <button
                                     onClick={() => { const v = parseFloat(manualBidVal); if (!isNaN(v) && v >= minNextBid) placeBid(v) }}
@@ -1337,7 +1337,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                                   >
                                     Bid
                                   </button>
-                                  <button onClick={() => { setShowManualBid(false); setManualBidVal('') }} style={{ padding: '0.5rem 0.5rem', background: 'none', border: '2px solid var(--border)', borderRadius: '0.4rem', color: '#64748b', cursor: 'pointer', fontSize: '0.75rem' }}>✕</button>
+                                  <button onClick={() => { setShowManualBid(false); setManualBidVal('') }} style={{ padding: '0.5rem 0.5rem', background: 'none', border: '1px solid var(--border)', borderRadius: '0.4rem', color: '#64748b', cursor: 'pointer', fontSize: '0.75rem' }}>✕</button>
                                 </div>
                               )}
 
@@ -1370,7 +1370,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
 
               {/* Skip banner — shown briefly when a player is ineligible for all teams */}
               {skipBanner && (
-                <div style={{ marginTop: '0.5rem', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 700, animation: 'fade-in 0.2s ease both', background: 'var(--card)', border: '2px solid var(--border)', color: '#64748b' }}>
+                <div style={{ marginTop: '0.5rem', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 700, animation: 'fade-in 0.2s ease both', background: 'var(--card)', border: '1px solid var(--border)', color: '#64748b' }}>
                   ⏭ {skipBanner}
                 </div>
               )}
@@ -1388,7 +1388,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
 function TeamColumn({ name, team, budget, highlight }) {
   return (
     <div style={{ background: 'var(--card)', border: `1px solid ${highlight ? '#4169E144' : 'var(--border)'}`, borderRadius: '0.75rem', overflow: 'hidden' }}>
-      <div style={{ padding: '0.5rem 0.75rem', borderBottom: '2px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontSize: '0.78rem', fontWeight: 800, color: highlight ? '#4169E1' : '#64748b' }}>{name} ({team.length}/11)</div>
         {budget != null && <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#22c55e' }}>₹{budget}cr</div>}
       </div>
@@ -1468,7 +1468,7 @@ function DraftDone({ room, uid, onDone, onInitSharedLeague, onSharedLeague }) {
             {loading ? '⏳ Setting up league…' : '🏟️ Start Shared League →'}
           </button>
         ) : (
-          <div style={{ padding: '1rem', background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.75rem', color: '#64748b', fontSize: '0.88rem', fontWeight: 600 }}>
+          <div style={{ padding: '1rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem', color: '#64748b', fontSize: '0.88rem', fontWeight: 600 }}>
             ⏳ Waiting for host to start the league…
           </div>
         )}

@@ -192,11 +192,11 @@ export default function DraftSettings({ mode, onStart, onBack }) {
 
   const S = {
     page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', background: 'var(--bg)' },
-    card: { width: '100%', maxWidth: 560, background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '1.25rem', overflow: 'hidden' },
-    cardHeader: { padding: '1.5rem 1.75rem', borderBottom: '2px solid var(--border)' },
+    card: { width: '100%', maxWidth: 560, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1.25rem', overflow: 'hidden' },
+    cardHeader: { padding: '1.5rem 1.75rem', borderBottom: '1px solid var(--border)' },
     modeTag: { fontSize: '0.72rem', color: '#4169E1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
     title: { fontSize: '1.4rem', fontWeight: 900, color: 'var(--text)' },
-    section: { padding: '1.1rem 1.75rem', borderBottom: '2px solid var(--border)' },
+    section: { padding: '1.1rem 1.75rem', borderBottom: '1px solid var(--border)' },
     label: { fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' },
     row: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap' },
     pill: (active, color = '#4169E1') => ({
@@ -330,8 +330,8 @@ export default function DraftSettings({ mode, onStart, onBack }) {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '1.25rem 1.75rem', display: 'flex', gap: '0.75rem', borderTop: '2px solid var(--border)' }}>
-          <button onClick={onBack} style={{ padding: '0.875rem 1.25rem', background: 'transparent', color: '#64748b', border: '2px solid var(--border)', borderRadius: '0.625rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>
+        <div style={{ padding: '1.25rem 1.75rem', display: 'flex', gap: '0.75rem', borderTop: '1px solid var(--border)' }}>
+          <button onClick={onBack} style={{ padding: '0.875rem 1.25rem', background: 'transparent', color: '#64748b', border: '1px solid var(--border)', borderRadius: '0.625rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>
             ← Back
           </button>
           <button
