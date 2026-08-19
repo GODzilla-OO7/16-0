@@ -759,7 +759,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
                 <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: '0.75rem' }}>Tournament over for your team</div>
                 <button
                   onClick={callOnDone}
-                  style={{ padding: '0.875rem 2rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
+                  style={{ padding: '0.875rem 2rem', background: '#C8102E', color: 'var(--bg)', border: 'none', borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
                 >
                   View Season Summary →
                 </button>
@@ -1494,7 +1494,7 @@ function IPLResultBanner({ outcome, iplChampion, onDone }) {
       {onDone && (
         <button
           onClick={onDone}
-          style={{ padding:'0.875rem 2rem', background:'linear-gradient(135deg,#4169E1,#2952CC)', color:'var(--bg)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}
+          style={{ padding:'0.875rem 2rem', background:'#C8102E', color:'var(--bg)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}
         >
           See Full Results →
         </button>
@@ -1542,7 +1542,7 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
         </div>
       )}
 
-      <button onClick={qualified ? onProceed : onSummary} style={{ width:'100%', padding:'1rem', background: qualified ? 'linear-gradient(135deg,#4169E1,#2952CC)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: qualified ? 'var(--bg)' : 'var(--text)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}>
+      <button onClick={qualified ? onProceed : onSummary} style={{ width:'100%', padding:'1rem', background: qualified ? '#C8102E' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: qualified ? 'var(--bg)' : 'var(--text)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}>
         {qualified ? 'Proceed to Playoffs →' : 'View Season Summary →'}
       </button>
     </div>
@@ -1786,7 +1786,7 @@ function GroupDraw({ mode, drawnOpponents, onStart }) {
         onClick={onStart}
         style={{
           width: '100%', padding: '1rem',
-          background: 'linear-gradient(135deg, #4169E1, #2952CC)',
+          background: '#C8102E',
           color: 'var(--bg)', border: 'none', borderRadius: '0.875rem',
           fontSize: '1.05rem', fontWeight: 800, cursor: 'pointer',
           letterSpacing: '0.03em',

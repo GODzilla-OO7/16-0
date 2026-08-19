@@ -337,7 +337,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
           <button
             onClick={handleStart}
             disabled={mode !== 'ipl' && filteredCount === 0}
-            style={{ flex: 1, padding: '0.875rem', background: (mode !== 'ipl' && filteredCount === 0) ? 'var(--border2)' : 'linear-gradient(135deg, #4169E1, #2952CC)', color: (mode !== 'ipl' && filteredCount === 0) ? '#64748b' : 'var(--bg)', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: (mode !== 'ipl' && filteredCount === 0) ? 'default' : 'pointer' }}
+            style={{ flex: 1, padding: '0.875rem', background: (mode !== 'ipl' && filteredCount === 0) ? 'var(--border2)' : '#C8102E', color: (mode !== 'ipl' && filteredCount === 0) ? '#64748b' : 'var(--bg)', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: (mode !== 'ipl' && filteredCount === 0) ? 'default' : 'pointer' }}
           >
             {(mode !== 'ipl' && filteredCount === 0) ? 'Select editions first' : 'Start Draft →'}
           </button>

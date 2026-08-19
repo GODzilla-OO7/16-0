@@ -18,7 +18,7 @@ const ROLE_COLOR = {
 function Card({ style, children }) {
   return (
     <div style={{
-      background: 'var(--card)', border: '1px solid var(--border)',
+      background: 'var(--card)', border: '1px solid var(--card-border)',
       borderRadius: '0.875rem', ...style,
     }}>
       {children}
@@ -330,7 +330,7 @@ function QTEReady({ myReady, oppReady, oppName, onReady }) {
           width: '100%', padding: '1.1rem',
           background: urgent
             ? 'linear-gradient(135deg, #ef4444, #b91c1c)'
-            : 'linear-gradient(135deg, #4169E1, #2952CC)',
+            : '#C8102E',
           color: '#fff', border: 'none', borderRadius: '0.75rem',
           fontSize: '1rem', fontWeight: 900, cursor: 'pointer',
           animation: urgent ? 'pulse-glow 0.5s ease infinite' : 'pulse-glow 2s ease infinite',
@@ -754,7 +754,7 @@ export default function SharedLeague({ room: initialRoom, uid, onBack }) {
 
               <button
                 onClick={onBack}
-                style={{ width: '100%', padding: '0.875rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: '#fff', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer' }}
+                style={{ width: '100%', padding: '0.875rem', background: '#C8102E', color: '#fff', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer' }}
               >
                 🏏 Play Again →
               </button>

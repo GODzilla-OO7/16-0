@@ -128,7 +128,7 @@ export default function TeamSheet({
 
   return (
     <div style={{
-      background: 'var(--card)', border: '1px solid var(--border)',
+      background: 'var(--card)', border: '1px solid var(--card-border)',
       borderRadius: '1rem', overflow: 'hidden',
     }}>
       {/* Header */}
@@ -277,7 +277,7 @@ export default function TeamSheet({
             onClick={onSimulate}
             style={{
               width: '100%', padding: '0.75rem',
-              background: 'linear-gradient(135deg, #4169E1, #2952CC)',
+              background: '#C8102E',
               color: 'var(--bg)', border: 'none', borderRadius: '0.5rem',
               fontSize: '0.875rem', fontWeight: 800,
               cursor: 'pointer', letterSpacing: '0.05em', textTransform: 'uppercase',

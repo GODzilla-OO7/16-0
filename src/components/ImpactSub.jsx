@@ -329,7 +329,7 @@ export default function ImpactSub({ team, mode, ratingType = 'season', onComplet
     }}>
       <div style={{
         width: '100%', maxWidth: 440,
-        background: 'var(--card)', border: '1px solid var(--border)',
+        background: 'var(--card)', border: '1px solid var(--card-border)',
         borderRadius: '1.25rem', padding: '1.75rem',
         animation: 'fade-in-up 0.3s ease both',
       }}>
@@ -437,7 +437,7 @@ export default function ImpactSub({ team, mode, ratingType = 'season', onComplet
 
             {/* Player reel */}
             <div style={{
-              background: 'var(--card)', border: '1px solid var(--border)',
+              background: 'var(--card)', border: '1px solid var(--card-border)',
               borderRadius: '0.875rem', padding: '1rem 1.25rem',
               marginBottom: '1rem', minHeight: 80,
               display: 'flex', alignItems: 'center', gap: '0.875rem',

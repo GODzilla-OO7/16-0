@@ -625,7 +625,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
             <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Your display name</div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <input style={{ ...inp, flex: 1 }} value={myName} onChange={e => setMyName(e.target.value)} placeholder="Enter your name" onKeyDown={e => e.key === 'Enter' && saveName()} autoFocus={!!joinRoomId} />
-              <button onClick={saveName} style={{ padding: '0.75rem 1rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: '#fff', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>
+              <button onClick={saveName} style={{ padding: '0.75rem 1rem', background: '#C8102E', color: '#fff', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>
                 {joinRoomId ? 'Join →' : '✓'}
               </button>
             </div>
@@ -738,7 +738,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
               <button
                 onClick={createRoom}
                 disabled={!nameSet || loading}
-                style={{ padding: '0.75rem', background: nameSet ? 'linear-gradient(135deg, #4169E1, #2952CC)' : '#2a2a3a', color: nameSet ? '#fff' : '#475569', border: 'none', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 800, cursor: nameSet && !loading ? 'pointer' : 'not-allowed' }}
+                style={{ padding: '0.75rem', background: nameSet ? '#C8102E' : '#2a2a3a', color: nameSet ? '#fff' : '#475569', border: 'none', borderRadius: '0.625rem', fontSize: '0.88rem', fontWeight: 800, cursor: nameSet && !loading ? 'pointer' : 'not-allowed' }}
               >
                 {loading ? '🔄 Creating…' : '🏠 Create Room'}
               </button>
@@ -769,7 +769,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
             <button
               onClick={joinRoom}
               disabled={loading || joinCode.length < 6}
-              style={{ padding: '0.875rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: 'var(--bg)', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
+              style={{ padding: '0.875rem', background: '#C8102E', color: 'var(--bg)', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer' }}
             >
               {loading ? 'Joining…' : '🚪 Join'}
             </button>
@@ -883,7 +883,7 @@ function CompRevealCard({ name, compData, isMe }) {
   return (
     <div style={{
       background: 'var(--card)',
-      border: `2px solid ${isMe ? '#4169E166' : 'var(--border)'}`,
+      border: `2px solid ${isMe ? '#4169E166' : 'var(--card-border)'}`,
       borderRadius: '1.25rem', overflow: 'hidden',
     }}>
       <div style={{ padding: '1rem 1.75rem', borderBottom: '1px solid var(--border)' }}>

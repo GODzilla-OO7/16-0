@@ -200,7 +200,7 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
                 onClick={() => user ? onPlay(challenge) : onClose()}
                 style={{
                   width: '100%', padding: '1rem',
-                  background: 'linear-gradient(135deg, #4169E1, #2952CC)',
+                  background: '#C8102E',
                   border: 'none', borderRadius: '0.75rem',
                   color: '#fff', fontSize: '1rem', fontWeight: 800,
                   cursor: 'pointer', marginBottom: '1.25rem',

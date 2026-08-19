@@ -41,7 +41,7 @@ class H2HErrorBoundary extends Component {
           </div>
           <button
             onClick={() => { this.setState({ error: null }); this.props.onBack?.() }}
-            style={{ padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg,#4169E1,#2952CC)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}
+            style={{ padding: '0.75rem 1.5rem', background: '#C8102E', color: '#fff', border: 'none', borderRadius: '0.625rem', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}
           >
             ← Back to menu
           </button>
@@ -939,7 +939,7 @@ function SharedResultView({ data, onPlay }) {
         {/* CTA */}
         <button
           onClick={onPlay}
-          style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: '#fff', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 20px rgba(31,111,235,0.35)', letterSpacing: '0.02em' }}
+          style={{ width: '100%', padding: '1rem', background: '#C8102E', color: '#fff', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 20px rgba(31,111,235,0.35)', letterSpacing: '0.02em' }}
         >
           Can you go unbeaten? Play Cricket 16-0 →
         </button>

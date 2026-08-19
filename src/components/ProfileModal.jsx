@@ -101,7 +101,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
       <div style={{
         width: '100%', maxWidth: 480,
         background: 'var(--card)',
-        border: '1px solid var(--border)',
+        border: '1px solid var(--card-border)',
         borderRadius: '1.25rem',
         overflow: 'hidden',
         maxHeight: '90vh',
@@ -234,7 +234,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
               <button
                 onClick={handleSave}
                 style={{
-                  padding: '0.75rem', background: 'linear-gradient(135deg,#4169E1,#2952CC)',
+                  padding: '0.75rem', background: '#C8102E',
                   color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
                   fontSize: '0.875rem', fontWeight: 800, cursor: 'pointer',
                 }}

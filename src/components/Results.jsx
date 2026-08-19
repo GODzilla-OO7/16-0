@@ -1031,7 +1031,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
           {/* Team strength bar */}
           <div style={{
-            background: 'var(--card)', border: '1px solid var(--border)',
+            background: 'var(--card)', border: '1px solid var(--card-border)',
             borderRadius: '0.75rem', padding: '1rem 1.25rem', marginBottom: '1.25rem',
             textAlign: 'left',
           }}>
@@ -1391,7 +1391,7 @@ function BestFinishHook({ wins, losses, iplOutcome, stageReached, onPlayAgain, o
       marginTop: '2rem',
       padding: '1.25rem 1.25rem 1.5rem',
       background: 'var(--card)',
-      border: '1px solid var(--border)',
+      border: '1px solid var(--card-border)',
       borderRadius: '1rem',
       textAlign: 'center',
     }}>
@@ -1549,7 +1549,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
         return (
           <div style={{
             background: 'var(--card)',
-            border: '1px solid var(--border)',
+            border: '1px solid var(--card-border)',
             borderRadius: '1rem',
             padding: '1.25rem',
             animation: 'fade-in-up 0.3s ease both',

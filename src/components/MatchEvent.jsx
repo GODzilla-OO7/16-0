@@ -438,7 +438,7 @@ export default function MatchEvent({ event, opponent, onContinue }) {
               onClick={() => onContinue(success, chosen?.label ?? 'timeout')}
               style={{
                 padding: '0.75rem 2rem',
-                background: 'linear-gradient(135deg, #4169E1, #2952CC)',
+                background: '#C8102E',
                 border: 'none', borderRadius: '0.625rem',
                 color: '#fff', fontSize: '0.92rem', fontWeight: 800,
                 cursor: 'pointer', boxShadow: '0 4px 16px rgba(31,111,235,0.3)',

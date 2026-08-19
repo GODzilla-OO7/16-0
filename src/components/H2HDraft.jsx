@@ -228,7 +228,7 @@ function XIPanel({ name, team, isMe, comp, budget, ratingType = 'overall' }) {
   return (
     <div style={{
       background: 'var(--card2)',
-      border: `1px solid ${isMe ? '#4169E144' : 'var(--border)'}`,
+      border: `1px solid ${isMe ? '#4169E144' : 'var(--card-border)'}`,
       borderRadius: '0.75rem', overflow: 'hidden',
       position: 'sticky', top: '4.5rem',
     }}>
@@ -1265,7 +1265,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                                 disabled={!canBid}
                                 style={{
                                   width: '100%', padding: '0.75rem', marginBottom: '0.5rem',
-                                  background: canBid ? 'linear-gradient(135deg, #4169E1, #2952CC)' : 'var(--border2)',
+                                  background: canBid ? '#C8102E' : 'var(--border2)',
                                   color: canBid ? '#fff' : '#475569',
                                   border: 'none', borderRadius: '0.5rem',
                                   fontSize: '0.9rem', fontWeight: 900,
@@ -1333,7 +1333,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                                   <button
                                     onClick={() => { const v = parseFloat(manualBidVal); if (!isNaN(v) && v >= minNextBid) placeBid(v) }}
                                     disabled={!manualBidVal || parseFloat(manualBidVal) < minNextBid || parseFloat(manualBidVal) > (myBudget ?? 0)}
-                                    style={{ padding: '0.5rem 0.875rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)', color: '#fff', border: 'none', borderRadius: '0.4rem', fontWeight: 800, cursor: 'pointer', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
+                                    style={{ padding: '0.5rem 0.875rem', background: '#C8102E', color: '#fff', border: 'none', borderRadius: '0.4rem', fontWeight: 800, cursor: 'pointer', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
                                   >
                                     Bid
                                   </button>

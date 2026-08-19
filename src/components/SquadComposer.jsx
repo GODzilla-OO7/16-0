@@ -357,7 +357,7 @@ export default function SquadComposer({ onDone, onBack }) {
         disabled={!isValid}
         style={{
           flex: 1, padding: isMobile ? '0.85rem 1rem' : '0.75rem 1rem',
-          background: isValid ? 'linear-gradient(135deg, #4169E1, #2952CC)' : 'var(--border2)',
+          background: isValid ? '#C8102E' : 'var(--border2)',
           border: 'none', borderRadius: '0.5rem',
           color: isValid ? '#ffffff' : '#475569',
           fontSize: isMobile ? '0.95rem' : '0.9rem', fontWeight: 800,
@@ -413,7 +413,7 @@ export default function SquadComposer({ onDone, onBack }) {
 
         {/* Sliders card */}
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--border)',
+          background: 'var(--card)', border: '1px solid var(--card-border)',
           borderRadius: '1rem', padding: '1.1rem 1.25rem',
         }}>
           <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.875rem' }}>
@@ -448,7 +448,7 @@ export default function SquadComposer({ onDone, onBack }) {
 
         {/* Formation */}
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--border)',
+          background: 'var(--card)', border: '1px solid var(--card-border)',
           borderRadius: '1rem', padding: '0.875rem',
         }}>
           <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>
@@ -461,7 +461,7 @@ export default function SquadComposer({ onDone, onBack }) {
 
         {/* Breakdown */}
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--border)',
+          background: 'var(--card)', border: '1px solid var(--card-border)',
           borderRadius: '1rem', padding: '0.875rem',
         }}>
           <CompositionBar comp={comp} />
@@ -543,7 +543,7 @@ export default function SquadComposer({ onDone, onBack }) {
             {/* Slider card — unchanged */}
             <div style={{
               flex: 1, minHeight: 0,
-              background: 'var(--card)', border: '1px solid var(--border)',
+              background: 'var(--card)', border: '1px solid var(--card-border)',
               borderRadius: '1.5rem', padding: '1.5rem 1.75rem',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
@@ -593,7 +593,7 @@ export default function SquadComposer({ onDone, onBack }) {
             {/* Formation card — takes most of the height */}
             <div style={{
               flex: 1, minHeight: 0,
-              background: 'var(--card)', border: '1px solid var(--border)',
+              background: 'var(--card)', border: '1px solid var(--card-border)',
               borderRadius: '1.5rem', padding: '1.25rem',
               display: 'flex', flexDirection: 'column',
             }}>
@@ -608,7 +608,7 @@ export default function SquadComposer({ onDone, onBack }) {
             {/* Composition breakdown */}
             <div style={{
               flexShrink: 0,
-              background: 'var(--card)', border: '1px solid var(--border)',
+              background: 'var(--card)', border: '1px solid var(--card-border)',
               borderRadius: '1.5rem', padding: '1.1rem 1.35rem',
             }}>
               <CompositionBar comp={comp} />

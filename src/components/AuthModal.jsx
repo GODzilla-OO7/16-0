@@ -68,7 +68,7 @@ export default function AuthModal({ onClose, onSuccess }) {
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       <div style={{
-        background: 'var(--card)', border: '1px solid var(--border)',
+        background: 'var(--card)', border: '1px solid var(--card-border)',
         borderRadius: '1.25rem', padding: '2rem',
         width: '100%', maxWidth: 380,
         animation: 'fade-in-up 0.25s ease both',
@@ -179,7 +179,7 @@ export default function AuthModal({ onClose, onSuccess }) {
               disabled={loading}
               style={{
                 width: '100%', padding: '0.875rem',
-                background: loading ? '#1a2e1a' : 'linear-gradient(135deg, #4169E1, #2952CC)',
+                background: loading ? '#1a2e1a' : '#C8102E',
                 color: loading ? '#64748b' : 'var(--bg)',
                 border: 'none', borderRadius: '0.625rem',
                 fontSize: '1rem', fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',

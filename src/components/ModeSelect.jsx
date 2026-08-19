@@ -14,7 +14,7 @@ const HOW_TO_PLAY = [
 const LIGHT = {
   bg:         '#f4f7ff',
   cardBg:     '#ffffff',
-  cardBorder: '#dce6f7',
+  cardBorder: '#D4172C',
   cardHover:  '#f0f4ff',
   htpBg:      '#f8faff',
   accent:     '#4169E1',
@@ -402,7 +402,7 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
           style={{
             width: '100%',
             padding: '0.9rem 1.5rem',
-            background: C.accent,
+            background: '#C8102E',
             border: 'none',
             borderRadius: '0.625rem',
             color: '#fff',
@@ -416,8 +416,8 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
             marginBottom: '0.625rem',
             transition: 'background 0.15s, transform 0.1s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = C.accentHov; e.currentTarget.style.transform = 'translateY(-1px)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = C.accent; e.currentTarget.style.transform = 'translateY(0)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#a50d24'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#C8102E'; e.currentTarget.style.transform = 'translateY(0)' }}
         >
           Play Cricket 16-0 <span style={{ fontSize: '1.1rem' }}>→</span>
         </button>

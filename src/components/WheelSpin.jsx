@@ -596,7 +596,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
         disabled={isSpinning}
         style={{
           padding: '0.875rem 2.75rem',
-          background: isSpinning ? 'transparent' : 'linear-gradient(135deg, #4169E1, #2952CC)',
+          background: isSpinning ? 'transparent' : '#C8102E',
           color: isSpinning ? '#64748b' : 'var(--bg)',
           border: isSpinning ? '1px solid var(--border)' : 'none',
           borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800,
@@ -640,7 +640,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
             <button
               onClick={onRetryBidding}
               style={{
-                padding: '0.875rem', background: 'linear-gradient(135deg, #4169E1, #2952CC)',
+                padding: '0.875rem', background: '#C8102E',
                 color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
                 fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
               }}
