@@ -1031,7 +1031,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
           {/* Team strength bar */}
           <div style={{
-            background: 'var(--card)', border: '1px solid var(--border)',
+            background: 'var(--card)', border: '2px solid var(--border)',
             borderRadius: '0.75rem', padding: '1rem 1.25rem', marginBottom: '1.25rem',
             textAlign: 'left',
           }}>
@@ -1149,7 +1149,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                 display: 'flex', alignItems: 'center', gap: '0.45rem',
                 padding: '0.8rem 1.4rem',
                 background: 'transparent',
-                color: '#94a3b8', border: '1px solid var(--border)', borderRadius: '0.625rem',
+                color: '#94a3b8', border: '2px solid var(--border)', borderRadius: '0.625rem',
                 fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer',
               }}
             >
@@ -1162,7 +1162,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                 display: 'flex', alignItems: 'center', gap: '0.45rem',
                 padding: '0.8rem 1.4rem',
                 background: 'transparent',
-                color: '#64748b', border: '1px solid var(--border)', borderRadius: '0.625rem',
+                color: '#64748b', border: '2px solid var(--border)', borderRadius: '0.625rem',
                 fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer',
               }}
             >
@@ -1186,7 +1186,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '0.75rem', alignItems: 'center', marginBottom: '0.875rem' }}>
               {/* My column */}
-              <div style={{ textAlign: 'center', padding: '0.75rem', background: 'var(--card)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
+              <div style={{ textAlign: 'center', padding: '0.75rem', background: 'var(--card)', borderRadius: '0.75rem', border: '2px solid var(--border)' }}>
                 <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#4169E1', marginBottom: '0.3rem' }}>You</div>
                 <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{wins}</div>
                 <div style={{ fontSize: '0.62rem', color: '#64748b' }}>wins</div>
@@ -1195,7 +1195,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               {/* VS */}
               <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#64748b' }}>vs</div>
               {/* Opponent column */}
-              <div style={{ textAlign: 'center', padding: '0.75rem', background: 'var(--card)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
+              <div style={{ textAlign: 'center', padding: '0.75rem', background: 'var(--card)', borderRadius: '0.75rem', border: '2px solid var(--border)' }}>
                 <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#f59e0b', marginBottom: '0.3rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h2hContext.opponentName}</div>
                 {h2hOppStats ? (
                   <>
@@ -1319,7 +1319,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
         />
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1.25rem', background: 'var(--card)', padding: '0.35rem', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1.25rem', background: 'var(--card)', padding: '0.35rem', borderRadius: '0.75rem', border: '2px solid var(--border)' }}>
           {[
             { id: 'overview',     label: '📊 Awards' },
             { id: 'playerstats',  label: '🏏 Player Stats' },
@@ -1391,7 +1391,7 @@ function BestFinishHook({ wins, losses, iplOutcome, stageReached, onPlayAgain, o
       marginTop: '2rem',
       padding: '1.25rem 1.25rem 1.5rem',
       background: 'var(--card)',
-      border: '1px solid var(--border)',
+      border: '2px solid var(--border)',
       borderRadius: '1rem',
       textAlign: 'center',
     }}>
@@ -1445,7 +1445,7 @@ function BestFinishHook({ wins, losses, iplOutcome, stageReached, onPlayAgain, o
           padding: '0.75rem',
           background: 'transparent',
           color: '#64748b',
-          border: '1px solid var(--border)',
+          border: '2px solid var(--border)',
           borderRadius: '0.625rem',
           fontSize: '0.88rem',
           fontWeight: 700,
@@ -1549,7 +1549,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
         return (
           <div style={{
             background: 'var(--card)',
-            border: '1px solid var(--border)',
+            border: '2px solid var(--border)',
             borderRadius: '1rem',
             padding: '1.25rem',
             animation: 'fade-in-up 0.3s ease both',
@@ -1561,7 +1561,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
             {/* Predicted → Actual */}
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'stretch', marginBottom: '1.25rem' }}>
               {/* Predicted box */}
-              <div style={{ flex: 1, textAlign: 'center', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem', padding: '0.875rem 0.5rem' }}>
+              <div style={{ flex: 1, textAlign: 'center', background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.75rem', padding: '0.875rem 0.5rem' }}>
                 <div style={{ fontSize: '0.5rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>Predicted</div>
                 <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#64748b', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{predictedPos}</div>
                 <div style={{ fontSize: '0.55rem', color: 'var(--border)', marginTop: '0.25rem', fontWeight: 600 }}>{predictedShort}</div>
@@ -1588,7 +1588,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
             </div>
 
             {/* Color-coded narrative */}
-            <div style={{ fontSize: '0.82rem', lineHeight: 1.75, fontStyle: 'italic', borderTop: '1px solid var(--border)', paddingTop: '0.875rem' }}>
+            <div style={{ fontSize: '0.82rem', lineHeight: 1.75, fontStyle: 'italic', borderTop: '2px solid var(--border)', paddingTop: '0.875rem' }}>
               {perfWriteup.map((seg, i) => (
                 <span key={i} style={{
                   color: seg.tone === 'positive' ? '#4ade80' : seg.tone === 'negative' ? '#f87171' : '#94a3b8',
@@ -1695,11 +1695,11 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
           🌟 Tournament Best XI
         </div>
         {xiEntries.length === 0 ? (
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', padding: '1.25rem', textAlign: 'center', color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic' }}>
+          <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', padding: '1.25rem', textAlign: 'center', color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic' }}>
             No players made the tournament XI — the team was eliminated too early.
           </div>
         ) : (
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
             {xiEntries.map((p, i) => {
               const roleClr = ROLE_COLOR[p.role] ?? '#64748b'
@@ -1740,7 +1740,7 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
 function StatTable({ title, rows, col1, col1Key, col2, col2Key, color }) {
   if (!rows || rows.length === 0) return null
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
+    <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
       <div style={{
         padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--border2)',
         fontSize: '0.8rem', fontWeight: 800, color: '#94a3b8',
@@ -1773,7 +1773,7 @@ function TournamentXITab({ tournamentBestXI }) {
 
   return (
     <div style={{ animation: 'fade-in 0.3s ease both' }}>
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
         <div style={{
           padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--border2)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -1856,7 +1856,7 @@ function PlayerStatsTab({ playerStats, team }) {
 
   return (
     <div style={{ animation: 'fade-in 0.3s ease both' }}>
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
         <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>🏏 Player Stats</span>
           <span style={{ fontSize: '0.6rem', color: 'var(--border)', fontWeight: 600, marginLeft: 'auto' }}>Full season totals</span>

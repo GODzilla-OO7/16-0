@@ -598,7 +598,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
           padding: '0.875rem 2.75rem',
           background: isSpinning ? 'transparent' : 'linear-gradient(135deg, #4169E1, #2952CC)',
           color: isSpinning ? '#64748b' : 'var(--bg)',
-          border: isSpinning ? '1px solid var(--border)' : 'none',
+          border: isSpinning ? '2px solid var(--border)' : 'none',
           borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800,
           cursor: isSpinning ? 'default' : 'pointer', minWidth: 180,
           letterSpacing: '0.06em', textTransform: 'uppercase',
@@ -654,7 +654,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
               onClick={onRetryFromBeginning}
               style={{
                 padding: '0.75rem', background: 'transparent',
-                color: '#94a3b8', border: '1px solid var(--border)', borderRadius: '0.625rem',
+                color: '#94a3b8', border: '2px solid var(--border)', borderRadius: '0.625rem',
                 fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
               }}
             >
@@ -744,7 +744,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
           <div style={{ padding: '2rem', textAlign: 'center' }}>
             <div style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1rem' }}>All players from this squad are already in your XI.</div>
             {canReroll && (
-              <button onClick={onSpinAgain} style={{ padding: '0.75rem 1.5rem', background: 'var(--border2)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 700 }}>
+              <button onClick={onSpinAgain} style={{ padding: '0.75rem 1.5rem', background: 'var(--border2)', color: 'var(--text)', border: '2px solid var(--border)', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 700 }}>
                 ↺ Spin again
               </button>
             )}
@@ -1115,7 +1115,7 @@ export function BiddingWarOverlay({ player, basePrice, ratingType, mode = 'ipl',
 
             <button
               onClick={onPass}
-              style={{ width: '100%', padding: '0.65rem', background: 'transparent', color: '#94a3b8', border: '1px solid var(--border)', borderRadius: '0.625rem', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+              style={{ width: '100%', padding: '0.65rem', background: 'transparent', color: '#94a3b8', border: '2px solid var(--border)', borderRadius: '0.625rem', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
             >
               Let {rival.name} have it → spin again
             </button>

@@ -191,7 +191,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
 
   const storyBlock = phase === 'landed' && storyData && (
     <div style={{
-      background: 'var(--card2)', border: '1px solid var(--border)',
+      background: 'var(--card2)', border: '2px solid var(--border)',
       borderRadius: '0.75rem', padding: '1.1rem 1.25rem',
       marginBottom: '1rem', animation: 'fade-in 0.4s ease both',
     }}>
@@ -201,7 +201,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
       <p style={{ fontSize: '0.82rem', color: 'var(--muted)', lineHeight: 1.6, margin: '0 0 0.75rem', fontStyle: 'italic' }}>
         {storyData.narrative}
       </p>
-      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.625rem', textAlign: 'center' }}>
+      <div style={{ borderTop: '2px solid var(--border)', paddingTop: '0.625rem', textAlign: 'center' }}>
         <div style={{ fontSize: '0.58rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>
           Predicted Finish
         </div>
@@ -215,7 +215,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
   const fullPageButtons = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', alignItems: 'center' }}>
       {isSpinning ? (
-        <div style={{ width: '100%', padding: '0.875rem', background: 'transparent', border: '1px solid var(--border)', borderRadius: '0.75rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem', fontWeight: 700 }}>
+        <div style={{ width: '100%', padding: '0.875rem', background: 'transparent', border: '2px solid var(--border)', borderRadius: '0.75rem', textAlign: 'center', color: '#64748b', fontSize: '0.875rem', fontWeight: 700 }}>
           Spinning…
         </div>
       ) : phase === 'landed' ? (
@@ -268,7 +268,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
     }
 
     return (
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', padding: '0.75rem 0.875rem', animation: 'fade-in 0.3s ease both' }}>
+      <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', padding: '0.75rem 0.875rem', animation: 'fade-in 0.3s ease both' }}>
         <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#4169E1', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.625rem' }}>
           🎽 Coach
         </div>

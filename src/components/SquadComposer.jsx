@@ -188,7 +188,7 @@ function CompositionBar({ comp }) {
       <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
         Composition
       </div>
-      <div style={{ display: 'flex', height: 22, borderRadius: 5, overflow: 'hidden', border: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', height: 22, borderRadius: 5, overflow: 'hidden', border: '2px solid var(--border)' }}>
         {ROLE_DEFS.map(def => {
           const count = comp[def.key] || 0
           if (count === 0) return null
@@ -347,7 +347,7 @@ export default function SquadComposer({ onDone, onBack }) {
         <button onClick={onBack} style={{
           padding: '0.75rem 1.1rem',
           background: 'transparent',
-          border: '1px solid var(--border)', borderRadius: '0.5rem',
+          border: '2px solid var(--border)', borderRadius: '0.5rem',
           color: '#64748b', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
           whiteSpace: 'nowrap', touchAction: 'manipulation',
         }}>← Back</button>
@@ -413,7 +413,7 @@ export default function SquadComposer({ onDone, onBack }) {
 
         {/* Sliders card */}
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--border)',
+          background: 'var(--card)', border: '2px solid var(--border)',
           borderRadius: '1rem', padding: '1.1rem 1.25rem',
         }}>
           <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.875rem' }}>
@@ -423,7 +423,7 @@ export default function SquadComposer({ onDone, onBack }) {
             <RoleSlider key={def.key} def={def} value={comp[def.key] || 0} onDrag={handleDrag} isMobile={true} />
           ))}
           <div style={{
-            paddingTop: '0.75rem', borderTop: '1px solid var(--border)',
+            paddingTop: '0.75rem', borderTop: '2px solid var(--border)',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Total</span>
@@ -448,7 +448,7 @@ export default function SquadComposer({ onDone, onBack }) {
 
         {/* Formation */}
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--border)',
+          background: 'var(--card)', border: '2px solid var(--border)',
           borderRadius: '1rem', padding: '0.875rem',
         }}>
           <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>
@@ -461,7 +461,7 @@ export default function SquadComposer({ onDone, onBack }) {
 
         {/* Breakdown */}
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--border)',
+          background: 'var(--card)', border: '2px solid var(--border)',
           borderRadius: '1rem', padding: '0.875rem',
         }}>
           <CompositionBar comp={comp} />
@@ -543,7 +543,7 @@ export default function SquadComposer({ onDone, onBack }) {
             {/* Slider card — unchanged */}
             <div style={{
               flex: 1, minHeight: 0,
-              background: 'var(--card)', border: '1px solid var(--border)',
+              background: 'var(--card)', border: '2px solid var(--border)',
               borderRadius: '1.5rem', padding: '1.5rem 1.75rem',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
@@ -560,7 +560,7 @@ export default function SquadComposer({ onDone, onBack }) {
               </div>
 
               {/* Total + button */}
-              <div style={{ flexShrink: 0, paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+              <div style={{ flexShrink: 0, paddingTop: '0.75rem', borderTop: '2px solid var(--border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -593,7 +593,7 @@ export default function SquadComposer({ onDone, onBack }) {
             {/* Formation card — takes most of the height */}
             <div style={{
               flex: 1, minHeight: 0,
-              background: 'var(--card)', border: '1px solid var(--border)',
+              background: 'var(--card)', border: '2px solid var(--border)',
               borderRadius: '1.5rem', padding: '1.25rem',
               display: 'flex', flexDirection: 'column',
             }}>
@@ -608,7 +608,7 @@ export default function SquadComposer({ onDone, onBack }) {
             {/* Composition breakdown */}
             <div style={{
               flexShrink: 0,
-              background: 'var(--card)', border: '1px solid var(--border)',
+              background: 'var(--card)', border: '2px solid var(--border)',
               borderRadius: '1.5rem', padding: '1.1rem 1.35rem',
             }}>
               <CompositionBar comp={comp} />

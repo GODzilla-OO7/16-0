@@ -50,7 +50,7 @@ export default function AuthModal({ onClose, onSuccess }) {
 
   const inputStyle = {
     width: '100%', padding: '0.75rem 1rem',
-    background: 'var(--bg)', border: '1px solid var(--border)',
+    background: 'var(--bg)', border: '2px solid var(--border)',
     borderRadius: '0.5rem', color: 'var(--text)',
     fontSize: '0.95rem', outline: 'none',
     boxSizing: 'border-box',
@@ -68,7 +68,7 @@ export default function AuthModal({ onClose, onSuccess }) {
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       <div style={{
-        background: 'var(--card)', border: '1px solid var(--border)',
+        background: 'var(--card)', border: '2px solid var(--border)',
         borderRadius: '1.25rem', padding: '2rem',
         width: '100%', maxWidth: 380,
         animation: 'fade-in-up 0.25s ease both',
@@ -92,7 +92,7 @@ export default function AuthModal({ onClose, onSuccess }) {
               disabled={googleLoading || loading}
               style={{
                 width: '100%', padding: '0.8rem 1rem',
-                background: 'var(--card2)', border: '1px solid var(--border)',
+                background: 'var(--card2)', border: '2px solid var(--border)',
                 borderRadius: '0.625rem', cursor: googleLoading ? 'wait' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.625rem',
                 fontSize: '0.95rem', fontWeight: 700, color: 'var(--text)',
@@ -128,7 +128,7 @@ export default function AuthModal({ onClose, onSuccess }) {
             </div>
             <button
               onClick={() => { setMode('signin'); setSent(false) }}
-              style={{ marginTop: '1.25rem', padding: '0.75rem 1.5rem', background: 'var(--border2)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--text)', cursor: 'pointer', fontWeight: 700 }}
+              style={{ marginTop: '1.25rem', padding: '0.75rem 1.5rem', background: 'var(--border2)', border: '2px solid var(--border)', borderRadius: '0.5rem', color: 'var(--text)', cursor: 'pointer', fontWeight: 700 }}
             >
               Back to Sign In
             </button>

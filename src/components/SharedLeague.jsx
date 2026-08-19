@@ -18,7 +18,7 @@ const ROLE_COLOR = {
 function Card({ style, children }) {
   return (
     <div style={{
-      background: 'var(--card)', border: '1px solid var(--border)',
+      background: 'var(--card)', border: '2px solid var(--border)',
       borderRadius: '0.875rem', ...style,
     }}>
       {children}
@@ -152,8 +152,8 @@ function H2HBattleCard({ tournament, h2hResult }) {
 function PointsTable({ tournament, revealedMatches }) {
   const standings = getLiveStandings(tournament, revealedMatches)
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden', marginBottom: '1rem' }}>
-      <div style={{ padding: '0.6rem 0.875rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}>
+    <div style={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden', marginBottom: '1rem' }}>
+      <div style={{ padding: '0.6rem 0.875rem', borderBottom: '2px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}>
         <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Points Table</span>
         <span style={{ fontSize: '0.62rem', color: '#475569' }}>After match {revealedMatches}</span>
       </div>
@@ -349,7 +349,7 @@ function OppFeed({ oppFixtures, oppName, currentMatch, h2hIdx }) {
   const revealed = (oppFixtures ?? []).slice(0, currentMatch).reverse()
   if (!revealed.length) return null
   return (
-    <div style={{ marginTop: '0.875rem', background: 'var(--card2)', border: '1px solid var(--border)', borderRadius: '0.75rem', overflow: 'hidden' }}>
+    <div style={{ marginTop: '0.875rem', background: 'var(--card2)', border: '2px solid var(--border)', borderRadius: '0.75rem', overflow: 'hidden' }}>
       <div style={{ padding: '0.45rem 0.875rem', borderBottom: '1px solid var(--border2)', fontSize: '0.6rem', fontWeight: 800, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         {oppName}'s Results
       </div>
@@ -551,7 +551,7 @@ export default function SharedLeague({ room: initialRoom, uid, onBack }) {
       }}>
         <button
           onClick={onBack}
-          style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '0.375rem', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '0.3rem 0.6rem', flexShrink: 0 }}
+          style={{ background: 'none', border: '2px solid var(--border)', borderRadius: '0.375rem', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '0.3rem 0.6rem', flexShrink: 0 }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = '#64748b' }}
         >
@@ -568,7 +568,7 @@ export default function SharedLeague({ room: initialRoom, uid, onBack }) {
         {phase === 'league' && (
           <button
             onClick={() => setShowTable(v => !v)}
-            style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '0.375rem', color: '#64748b', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', padding: '0.3rem 0.6rem', flexShrink: 0 }}
+            style={{ background: 'none', border: '2px solid var(--border)', borderRadius: '0.375rem', color: '#64748b', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', padding: '0.3rem 0.6rem', flexShrink: 0 }}
           >
             📊 {showTable ? 'Hide' : 'Table'}
           </button>
@@ -607,18 +607,18 @@ export default function SharedLeague({ room: initialRoom, uid, onBack }) {
               <div style={{
                 display: 'flex', gap: '0.5rem', marginBottom: '0.875rem',
                 padding: '0.625rem 0.875rem',
-                background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.625rem',
+                background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.625rem',
               }}>
                 <div style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ fontSize: '0.6rem', color: '#4169E1', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{myName}</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text)' }}>{myWins}<span style={{ fontSize: '0.7rem', color: '#64748b' }}>W</span></div>
                 </div>
-                <div style={{ borderLeft: '1px solid var(--border)', flexShrink: 0 }} />
+                <div style={{ borderLeft: '2px solid var(--border)', flexShrink: 0 }} />
                 <div style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ fontSize: '0.6rem', color: '#a78bfa', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{oppName}</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text)' }}>{oppWins}<span style={{ fontSize: '0.7rem', color: '#64748b' }}>W</span></div>
                 </div>
-                <div style={{ borderLeft: '1px solid var(--border)', flexShrink: 0 }} />
+                <div style={{ borderLeft: '2px solid var(--border)', flexShrink: 0 }} />
                 <div style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Matches</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#f59e0b' }}>{currentMatch}<span style={{ fontSize: '0.7rem', color: '#64748b' }}>/14</span></div>
@@ -740,13 +740,13 @@ export default function SharedLeague({ room: initialRoom, uid, onBack }) {
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
                 <button
                   onClick={() => share(`I just played a shared H2H IPL season on Cricket 38-0! Final: ${champion} are champions 🏆`)}
-                  style={{ flex: 1, padding: '0.6rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: '#64748b', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '0.6rem', background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.5rem', color: '#64748b', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
                 >
                   🔗 Share Season
                 </button>
                 <button
                   onClick={() => share(`Play me in Cricket 38-0 H2H! I'll use a ${myWinsTotal}W season team as my base. Challenge accepted?`)}
-                  style={{ flex: 1, padding: '0.6rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: '#64748b', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '0.6rem', background: 'var(--card)', border: '2px solid var(--border)', borderRadius: '0.5rem', color: '#64748b', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
                 >
                   🎯 Challenge Again
                 </button>
