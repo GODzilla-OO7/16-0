@@ -980,7 +980,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                       display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
                       padding: '0.3rem 0.65rem',
                       background: isChamp ? 'linear-gradient(135deg,#78350f18,#92400e18)' : 'var(--card2)',
-                      border: `1px solid ${isChamp ? '#f59e0b55' : 'var(--card-border)'}`,
+                      border: `1px solid ${isChamp ? '#f59e0b55' : 'var(--border)'}`,
                       borderRadius: '999px',
                       fontSize: '0.72rem', fontWeight: 700,
                       color: isChamp ? '#f59e0b' : '#94a3b8',
@@ -1031,7 +1031,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
           {/* Team strength bar */}
           <div style={{
-            background: 'var(--card)', border: '1px solid var(--card-border)',
+            background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '0.75rem', padding: '1rem 1.25rem', marginBottom: '1.25rem',
             textAlign: 'left',
           }}>
@@ -1391,7 +1391,7 @@ function BestFinishHook({ wins, losses, iplOutcome, stageReached, onPlayAgain, o
       marginTop: '2rem',
       padding: '1.25rem 1.25rem 1.5rem',
       background: 'var(--card)',
-      border: '1px solid var(--card-border)',
+      border: '1px solid var(--border)',
       borderRadius: '1rem',
       textAlign: 'center',
     }}>
@@ -1445,7 +1445,7 @@ function BestFinishHook({ wins, losses, iplOutcome, stageReached, onPlayAgain, o
           padding: '0.75rem',
           background: 'transparent',
           color: '#64748b',
-          border: '1px solid var(--card-border)',
+          border: '1px solid var(--border)',
           borderRadius: '0.625rem',
           fontSize: '0.88rem',
           fontWeight: 700,
@@ -1549,7 +1549,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
         return (
           <div style={{
             background: 'var(--card)',
-            border: '1px solid var(--card-border)',
+            border: '1px solid var(--border)',
             borderRadius: '1rem',
             padding: '1.25rem',
             animation: 'fade-in-up 0.3s ease both',
@@ -1648,7 +1648,7 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.625rem 0.75rem',
                   background: i === 0 ? '#4169E112' : 'var(--card)',
-                  border: `1px solid ${i === 0 ? '#4169E144' : 'var(--card-border)'}`,
+                  border: `1px solid ${i === 0 ? '#4169E144' : 'var(--border)'}`,
                   borderRadius: '0.625rem',
                 }}>
                   <div style={{ fontSize: i === 0 ? '1rem' : '0.8rem', width: 20, textAlign: 'center', flexShrink: 0 }}>{medals[i]}</div>
@@ -1674,7 +1674,7 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.625rem 0.75rem',
                   background: i === 0 ? '#a855f712' : 'var(--card)',
-                  border: `1px solid ${i === 0 ? '#a855f744' : 'var(--card-border)'}`,
+                  border: `1px solid ${i === 0 ? '#a855f744' : 'var(--border)'}`,
                   borderRadius: '0.625rem',
                 }}>
                   <div style={{ fontSize: i === 0 ? '1rem' : '0.8rem', width: 20, textAlign: 'center', flexShrink: 0 }}>{medals[i]}</div>

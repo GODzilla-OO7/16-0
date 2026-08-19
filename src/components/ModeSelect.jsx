@@ -14,7 +14,7 @@ const HOW_TO_PLAY = [
 const LIGHT = {
   bg:         '#f4f7ff',
   cardBg:     '#ffffff',
-  cardBorder: '#D4172C',
+  cardBorder: '#dce6f7',
   cardHover:  '#f0f4ff',
   htpBg:      '#f8faff',
   accent:     '#4169E1',

@@ -79,7 +79,7 @@ function OverseasTracker({ team }) {
                 height: 28,
                 borderRadius: '0.35rem',
                 background: filled ? barColor + '22' : 'var(--border2)',
-                border: `1.5px solid ${filled ? barColor : 'var(--card-border)'}`,
+                border: `1.5px solid ${filled ? barColor : 'var(--border)'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '0.62rem', fontWeight: 700,
                 color: filled ? barColor : 'var(--border)',

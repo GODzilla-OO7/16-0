@@ -198,7 +198,7 @@ function H2HRoleSlider({ def, value, onDrag, disabled }) {
             <div key={i} onClick={() => !disabled && onDrag(def.key, i)} style={{
               width: 10, height: 10, borderRadius: '50%', cursor: disabled ? 'default' : 'pointer',
               background: i <= value ? def.color : 'var(--border2)',
-              border: `1.5px solid ${i <= value ? def.color : 'var(--card-border)'}`,
+              border: `1.5px solid ${i <= value ? def.color : 'var(--border)'}`,
               boxShadow: i <= value ? `0 0 6px ${def.color}66` : 'none',
             }} />
           ))}
@@ -524,7 +524,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
               {H2H_PRESETS.map((p, i) => (
                 <button key={p.label} onClick={() => handleCompPreset(p, i)} style={{
                   padding: '0.3rem 0.65rem', background: activePreset === i ? p.color + '22' : 'var(--bg)',
-                  border: `1.5px solid ${activePreset === i ? p.color : 'var(--card-border)'}`,
+                  border: `1.5px solid ${activePreset === i ? p.color : 'var(--border)'}`,
                   borderRadius: '999px', color: activePreset === i ? p.color : '#64748b',
                   fontSize: '0.7rem', fontWeight: 700, cursor: compReady ? 'default' : 'pointer', opacity: compReady ? 0.4 : 1,
                 }}>{p.icon} {p.label}</button>
@@ -669,7 +669,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
                       style={{
                         flex: 1, padding: '0.45rem 0.5rem',
                         background: ratingType === val ? (val === 'prime' ? '#a855f722' : '#4169E122') : 'transparent',
-                        border: `1.5px solid ${ratingType === val ? (val === 'prime' ? '#a855f7' : '#4169E1') : 'var(--card-border)'}`,
+                        border: `1.5px solid ${ratingType === val ? (val === 'prime' ? '#a855f7' : '#4169E1') : 'var(--border)'}`,
                         borderRadius: '0.5rem', cursor: 'pointer',
                         fontSize: '0.7rem', fontWeight: ratingType === val ? 800 : 600,
                         color: ratingType === val ? (val === 'prime' ? '#a855f7' : '#4169E1') : '#64748b',
@@ -701,7 +701,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
                         style={{
                           flex: 1, padding: '0.3rem 0.25rem',
                           background: active ? '#f59e0b22' : 'transparent',
-                          border: `1px solid ${active ? '#f59e0b' : 'var(--card-border)'}`,
+                          border: `1px solid ${active ? '#f59e0b' : 'var(--border)'}`,
                           borderRadius: '0.4rem', cursor: 'pointer',
                           fontSize: '0.58rem', fontWeight: active ? 800 : 600,
                           color: active ? '#f59e0b' : '#64748b',
@@ -883,7 +883,7 @@ function CompRevealCard({ name, compData, isMe }) {
   return (
     <div style={{
       background: 'var(--card)',
-      border: `2px solid ${isMe ? '#4169E166' : 'var(--card-border)'}`,
+      border: `2px solid ${isMe ? '#4169E166' : 'var(--border)'}`,
       borderRadius: '1.25rem', overflow: 'hidden',
     }}>
       <div style={{ padding: '1rem 1.75rem', borderBottom: '1px solid var(--border)' }}>
@@ -921,7 +921,7 @@ function PlayerSlot({ name, label, ready }) {
       display: 'flex', alignItems: 'center', gap: '0.75rem',
       padding: '0.75rem 0.875rem',
       background: ready ? 'var(--win-bg)' : 'var(--card)',
-      border: `1px solid ${ready ? 'var(--win-border)' : 'var(--card-border)'}`,
+      border: `1px solid ${ready ? 'var(--win-border)' : 'var(--border)'}`,
       borderRadius: '0.625rem',
     }}>
       <span style={{ fontSize: '1.2rem' }}>{ready ? '✅' : '⏳'}</span>

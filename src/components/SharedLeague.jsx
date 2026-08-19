@@ -18,7 +18,7 @@ const ROLE_COLOR = {
 function Card({ style, children }) {
   return (
     <div style={{
-      background: 'var(--card)', border: '1px solid var(--card-border)',
+      background: 'var(--card)', border: '1px solid var(--border)',
       borderRadius: '0.875rem', ...style,
     }}>
       {children}
@@ -191,7 +191,7 @@ function PlayoffMatchRow({ label, match, revealed }) {
     <div style={{
       padding: '0.75rem 1rem',
       background: revealed ? 'var(--card)' : 'transparent',
-      border: `1px solid ${revealed ? 'var(--card-border)' : 'transparent'}`,
+      border: `1px solid ${revealed ? 'var(--border)' : 'transparent'}`,
       borderRadius: '0.625rem',
       marginBottom: '0.625rem',
       opacity: revealed ? 1 : 0.3,
@@ -236,7 +236,7 @@ function PlayoffView({ tournament, playoffs, isMe, onReady, myReady, oppReady, o
             flex: '1 1 40%',
             padding: '0.5rem 0.75rem',
             background: row.is_host || row.is_guest ? 'rgba(31,111,235,0.1)' : 'var(--card)',
-            border: `1px solid ${row.is_host || row.is_guest ? '#4169E144' : 'var(--card-border)'}`,
+            border: `1px solid ${row.is_host || row.is_guest ? '#4169E144' : 'var(--border)'}`,
             borderRadius: '0.5rem',
             textAlign: 'center',
           }}>

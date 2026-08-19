@@ -369,7 +369,7 @@ export default function App() {
 
   const btnBase = {
     width: 44, height: 44, borderRadius: '50%',
-    background: 'var(--card)', border: '1px solid var(--card-border)',
+    background: 'var(--card)', border: '1px solid var(--border)',
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
     transition: 'border-color 0.2s, color 0.2s',
@@ -701,7 +701,7 @@ export default function App() {
                   display: 'flex', alignItems: 'center', gap: '0.6rem',
                   padding: '0.5rem 0.875rem',
                   background: limitReached ? '#ef444410' : 'var(--card)',
-                  border: `1.5px solid ${limitReached ? '#ef444455' : 'var(--card-border)'}`,
+                  border: `1.5px solid ${limitReached ? '#ef444455' : 'var(--border)'}`,
                   borderRadius: '0.625rem',
                 }}>
                   <span style={{ fontSize: '0.75rem' }}>✈️</span>
@@ -714,7 +714,7 @@ export default function App() {
                         <div key={i} style={{
                           width: 16, height: 16, borderRadius: '50%',
                           background: i < overseasCount ? '#4169E1' : 'transparent',
-                          border: `2px solid ${i < overseasCount ? '#4169E1' : 'var(--card-border)'}`,
+                          border: `2px solid ${i < overseasCount ? '#4169E1' : 'var(--border)'}`,
                           transition: 'background 0.2s, border-color 0.2s',
                         }} />
                       ))}

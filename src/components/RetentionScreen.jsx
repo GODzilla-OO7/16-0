@@ -34,7 +34,7 @@ function PlayerCard({ player, selected, canSelect, onToggle }) {
         display: 'flex', alignItems: 'center', gap: '0.6rem',
         padding: '0.55rem 0.875rem',
         background: selected ? color + '18' : 'var(--card)',
-        border: `1.5px solid ${selected ? color : dim ? 'var(--border2)' : 'var(--card-border)'}`,
+        border: `1.5px solid ${selected ? color : dim ? 'var(--border2)' : 'var(--border)'}`,
         borderRadius: '0.625rem',
         cursor: (selected || canSelect) ? 'pointer' : 'not-allowed',
         opacity: dim ? 0.4 : 1,
@@ -70,7 +70,7 @@ function PlayerCard({ player, selected, canSelect, onToggle }) {
       <div style={{
         width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
         background: selected ? color : 'transparent',
-        border: `2px solid ${selected ? color : 'var(--card-border)'}`,
+        border: `2px solid ${selected ? color : 'var(--border)'}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'all 0.15s',
       }}>
@@ -135,7 +135,7 @@ export default function RetentionScreen({ team, prevBudgetLeftover, seasonNumber
 
         {/* LEFT — player list */}
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--card-border)',
+          background: 'var(--card)', border: '1px solid var(--border)',
           borderRadius: '1.25rem', padding: '0.875rem 1rem',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
@@ -151,7 +151,7 @@ export default function RetentionScreen({ team, prevBudgetLeftover, seasonNumber
                 <div key={i} style={{
                   width: 9, height: 9, borderRadius: '50%',
                   background: i < selected.size ? '#4169E1' : 'var(--border2)',
-                  border: `1.5px solid ${i < selected.size ? '#4169E1' : 'var(--card-border)'}`,
+                  border: `1.5px solid ${i < selected.size ? '#4169E1' : 'var(--border)'}`,
                   transition: 'all 0.15s',
                 }} />
               ))}
@@ -179,7 +179,7 @@ export default function RetentionScreen({ team, prevBudgetLeftover, seasonNumber
 
           {/* Budget panel */}
           <div style={{
-            background: 'var(--card)', border: '1px solid var(--card-border)',
+            background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '1.25rem', padding: '1rem 1.2rem',
             flexShrink: 0,
           }}>
@@ -218,7 +218,7 @@ export default function RetentionScreen({ team, prevBudgetLeftover, seasonNumber
 
           {/* Cost guide */}
           <div style={{
-            background: 'var(--card)', border: '1px solid var(--card-border)',
+            background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '1.25rem', padding: '0.875rem 1rem',
             flexShrink: 0,
           }}>

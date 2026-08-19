@@ -138,7 +138,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
     <div style={{
       position: 'relative',
       background: 'var(--card)',
-      border: `2px solid ${phase === 'landed' ? '#4169E166' : 'var(--card-border)'}`,
+      border: `2px solid ${phase === 'landed' ? '#4169E166' : 'var(--border)'}`,
       borderRadius: '1.25rem',
       overflow: 'hidden',
       marginBottom: '1rem',
@@ -191,7 +191,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
 
   const storyBlock = phase === 'landed' && storyData && (
     <div style={{
-      background: 'var(--card2)', border: '1px solid var(--card-border)',
+      background: 'var(--card2)', border: '1px solid var(--border)',
       borderRadius: '0.75rem', padding: '1.1rem 1.25rem',
       marginBottom: '1rem', animation: 'fade-in 0.4s ease both',
     }}>
@@ -235,7 +235,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
       )}
       <button
         onClick={() => onSelect(null)}
-        style={{ background: 'none', border: 'none', color: 'var(--card-border)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+        style={{ background: 'none', border: 'none', color: 'var(--border)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
       >
         Continue without a manager
       </button>
