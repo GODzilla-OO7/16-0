@@ -18,7 +18,7 @@ const DEFAULT = {
 
 const PRESETS = [
   {
-    label: 'Balanced', icon: '⚖️', color: '#4169E1',
+    label: 'Balanced', icon: '⚖️', color: '#C8102E',
     comp: { opener: 2, 'top-order': 2, 'middle-order': 1, 'wicket-keeper': 1, 'all-rounder': 2, 'pace-bowler': 2, 'spin-bowler': 1 },
   },
   {
@@ -362,7 +362,7 @@ export default function SquadComposer({ onDone, onBack }) {
           color: isValid ? '#ffffff' : '#475569',
           fontSize: isMobile ? '0.95rem' : '0.9rem', fontWeight: 800,
           cursor: isValid ? 'pointer' : 'not-allowed',
-          boxShadow: isValid ? '0 4px 20px rgba(65,105,225,0.4)' : 'none',
+          boxShadow: isValid ? '0 4px 20px rgba(200,16,46,0.4)' : 'none',
           transition: 'all 0.2s', touchAction: 'manipulation',
         }}
       >
@@ -383,8 +383,8 @@ export default function SquadComposer({ onDone, onBack }) {
         <div style={{ textAlign: 'center' }}>
           <div style={{
             display: 'inline-block', padding: '0.2rem 0.75rem',
-            background: 'rgba(65,105,225,0.15)', border: '1px solid rgba(65,105,225,0.35)',
-            borderRadius: '999px', color: '#4169E1',
+            background: 'rgba(200,16,46,0.15)', border: '1px solid rgba(200,16,46,0.35)',
+            borderRadius: '999px', color: '#C8102E',
             fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em',
             textTransform: 'uppercase', marginBottom: '0.4rem',
           }}>Build Your XI</div>
@@ -433,7 +433,7 @@ export default function SquadComposer({ onDone, onBack }) {
                   {total < 11 ? `${11 - total} more` : `${total - 11} too many`}
                 </span>
               )}
-              <span style={{ fontSize: '1.6rem', fontWeight: 900, color: total === 11 ? '#4169E1' : total > 11 ? '#ef4444' : '#f59e0b' }}>
+              <span style={{ fontSize: '1.6rem', fontWeight: 900, color: total === 11 ? '#C8102E' : total > 11 ? '#ef4444' : '#f59e0b' }}>
                 {total}/11
               </span>
             </div>
@@ -490,8 +490,8 @@ export default function SquadComposer({ onDone, onBack }) {
         }}>← Back</button>
         <div style={{
           display: 'inline-block', padding: '0.2rem 0.85rem',
-          background: 'rgba(65,105,225,0.12)', border: '1px solid rgba(65,105,225,0.3)',
-          borderRadius: '999px', color: '#4169E1',
+          background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.3)',
+          borderRadius: '999px', color: '#C8102E',
           fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em',
           textTransform: 'uppercase', marginBottom: '0.35rem',
         }}>Build Your XI</div>
@@ -569,7 +569,7 @@ export default function SquadComposer({ onDone, onBack }) {
                         {total < 11 ? `${11 - total} more to add` : `${total - 11} too many`}
                       </span>
                     )}
-                    <span style={{ fontSize: '1.6rem', fontWeight: 900, color: total === 11 ? '#4169E1' : total > 11 ? '#ef4444' : '#f59e0b' }}>
+                    <span style={{ fontSize: '1.6rem', fontWeight: 900, color: total === 11 ? '#C8102E' : total > 11 ? '#ef4444' : '#f59e0b' }}>
                       {total}/11
                     </span>
                   </div>

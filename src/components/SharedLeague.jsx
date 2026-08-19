@@ -12,7 +12,7 @@ import { getLiveStandings } from '../utils/sharedTournament.js'
 const ROLE_COLOR = {
   'opener': '#f59e0b', 'top-order': '#f59e0b',
   'middle-order': '#22c55e', 'wicket-keeper': '#a78bfa',
-  'all-rounder': '#4169E1', 'pace-bowler': '#ef4444', 'spin-bowler': '#f97316',
+  'all-rounder': '#C8102E', 'pace-bowler': '#ef4444', 'spin-bowler': '#f97316',
 }
 
 function Card({ style, children }) {
@@ -51,7 +51,7 @@ function MatchCard({ fixture, playerName, isMe, isH2H }) {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
         <div>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: isMe ? '#4169E1' : '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.2rem' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: isMe ? '#C8102E' : '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.2rem' }}>
             {playerName} {isMe ? '(you)' : ''}
           </div>
           <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
@@ -162,12 +162,12 @@ function PointsTable({ tournament, revealedMatches }) {
           display: 'flex', alignItems: 'center', gap: '0.5rem',
           padding: '0.45rem 0.875rem',
           borderBottom: i < standings.length - 1 ? '1px solid var(--border2)' : 'none',
-          background: row.is_host || row.is_guest ? 'rgba(31,111,235,0.06)' : 'transparent',
+          background: row.is_host || row.is_guest ? 'rgba(200,16,46,0.06)' : 'transparent',
         }}>
           <span style={{ fontSize: '0.7rem', fontWeight: 800, color: i < 4 ? '#f59e0b' : '#475569', width: 14, flexShrink: 0 }}>{i + 1}</span>
           <span style={{
             flex: 1, fontSize: '0.75rem', fontWeight: row.is_host || row.is_guest ? 800 : 500,
-            color: row.is_host ? '#4169E1' : row.is_guest ? '#a78bfa' : 'var(--text)',
+            color: row.is_host ? '#C8102E' : row.is_guest ? '#a78bfa' : 'var(--text)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
             {row.is_host ? '🏠 ' : row.is_guest ? '🚪 ' : ''}{row.name}
@@ -235,8 +235,8 @@ function PlayoffView({ tournament, playoffs, isMe, onReady, myReady, oppReady, o
           <div key={row.name} style={{
             flex: '1 1 40%',
             padding: '0.5rem 0.75rem',
-            background: row.is_host || row.is_guest ? 'rgba(31,111,235,0.1)' : 'var(--card)',
-            border: `1px solid ${row.is_host || row.is_guest ? '#4169E144' : 'var(--border)'}`,
+            background: row.is_host || row.is_guest ? 'rgba(200,16,46,0.1)' : 'var(--card)',
+            border: `1px solid ${row.is_host || row.is_guest ? '#C8102E44' : 'var(--border)'}`,
             borderRadius: '0.5rem',
             textAlign: 'center',
           }}>
@@ -610,7 +610,7 @@ export default function SharedLeague({ room: initialRoom, uid, onBack }) {
                 background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.625rem',
               }}>
                 <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.6rem', color: '#4169E1', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{myName}</div>
+                  <div style={{ fontSize: '0.6rem', color: '#C8102E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{myName}</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--text)' }}>{myWins}<span style={{ fontSize: '0.7rem', color: '#64748b' }}>W</span></div>
                 </div>
                 <div style={{ borderLeft: '1px solid var(--border)', flexShrink: 0 }} />
@@ -717,7 +717,7 @@ export default function SharedLeague({ room: initialRoom, uid, onBack }) {
                     { label: oppName, wins: oppWinsTotal, me: false },
                   ].map(p => (
                     <div key={p.label} style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 800, color: p.me ? '#4169E1' : '#a78bfa', marginBottom: '0.25rem' }}>
+                      <div style={{ fontSize: '0.65rem', fontWeight: 800, color: p.me ? '#C8102E' : '#a78bfa', marginBottom: '0.25rem' }}>
                         {p.label} {p.me ? '(you)' : ''}
                       </div>
                       <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--text)' }}>{p.wins}W</div>

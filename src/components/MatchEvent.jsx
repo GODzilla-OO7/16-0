@@ -121,7 +121,7 @@ const EVENT_DEFS = {
   },
 
   'run-out': {
-    icon: '🏃', badge: 'RUN OUT CHANCE', accentColor: '#3b82f6',
+    icon: '🏃', badge: 'RUN OUT CHANCE', accentColor: '#C8102E',
     headline: (p) => `Run out! ${p} — pick your end!`,
     subline:  (p, opp) => `vs ${opp} · Batter stranded mid-pitch — direct hit wins the wicket`,
     choiceCount: 2,
@@ -206,7 +206,7 @@ const EVENT_DEFS = {
   },
 
   'powerplay': {
-    icon: '⚡', badge: 'POWERPLAY TIME', accentColor: '#4169E1',
+    icon: '⚡', badge: 'POWERPLAY TIME', accentColor: '#C8102E',
     headline: (p) => `Powerplay — ${p} opens up!`,
     subline:  (p, opp) => `vs ${opp} · Fielding circle on — first 6 overs set the total`,
     choiceCount: 3,
@@ -352,7 +352,7 @@ export default function MatchEvent({ event, opponent, onContinue }) {
     }}>
       <div style={{
         width: '100%', maxWidth: 440,
-        background: '#0d1229', border: `1px solid ${accentColor}44`,
+        background: '#1a0508', border: `1px solid ${accentColor}44`,
         borderRadius: '1.25rem', padding: '1.75rem',
         boxShadow: `0 0 60px ${accentColor}20`,
         animation: 'fade-in-up 0.3s ease both',
@@ -441,7 +441,7 @@ export default function MatchEvent({ event, opponent, onContinue }) {
                 background: '#C8102E',
                 border: 'none', borderRadius: '0.625rem',
                 color: '#fff', fontSize: '0.92rem', fontWeight: 800,
-                cursor: 'pointer', boxShadow: '0 4px 16px rgba(31,111,235,0.3)',
+                cursor: 'pointer', boxShadow: '0 4px 16px rgba(200,16,46,0.3)',
               }}
             >
               Continue →

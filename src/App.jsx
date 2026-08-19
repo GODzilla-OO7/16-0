@@ -348,11 +348,11 @@ export default function App() {
   const challengeBanner = activeChallenge ? (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1100,
-      background: 'linear-gradient(90deg, #1a3a7a, #4169E1)',
+      background: 'linear-gradient(90deg, #7a0a14, #C8102E)',
       padding: '0 1.25rem',
       height: BANNER_H,
       display: 'flex', alignItems: 'center', gap: '0.625rem',
-      boxShadow: '0 2px 12px rgba(31,111,235,0.35)',
+      boxShadow: '0 2px 12px rgba(200,16,46,0.35)',
     }}>
       <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.1em', flexShrink: 0 }}>
         🗓️ Daily Challenge
@@ -499,7 +499,7 @@ export default function App() {
           <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.5rem' }}>
             {modeLabel} · {cd.rl} · You'll play with their exact squad — squad is locked. Can you do better?
           </div>
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', padding: '1rem', marginBottom: '1.5rem', textAlign: 'left' }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '0.875rem', padding: '1rem', marginBottom: '1.5rem', textAlign: 'left' }}>
             <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Their Squad</div>
             {(cd.sq || []).map((p, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0', borderBottom: i < cd.sq.length - 1 ? '1px solid var(--border)' : 'none', fontSize: '0.78rem' }}>
@@ -626,7 +626,7 @@ export default function App() {
             }}>
               💰 ₹{budgetLeft}cr
             </div>
-            <div style={{ fontSize: '0.85rem', color: isDone ? '#4169E1' : 'var(--text-muted)', fontWeight: 700 }}>
+            <div style={{ fontSize: '0.85rem', color: isDone ? '#C8102E' : 'var(--text-muted)', fontWeight: 700 }}>
               {slotsFilled}/{totalSlots}
             </div>
           </div>
@@ -636,7 +636,7 @@ export default function App() {
 
           {/* Left column — wheel or done banner */}
           <div>
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1rem', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '1rem', overflow: 'hidden' }}>
               {!isDone ? (
                 <WheelSpin
                   mode={mode}
@@ -659,7 +659,7 @@ export default function App() {
                 />
               ) : (
                 <div style={{ padding: '1.75rem 1.5rem', textAlign: 'center', animation: 'fade-in-up 0.4s ease both' }}>
-                  <div style={{ fontSize: '0.72rem', color: '#4169E1', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#C8102E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
                     XI Complete
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.5rem' }}>
@@ -713,8 +713,8 @@ export default function App() {
                       {[0,1,2,3].map(i => (
                         <div key={i} style={{
                           width: 16, height: 16, borderRadius: '50%',
-                          background: i < overseasCount ? '#4169E1' : 'transparent',
-                          border: `2px solid ${i < overseasCount ? '#4169E1' : 'var(--border)'}`,
+                          background: i < overseasCount ? '#C8102E' : 'transparent',
+                          border: `2px solid ${i < overseasCount ? '#C8102E' : 'var(--border)'}`,
                           transition: 'background 0.2s, border-color 0.2s',
                         }} />
                       ))}
@@ -850,22 +850,22 @@ function SharedResultView({ data, onPlay }) {
 
         {/* Badge */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'inline-block', padding: '0.25rem 0.75rem', background: 'rgba(31,111,235,0.12)', border: '1px solid rgba(31,111,235,0.25)', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700, color: '#4169E1', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
+          <div style={{ display: 'inline-block', padding: '0.25rem 0.75rem', background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.25)', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700, color: '#C8102E', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
             Cricket 16-0 · {mode || 'Season'}
           </div>
           <div style={{ fontSize: '3rem', lineHeight: 1 }}>🏆</div>
         </div>
 
         {/* Main card */}
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1.25rem', padding: '1.5rem', marginBottom: '1rem' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '1.25rem', padding: '1.5rem', marginBottom: '1rem' }}>
 
           {/* Record */}
           <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
             <div style={{ fontSize: '2.75rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>
               {wins}W <span style={{ color: '#64748b', fontSize: '1.8rem' }}>–</span> {losses}L
             </div>
-            {stage && <div style={{ fontSize: '0.8rem', color: '#4169E1', fontWeight: 700, marginTop: '0.35rem' }}>{stage}</div>}
-            <div style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.2rem 0.75rem', background: '#4169E118', border: '1px solid #4169E133', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 800, color: '#4169E1' }}>{rating}</div>
+            {stage && <div style={{ fontSize: '0.8rem', color: '#C8102E', fontWeight: 700, marginTop: '0.35rem' }}>{stage}</div>}
+            <div style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.2rem 0.75rem', background: '#C8102E18', border: '1px solid #C8102E33', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 800, color: '#C8102E' }}>{rating}</div>
           </div>
 
           {/* Stats row */}
@@ -880,7 +880,7 @@ function SharedResultView({ data, onPlay }) {
               <div style={{ padding: '0.75rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '0.625rem' }}>
                 <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Top Run Scorer</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)' }}>{topScorer}</div>
-                {topScorerRuns && <div style={{ fontSize: '0.72rem', color: '#4169E1', fontWeight: 700 }}>{topScorerRuns} runs</div>}
+                {topScorerRuns && <div style={{ fontSize: '0.72rem', color: '#C8102E', fontWeight: 700 }}>{topScorerRuns} runs</div>}
               </div>
             )}
             {topWicketTaker && (
@@ -915,7 +915,7 @@ function SharedResultView({ data, onPlay }) {
 
         {/* Medal cards */}
         {awards.length > 0 && (
-          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1.25rem', padding: '1rem 1.25rem', marginBottom: '1rem' }}>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '1.25rem', padding: '1rem 1.25rem', marginBottom: '1rem' }}>
             <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>
               🏅 Medals Earned
             </div>
@@ -939,7 +939,7 @@ function SharedResultView({ data, onPlay }) {
         {/* CTA */}
         <button
           onClick={onPlay}
-          style={{ width: '100%', padding: '1rem', background: '#C8102E', color: '#fff', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 20px rgba(31,111,235,0.35)', letterSpacing: '0.02em' }}
+          style={{ width: '100%', padding: '1rem', background: '#C8102E', color: '#fff', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 20px rgba(200,16,46,0.35)', letterSpacing: '0.02em' }}
         >
           Can you go unbeaten? Play Cricket 16-0 →
         </button>

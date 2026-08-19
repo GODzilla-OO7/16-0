@@ -19,14 +19,14 @@ const isOverseas = (p) => p.nationality !== 'India'
 function getPredictedRank(str, mode) {
   if (mode === 'ipl') {
     if (str >= 85) return { pos: '1st–2nd',  label: 'Champions contender', color: '#f59e0b' }
-    if (str >= 80) return { pos: 'Top 4',    label: 'Playoff favourite',   color: '#4169E1' }
-    if (str >= 75) return { pos: '5th–6th',  label: 'On the bubble',       color: '#3b82f6' }
+    if (str >= 80) return { pos: 'Top 4',    label: 'Playoff favourite',   color: '#C8102E' }
+    if (str >= 75) return { pos: '5th–6th',  label: 'On the bubble',       color: '#C8102E' }
     if (str >= 68) return { pos: '7th–8th',  label: 'Mid-table side',      color: '#94a3b8' }
     return               { pos: 'Bottom 3',  label: 'Uphill battle',        color: '#ef4444' }
   }
   if (str >= 84) return { pos: 'Champions',    label: 'Tournament favourite', color: '#f59e0b' }
-  if (str >= 78) return { pos: 'Semi-final',   label: 'Deep run expected',   color: '#4169E1' }
-  if (str >= 70) return { pos: 'Quarter-final',label: 'Competitive side',    color: '#3b82f6' }
+  if (str >= 78) return { pos: 'Semi-final',   label: 'Deep run expected',   color: '#C8102E' }
+  if (str >= 70) return { pos: 'Quarter-final',label: 'Competitive side',    color: '#C8102E' }
   return               { pos: 'Group stage',   label: 'Underdog story',      color: '#94a3b8' }
 }
 
@@ -52,7 +52,7 @@ function OverseasTracker({ team }) {
   const count = overseas.length
   const limit = 4
   const pct = (count / limit) * 100
-  const barColor = count >= limit ? '#ef4444' : count >= 3 ? '#f59e0b' : '#3b82f6'
+  const barColor = count >= limit ? '#ef4444' : count >= 3 ? '#f59e0b' : '#C8102E'
 
   return (
     <div style={{ marginTop: '0.875rem', padding: '0.75rem 0.875rem', background: '#0e0e18', border: '1px solid #1e1e2e', borderRadius: '0.625rem' }}>
@@ -183,7 +183,7 @@ export default function TeamStrengthPanel({ team, manager, mode, ratingType = 's
   )
 
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1rem', padding: '1rem 1.1rem', marginTop: '0.75rem', animation: 'fade-in 0.3s ease both' }}>
+    <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '1rem', padding: '1rem 1.1rem', marginTop: '0.75rem', animation: 'fade-in 0.3s ease both' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
         <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Team Strength</span>
@@ -205,7 +205,7 @@ export default function TeamStrengthPanel({ team, manager, mode, ratingType = 's
               <span style={{ color: '#ef4444', fontSize: '0.6rem', fontWeight: 800 }}>−{penaltyPts}</span>
             )}
             {hasBonus && (
-              <span style={{ color: '#4169E1', fontSize: '0.6rem', fontWeight: 800 }}>+{managerBonus}</span>
+              <span style={{ color: '#C8102E', fontSize: '0.6rem', fontWeight: 800 }}>+{managerBonus}</span>
             )}
           </span>
         </div>
@@ -217,7 +217,7 @@ export default function TeamStrengthPanel({ team, manager, mode, ratingType = 's
         <div style={{ fontSize: '0.6rem', fontWeight: 700, marginBottom: '0.4rem', lineHeight: 1.5 }}>
           {openerPenalty > 0 && <div style={{ color: '#f59e0b' }}>⬇️ −3: openers not in positions 1–3</div>}
           {batsmanPenalty > 0 && <div style={{ color: '#f59e0b' }}>⬇️ −2: pure batsman below a bowler</div>}
-          {hasBonus && <div style={{ color: '#4169E1' }}>⬆️ +{managerBonus}: coach bonus</div>}
+          {hasBonus && <div style={{ color: '#C8102E' }}>⬆️ +{managerBonus}: coach bonus</div>}
         </div>
       )}
 
@@ -228,7 +228,7 @@ export default function TeamStrengthPanel({ team, manager, mode, ratingType = 's
           <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600 }}>{manager.name}</span>
           <span style={{ marginLeft: 'auto', fontSize: '0.62rem', fontWeight: 700 }}>
             {manager.wcWinnerFor?.includes(mode)
-              ? <span style={{ color: '#4169E1' }}>+{manager.bonus?.strength ?? 0} <span style={{ color: '#f59e0b' }}>🏆</span></span>
+              ? <span style={{ color: '#C8102E' }}>+{manager.bonus?.strength ?? 0} <span style={{ color: '#f59e0b' }}>🏆</span></span>
               : <span style={{ color: '#64748b' }}>No mode bonus</span>
             }
           </span>

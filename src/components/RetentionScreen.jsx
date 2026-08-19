@@ -113,8 +113,8 @@ export default function RetentionScreen({ team, prevBudgetLeftover, seasonNumber
       <div style={{ textAlign: 'center', flexShrink: 0 }}>
         <div style={{
           display: 'inline-block', padding: '0.2rem 0.85rem',
-          background: 'rgba(65,105,225,0.12)', border: '1px solid rgba(65,105,225,0.3)',
-          borderRadius: '999px', color: '#4169E1',
+          background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.3)',
+          borderRadius: '999px', color: '#C8102E',
           fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.1em',
           textTransform: 'uppercase', marginBottom: '0.35rem',
         }}>Season {seasonNumber} Retention Window</div>
@@ -150,8 +150,8 @@ export default function RetentionScreen({ team, prevBudgetLeftover, seasonNumber
               {Array.from({ length: MAX_RETAIN }).map((_, i) => (
                 <div key={i} style={{
                   width: 9, height: 9, borderRadius: '50%',
-                  background: i < selected.size ? '#4169E1' : 'var(--border2)',
-                  border: `1.5px solid ${i < selected.size ? '#4169E1' : 'var(--border)'}`,
+                  background: i < selected.size ? '#C8102E' : 'var(--border2)',
+                  border: `1.5px solid ${i < selected.size ? '#C8102E' : 'var(--border)'}`,
                   transition: 'all 0.15s',
                 }} />
               ))}
@@ -249,7 +249,7 @@ export default function RetentionScreen({ team, prevBudgetLeftover, seasonNumber
               background: '#C8102E',
               color: '#fff', border: 'none', borderRadius: '0.875rem',
               fontSize: '0.95rem', fontWeight: 900, cursor: 'pointer',
-              boxShadow: '0 4px 24px rgba(65,105,225,0.4)',
+              boxShadow: '0 4px 24px rgba(200,16,46,0.4)',
               flexShrink: 0,
             }}
           >

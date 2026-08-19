@@ -10,8 +10,8 @@ const roleLabel = {
   'pace-bowler': 'PACE', 'spin-bowler': 'SPIN',
 }
 const roleColor = {
-  'opener': '#4169E1', 'top-order': '#4169E1', 'middle-order': '#2952CC',
-  'wicket-keeper': '#f59e0b', 'all-rounder': '#3b82f6',
+  'opener': '#C8102E', 'top-order': '#C8102E', 'middle-order': '#a50d24',
+  'wicket-keeper': '#f59e0b', 'all-rounder': '#C8102E',
   'pace-bowler': '#ef4444', 'spin-bowler': '#a855f7',
 }
 const COMP_FULL_LABEL = {
@@ -140,7 +140,7 @@ export default function TeamSheet({
         <span style={{ fontWeight: 800, fontSize: compact ? '0.78rem' : '0.9rem', color: 'var(--text)' }}>
           Your XI
         </span>
-        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isDone ? '#4169E1' : '#64748b' }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isDone ? '#C8102E' : '#64748b' }}>
           {filled}/{total}
         </span>
       </div>
@@ -170,7 +170,7 @@ export default function TeamSheet({
                   : isActive ? '#ddeaff'
                   : player ? 'var(--border2)' : 'transparent',
                 border: `1px solid ${
-                  isActive ? '#4169E144'
+                  isActive ? '#C8102E44'
                   : isHighlit ? (roleColor[player?.role] ?? slotColor) + '44'
                   : 'transparent'
                 }`,
@@ -217,7 +217,7 @@ export default function TeamSheet({
                 ) : (
                   <div style={{
                     fontSize: compact ? '0.68rem' : '0.72rem',
-                    color: isActive ? '#4169E1' : slotColor,
+                    color: isActive ? '#C8102E' : slotColor,
                     fontWeight: isActive ? 700 : 500,
                   }}>
                     {role ? COMP_FULL_LABEL[role] : 'Player'}

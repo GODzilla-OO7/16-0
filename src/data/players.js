@@ -7734,14 +7734,14 @@ export const WHEEL_ENTRIES = [
 
 // The 11 slots in your cricket XI
 export const POSITIONS = [
-  { id: 'p1',  label: 'Opener',        shortLabel: '1',  description: 'Opening Batsman',   color: '#4169E1' },
-  { id: 'p2',  label: 'Opener',        shortLabel: '2',  description: 'Opening Batsman',   color: '#4169E1' },
-  { id: 'p3',  label: 'No. 3',         shortLabel: '3',  description: 'First Drop',        color: '#4169E1' },
-  { id: 'p4',  label: 'No. 4',         shortLabel: '4',  description: 'Middle Order',      color: '#2952CC' },
-  { id: 'p5',  label: 'No. 5',         shortLabel: '5',  description: 'Middle Order',      color: '#2952CC' },
+  { id: 'p1',  label: 'Opener',        shortLabel: '1',  description: 'Opening Batsman',   color: '#C8102E' },
+  { id: 'p2',  label: 'Opener',        shortLabel: '2',  description: 'Opening Batsman',   color: '#C8102E' },
+  { id: 'p3',  label: 'No. 3',         shortLabel: '3',  description: 'First Drop',        color: '#C8102E' },
+  { id: 'p4',  label: 'No. 4',         shortLabel: '4',  description: 'Middle Order',      color: '#a50d24' },
+  { id: 'p5',  label: 'No. 5',         shortLabel: '5',  description: 'Middle Order',      color: '#a50d24' },
   { id: 'p6',  label: 'Wicket-Keeper', shortLabel: 'WK', description: 'WK Batsman',        color: '#f59e0b' },
-  { id: 'p7',  label: 'All-Rounder',   shortLabel: 'AR', description: 'All-Rounder',       color: '#3b82f6' },
-  { id: 'p8',  label: 'All-Rounder',   shortLabel: 'AR', description: 'All-Rounder',       color: '#3b82f6' },
+  { id: 'p7',  label: 'All-Rounder',   shortLabel: 'AR', description: 'All-Rounder',       color: '#C8102E' },
+  { id: 'p8',  label: 'All-Rounder',   shortLabel: 'AR', description: 'All-Rounder',       color: '#C8102E' },
   { id: 'p9',  label: 'Bowler',        shortLabel: '9',  description: 'Bowler',            color: '#ef4444' },
   { id: 'p10', label: 'Bowler',        shortLabel: '10', description: 'Bowler',            color: '#ef4444' },
   { id: 'p11', label: 'Bowler',        shortLabel: '11', description: 'Tail / Bowler',     color: '#ef4444' },

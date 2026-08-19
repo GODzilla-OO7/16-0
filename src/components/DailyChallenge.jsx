@@ -56,8 +56,8 @@ function LeaderRow({ rank, entry }) {
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0.6rem 0.875rem',
-      background: rank <= 3 ? 'rgba(31,111,235,0.06)' : '#080d1f',
-      border: `1px solid ${rank <= 3 ? '#4169E133' : '#1a2550'}`,
+      background: rank <= 3 ? 'rgba(200,16,46,0.06)' : '#080d1f',
+      border: `1px solid ${rank <= 3 ? '#C8102E33' : '#1a2550'}`,
       borderRadius: '0.5rem',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -73,7 +73,7 @@ function LeaderRow({ rank, entry }) {
           </div>
         </div>
       </div>
-      <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#4169E1' }}>
+      <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#C8102E' }}>
         {entry.score.toLocaleString()}
       </div>
     </div>
@@ -157,12 +157,12 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
           <>
             {/* Challenge card */}
             <div style={{
-              background: '#0d1229', border: '1px solid #4169E144',
+              background: '#1a0508', border: '1px solid #C8102E44',
               borderRadius: '1rem', padding: '1.25rem',
               marginBottom: '1.25rem',
-              boxShadow: '0 0 30px rgba(31,111,235,0.1)',
+              boxShadow: '0 0 30px rgba(200,16,46,0.1)',
             }}>
-              <div style={{ fontSize: '0.6rem', color: '#4169E1', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
+              <div style={{ fontSize: '0.6rem', color: '#C8102E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
                 Today's Restriction
               </div>
               <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.3rem' }}>
@@ -182,12 +182,12 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
             {/* My result if already played */}
             {alreadyPlayed && (
               <div style={{
-                background: '#0d1229', border: '1px solid #22c55e33',
+                background: '#1a0508', border: '1px solid #22c55e33',
                 borderRadius: '0.75rem', padding: '1rem 1.25rem',
                 marginBottom: '1.25rem', textAlign: 'center',
               }}>
                 <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem' }}>Your score today</div>
-                <div style={{ fontSize: '2rem', fontWeight: 900, color: '#4169E1' }}>{myResult.score.toLocaleString()}</div>
+                <div style={{ fontSize: '2rem', fontWeight: 900, color: '#C8102E' }}>{myResult.score.toLocaleString()}</div>
                 <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: '0.2rem' }}>
                   {myResult.wins}W · {myResult.losses}L{myResult.perfect ? ' · ✨ Perfect' : ''}
                 </div>
@@ -204,7 +204,7 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
                   border: 'none', borderRadius: '0.75rem',
                   color: '#fff', fontSize: '1rem', fontWeight: 800,
                   cursor: 'pointer', marginBottom: '1.25rem',
-                  boxShadow: '0 4px 20px rgba(31,111,235,0.35)',
+                  boxShadow: '0 4px 20px rgba(200,16,46,0.35)',
                 }}
               >
                 {user ? 'Play Today\'s Challenge →' : 'Sign in to play →'}

@@ -68,7 +68,7 @@ function DualRangeSlider({ min, max, low, high, onChange, formatLabel }) {
   const thumbStyle = {
     position: 'absolute', top: '50%',
     width: 22, height: 22, borderRadius: '50%',
-    background: '#4169E1', border: '3px solid var(--bg)',
+    background: '#C8102E', border: '3px solid var(--bg)',
     cursor: 'grab', zIndex: 3, boxSizing: 'border-box',
     transform: 'translate(-50%, -50%)',
   }
@@ -82,7 +82,7 @@ function DualRangeSlider({ min, max, low, high, onChange, formatLabel }) {
         onMouseDown={onTrackClick}
       >
         {/* Active fill */}
-        <div style={{ position: 'absolute', left: pct(low), width: `${((high - low) / (max - min) * 100).toFixed(2)}%`, top: 0, bottom: 0, background: '#4169E1', borderRadius: 3, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', left: pct(low), width: `${((high - low) / (max - min) * 100).toFixed(2)}%`, top: 0, bottom: 0, background: '#C8102E', borderRadius: 3, pointerEvents: 'none' }} />
 
         {/* Low thumb + floating label */}
         <div
@@ -93,7 +93,7 @@ function DualRangeSlider({ min, max, low, high, onChange, formatLabel }) {
           <div style={{
             position: 'absolute', bottom: '130%', left: '50%',
             transform: overlap ? 'translateX(-140%)' : 'translateX(-50%)',
-            background: '#4169E1', color: 'var(--bg)',
+            background: '#C8102E', color: 'var(--bg)',
             fontSize: '0.75rem', fontWeight: 900,
             padding: '2px 7px', borderRadius: '4px',
             whiteSpace: 'nowrap', pointerEvents: 'none',
@@ -112,7 +112,7 @@ function DualRangeSlider({ min, max, low, high, onChange, formatLabel }) {
           <div style={{
             position: 'absolute', bottom: '130%', left: '50%',
             transform: overlap ? 'translateX(40%)' : 'translateX(-50%)',
-            background: '#4169E1', color: 'var(--bg)',
+            background: '#C8102E', color: 'var(--bg)',
             fontSize: '0.75rem', fontWeight: 900,
             padding: '2px 7px', borderRadius: '4px',
             whiteSpace: 'nowrap', pointerEvents: 'none',
@@ -194,22 +194,22 @@ export default function DraftSettings({ mode, onStart, onBack }) {
     page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', background: 'var(--bg)' },
     card: { width: '100%', maxWidth: 560, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1.25rem', overflow: 'hidden' },
     cardHeader: { padding: '1.5rem 1.75rem', borderBottom: '1px solid var(--border)' },
-    modeTag: { fontSize: '0.72rem', color: '#4169E1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
+    modeTag: { fontSize: '0.72rem', color: '#C8102E', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
     title: { fontSize: '1.4rem', fontWeight: 900, color: 'var(--text)' },
     section: { padding: '1.1rem 1.75rem', borderBottom: '1px solid var(--border)' },
     label: { fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' },
     row: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap' },
-    pill: (active, color = '#4169E1') => ({
+    pill: (active, color = '#C8102E') => ({
       padding: '0.45rem 1rem', background: active ? color + '22' : 'var(--border2)',
       color: active ? color : '#64748b', border: `1px solid ${active ? color + '66' : 'var(--border)'}`,
       borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
     }),
     yearChip: (on) => ({
-      padding: '0.4rem 0.875rem', background: on ? '#4169E122' : 'var(--border2)',
-      color: on ? '#4169E1' : '#94a3b8', border: `1px solid ${on ? '#4169E166' : '#3a3a4a'}`,
+      padding: '0.4rem 0.875rem', background: on ? '#C8102E22' : 'var(--border2)',
+      color: on ? '#C8102E' : '#94a3b8', border: `1px solid ${on ? '#C8102E66' : '#3a3a4a'}`,
       borderRadius: '999px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
     }),
-    toggle: (on) => ({ width: 44, height: 24, borderRadius: '999px', background: on ? '#4169E1' : 'var(--border)', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0, border: 'none' }),
+    toggle: (on) => ({ width: 44, height: 24, borderRadius: '999px', background: on ? '#C8102E' : 'var(--border)', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0, border: 'none' }),
     toggleKnob: (on) => ({ position: 'absolute', top: 3, left: on ? 23 : 3, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }),
   }
 
@@ -279,9 +279,9 @@ export default function DraftSettings({ mode, onStart, onBack }) {
                       onClick={() => setIplRange(range)}
                       style={{
                         fontSize: '0.72rem',
-                        color: isActive ? '#4169E1' : '#64748b',
-                        background: isActive ? 'rgba(31,111,235,0.15)' : 'var(--border2)',
-                        border: `1px solid ${isActive ? 'rgba(31,111,235,0.45)' : 'var(--border)'}`,
+                        color: isActive ? '#C8102E' : '#64748b',
+                        background: isActive ? 'rgba(200,16,46,0.15)' : 'var(--border2)',
+                        border: `1px solid ${isActive ? 'rgba(200,16,46,0.45)' : 'var(--border)'}`,
                         borderRadius: '0.4rem',
                         padding: '0.3rem 0.6rem',
                         cursor: 'pointer',
@@ -303,7 +303,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
                     ))}
                   </div>
                   <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.6rem' }}>
-                    <button onClick={() => setCheckedYears(new Set(allYears))} style={{ fontSize: '0.72rem', color: '#4169E1', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Select All</button>
+                    <button onClick={() => setCheckedYears(new Set(allYears))} style={{ fontSize: '0.72rem', color: '#C8102E', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Select All</button>
                     <button onClick={() => setCheckedYears(new Set())} style={{ fontSize: '0.72rem', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Clear All</button>
                   </div>
                 </>

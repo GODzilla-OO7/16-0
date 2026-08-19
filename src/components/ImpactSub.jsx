@@ -37,7 +37,7 @@ const EVENTS = [
     id: 'team-raid',
     icon: '🎯',
     label: 'Team Raid',
-    color: '#4169E1',
+    color: '#C8102E',
     desc: 'You raid a rival squad. A quality player (85+) spins in — your weakest of that role exits.',
     replaceTarget: 'weakest',
     minRating: 85,
@@ -428,9 +428,9 @@ export default function ImpactSub({ team, mode, ratingType = 'season', onComplet
         {(phase === 'player-spin' || phase === 'player-landed') && (
           <>
             <div style={{ textAlign: 'center', marginBottom: '0.875rem' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem 0.75rem', background: (eventEntry?.color ?? '#4169E1') + '22', border: `1px solid ${(eventEntry?.color ?? '#4169E1')}44`, borderRadius: '999px', marginBottom: '0.5rem' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem 0.75rem', background: (eventEntry?.color ?? '#C8102E') + '22', border: `1px solid ${(eventEntry?.color ?? '#C8102E')}44`, borderRadius: '999px', marginBottom: '0.5rem' }}>
                 <span>{eventEntry?.icon}</span>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: eventEntry?.color ?? '#4169E1' }}>{eventEntry?.label}</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: eventEntry?.color ?? '#C8102E' }}>{eventEntry?.label}</span>
               </div>
               <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Spinning for your replacement player…</div>
             </div>

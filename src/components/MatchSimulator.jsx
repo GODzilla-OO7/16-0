@@ -580,7 +580,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
-          <div style={{ fontSize: '0.72rem', color: '#4169E1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.3rem' }}>{cfg.icon} {cfg.label}</div>
+          <div style={{ fontSize: '0.72rem', color: '#C8102E', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.3rem' }}>{cfg.icon} {cfg.label}</div>
           <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>
             {!tournamentStarted ? '🎲 Group Stage Draw' : phaseLabel}
           </div>
@@ -648,7 +648,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.625rem', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '0.875rem', justifyContent: 'center' }}>
               {[
-                { label: 'Wins',   value: leagueWins,    color: '#4169E1' },
+                { label: 'Wins',   value: leagueWins,    color: '#22c55e' },
                 { label: 'Losses', value: leagueLosses,  color: '#ef4444' },
                 { label: 'Played', value: revealed.length, color: '#94a3b8' },
               ].map(s => (
@@ -663,11 +663,11 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                 padding: '0.3rem 0.875rem',
-                background: currentStreak.type === 'W' ? '#4169E118' : '#ef444418',
-                border: `1px solid ${currentStreak.type === 'W' ? '#4169E144' : '#ef444444'}`,
+                background: currentStreak.type === 'W' ? '#C8102E18' : '#ef444418',
+                border: `1px solid ${currentStreak.type === 'W' ? '#C8102E44' : '#ef444444'}`,
                 borderRadius: '999px',
                 fontSize: '0.78rem', fontWeight: 800,
-                color: currentStreak.type === 'W' ? '#4169E1' : '#ef4444',
+                color: currentStreak.type === 'W' ? '#C8102E' : '#ef4444',
                 animation: 'fade-in 0.3s ease both',
               }}>
                 {currentStreak.type === 'W' ? `🔥 ${currentStreak.count} in a row!` : `💀 ${currentStreak.count} losses in a row`}
@@ -781,7 +781,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
             {/* League section divider */}
             {playoffRevealed.length > 0 && revealed.length > 0 && (
-              <SectionBadge color="#4169E1" bg="var(--card2)" border="#2952CC44">📋 League Stage</SectionBadge>
+              <SectionBadge color="#C8102E" bg="var(--card2)" border="#C8102E44">📋 League Stage</SectionBadge>
             )}
 
             {/* League match cards — newest first */}
@@ -865,7 +865,7 @@ function SectionBadge({ color, bg, border, children }) {
 // ─── Confetti ────────────────────────────────────────────────────────────────
 
 function Confetti() {
-  const COLORS = ['#f59e0b','#4169E1','#3b82f6','#ef4444','#a855f7','#ec4899','#fff']
+  const COLORS = ['#f59e0b','#C8102E','#C8102E','#ef4444','#a855f7','#ec4899','#fff']
   const particles = useMemo(() =>
     Array.from({ length: 55 }, (_, i) => ({
       id: i,
@@ -997,7 +997,7 @@ function FinalBat({ result, format, myBatting, onComplete }) {
   const barPct = pt ? Math.round((pt.over / totalOvers) * 100) : 0
   const crrNum = pt ? parseFloat(pt.crr) : 0
   const ref    = format === 'odi' ? 6.5 : 9.5
-  const barColor = crrNum > ref + 1.5 ? '#ef4444' : crrNum > ref - 0.5 ? '#f59e0b' : '#4169E1'
+  const barColor = crrNum > ref + 1.5 ? '#ef4444' : crrNum > ref - 0.5 ? '#f59e0b' : '#C8102E'
 
   return (
     <div style={{ marginBottom: '1.5rem', animation: 'final-entrance 0.5s ease both' }}>
@@ -1317,7 +1317,7 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
         {phase === 'animating' && pt && pt.needed === 0 && (
           <div style={{ textAlign: 'center', padding: '1rem', background: myChasing ? 'var(--win-bg)' : 'var(--loss-bg)', border: `2px solid ${myChasing ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius: '0.875rem', marginBottom: '0.875rem', animation: 'result-reveal 0.6s cubic-bezier(0.34,1.56,0.64,1) both' }}>
             <div style={{ fontSize: '1.75rem', marginBottom: '0.2rem' }}>{myChasing ? '🏆' : '💔'}</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: myChasing ? '#4169E1' : '#ef4444' }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: myChasing ? '#C8102E' : '#ef4444' }}>
               {myChasing ? 'Target reached!' : `${result.opponent} wins the chase!`}
             </div>
             <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.2rem' }}>
@@ -1335,7 +1335,7 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
         {phase === 'result' && !soData && (
           <div style={{ padding: '1.25rem', textAlign: 'center', background: won ? 'var(--win-bg)' : 'var(--loss-bg)', border: `2px solid ${won ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius: '1rem', animation: 'result-reveal 0.7s cubic-bezier(0.34,1.56,0.64,1) both' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.3rem' }}>{won ? '🏆' : '💔'}</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: won ? '#4169E1' : '#ef4444' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: won ? '#C8102E' : '#ef4444' }}>
               {won ? 'YOU WIN THE FINAL!' : 'Heartbreak at the Final'}
             </div>
             <div style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '0.3rem' }}>{result.summary}</div>
@@ -1426,7 +1426,7 @@ function LeagueSuperOverModal({ match, onDone }) {
     }}>
       <div style={{
         width: '100%', maxWidth: 420,
-        background: '#0d1229', border: '2px solid #a855f755',
+        background: '#1a0508', border: '2px solid #a855f755',
         borderRadius: '1.25rem', padding: '2rem 1.5rem', textAlign: 'center',
         boxShadow: '0 0 60px #a855f720',
         animation: 'fade-in-up 0.35s ease both',
@@ -1511,7 +1511,7 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
     <div style={{ animation:'fade-in-up 0.4s ease both' }}>
       <div style={{ textAlign:'center', marginBottom:'1.25rem', padding:'1.25rem', background: qualified ? 'var(--win-bg)' : 'var(--loss-bg)', border:`1px solid ${qualified ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius:'1rem' }}>
         <div style={{ fontSize:'2.5rem', marginBottom:'0.5rem' }}>{qualified ? '🎉' : '😔'}</div>
-        <div style={{ fontSize:'1.2rem', fontWeight:900, color: qualified ? '#4169E1' : '#ef4444', marginBottom:'0.3rem' }}>
+        <div style={{ fontSize:'1.2rem', fontWeight:900, color: qualified ? '#C8102E' : '#ef4444', marginBottom:'0.3rem' }}>
           {qualified ? `Qualified! (Finished ${ordinal(position)})` : `Missed Playoffs (Finished ${ordinal(position)})`}
         </div>
         <div style={{ fontSize:'0.875rem', color:'#64748b' }}>
@@ -1524,13 +1524,13 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
           <div>#</div><div>Team</div><div style={{ textAlign:'center' }}>W</div><div style={{ textAlign:'center' }}>L</div><div style={{ textAlign:'center' }}>Pts</div><div style={{ textAlign:'right' }}>NRR</div>
         </div>
         {table.map((row, i) => (
-          <div key={row.team} style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', borderBottom: i < table.length-1 ? '1px solid var(--border2)' : 'none', background: row.isUser ? '#4169E108' : 'transparent', borderLeft: row.isUser ? '3px solid #4169E1' : i < 4 ? '3px solid #4169E122' : '3px solid transparent' }}>
-            <div style={{ fontSize:'0.72rem', fontWeight:800, color: i < 4 ? '#4169E1' : 'var(--border)', alignSelf:'center' }}>{i+1}</div>
+          <div key={row.team} style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', borderBottom: i < table.length-1 ? '1px solid var(--border2)' : 'none', background: row.isUser ? '#C8102E0d' : 'transparent', borderLeft: row.isUser ? '3px solid #C8102E' : i < 4 ? '3px solid #C8102E22' : '3px solid transparent' }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:800, color: i < 4 ? '#C8102E' : 'var(--border)', alignSelf:'center' }}>{i+1}</div>
             <div style={{ fontSize:'0.82rem', fontWeight: row.isUser ? 900 : 600, color: row.isUser ? 'var(--text)' : '#94a3b8', alignSelf:'center' }}>{row.team}{row.isUser && ' ⭐'}</div>
-            <div style={{ fontSize:'0.82rem', fontWeight:700, color:'#4169E1', textAlign:'center', alignSelf:'center' }}>{row.wins}</div>
+            <div style={{ fontSize:'0.82rem', fontWeight:700, color:'#C8102E', textAlign:'center', alignSelf:'center' }}>{row.wins}</div>
             <div style={{ fontSize:'0.82rem', fontWeight:700, color:'#ef4444', textAlign:'center', alignSelf:'center' }}>{row.losses}</div>
             <div style={{ fontSize:'0.9rem', fontWeight:900, color:'#f59e0b', textAlign:'center', alignSelf:'center' }}>{row.points}</div>
-            <div style={{ fontSize:'0.72rem', color: row.nrr?.startsWith('+') ? '#4169E1' : '#ef4444', textAlign:'right', alignSelf:'center', fontWeight:600 }}>{row.nrr}</div>
+            <div style={{ fontSize:'0.72rem', color: row.nrr?.startsWith('+') ? '#C8102E' : '#ef4444', textAlign:'right', alignSelf:'center', fontWeight:600 }}>{row.nrr}</div>
           </div>
         ))}
       </div>
@@ -1542,7 +1542,7 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
         </div>
       )}
 
-      <button onClick={qualified ? onProceed : onSummary} style={{ width:'100%', padding:'1rem', background: qualified ? '#C8102E' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)', color: qualified ? 'var(--bg)' : 'var(--text)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}>
+      <button onClick={qualified ? onProceed : onSummary} style={{ width:'100%', padding:'1rem', background: qualified ? '#C8102E' : 'linear-gradient(135deg,#C8102E,#1d4ed8)', color: qualified ? 'var(--bg)' : 'var(--text)', border:'none', borderRadius:'0.875rem', fontSize:'1rem', fontWeight:800, cursor:'pointer' }}>
         {qualified ? 'Proceed to Playoffs →' : 'View Season Summary →'}
       </button>
     </div>
@@ -1595,7 +1595,7 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
           </div>
         </div>
         <div style={{ textAlign:'right', flexShrink:0 }}>
-          <div style={{ fontSize:'0.68rem', color: won ? '#2952CC' : '#dc2626', fontWeight:700 }}>
+          <div style={{ fontSize:'0.68rem', color: won ? '#a50d24' : '#dc2626', fontWeight:700 }}>
             {summary}
             {superOver && (
               <span style={{ display:'inline-block', marginLeft:'0.35rem', padding:'0.05rem 0.35rem', background:'#a855f720', border:'1px solid #a855f744', borderRadius:'999px', fontSize:'0.5rem', color:'#a855f7', fontWeight:800, verticalAlign:'middle', letterSpacing:'0.05em' }}>⚡ SO</span>
@@ -1606,7 +1606,7 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
             {superOver && <span style={{ color:'#a855f7', marginLeft:'0.3rem' }}>SO: {superOver.myRuns}–{superOver.oppRuns}</span>}
           </div>
         </div>
-        <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, background: won ? '#4169E122' : '#ef444422', border:`1px solid ${won ? '#4169E166' : '#ef444466'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:900, color: won ? '#4169E1' : '#ef4444' }}>
+        <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, background: won ? '#C8102E22' : '#ef444422', border:`1px solid ${won ? '#C8102E66' : '#ef444466'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:900, color: won ? '#C8102E' : '#ef4444' }}>
           {won ? 'W' : 'L'}
         </div>
       </div>
@@ -1616,13 +1616,13 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
         <div style={{ borderTop: divBorder, display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
           {/* My team column */}
           <div style={{ padding:'0.45rem 0.75rem', borderRight: divBorder }}>
-            <div style={{ fontSize:'0.48rem', color:'#4169E1', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.3rem' }}>Your XI</div>
+            <div style={{ fontSize:'0.48rem', color:'#C8102E', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.3rem' }}>Your XI</div>
             {myScorer && (
               <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', marginBottom:'0.2rem' }}>
                 <span style={{ fontSize:'0.7rem' }}>🏏</span>
                 <div>
                   <div style={{ fontSize:'0.72rem', fontWeight:700, color:'var(--text)', lineHeight:1.2 }}>{myScorer.name}</div>
-                  <div style={{ fontSize:'0.65rem', color:'#4169E1', fontWeight:700 }}>{myScorer.runs} runs</div>
+                  <div style={{ fontSize:'0.65rem', color:'#C8102E', fontWeight:700 }}>{myScorer.runs} runs</div>
                 </div>
               </div>
             )}
@@ -1680,12 +1680,12 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
           {(myScorer2 || oppScorer2) && (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.5rem' }}>
               {myScorer2 && (
-                <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', padding:'0.35rem 0.5rem', background:'#4169E110', borderRadius:'0.4rem' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', padding:'0.35rem 0.5rem', background:'#C8102E12', borderRadius:'0.4rem' }}>
                   <span style={{ fontSize:'0.65rem' }}>🏏</span>
                   <div>
                     <div style={{ fontSize:'0.6rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:700 }}>2nd scorer</div>
                     <div style={{ fontSize:'0.7rem', fontWeight:700, color:'var(--text)' }}>{myScorer2.name}</div>
-                    <div style={{ fontSize:'0.62rem', color:'#4169E1', fontWeight:700 }}>{myScorer2.runs} runs</div>
+                    <div style={{ fontSize:'0.62rem', color:'#C8102E', fontWeight:700 }}>{myScorer2.runs} runs</div>
                   </div>
                 </div>
               )}
@@ -1745,10 +1745,10 @@ function GroupDraw({ mode, drawnOpponents, onStart }) {
       </div>
       {/* Your XI first */}
       {highlight && (
-        <div style={{ padding: '0.55rem 1rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#4169E108' }}>
+        <div style={{ padding: '0.55rem 1rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#C8102E0d' }}>
           <span style={{ fontSize: '0.85rem' }}>⭐</span>
           <span style={{ fontSize: '0.875rem', fontWeight: 900, color: 'var(--text)' }}>Your XI</span>
-          <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#4169E1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>You</span>
+          <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#C8102E', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>You</span>
         </div>
       )}
       {teams.map((name, i) => (
@@ -1770,7 +1770,7 @@ function GroupDraw({ mode, drawnOpponents, onStart }) {
           title={isODI ? 'Pool A' : 'Group A — Your Group'}
           teams={groupANames}
           highlight={true}
-          accentColor="#4169E1"
+          accentColor="#C8102E"
         />
         {groupBNames && (
           <GroupCard

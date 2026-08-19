@@ -119,7 +119,7 @@ const H2H_DEFAULT_COMP = {
 }
 
 const H2H_PRESETS = [
-  { label: 'Balanced',     icon: '⚖️', color: '#4169E1',
+  { label: 'Balanced',     icon: '⚖️', color: '#C8102E',
     comp: { opener: 2, 'top-order': 2, 'middle-order': 1, 'wicket-keeper': 1, 'all-rounder': 2, 'pace-bowler': 2, 'spin-bowler': 1 } },
   { label: 'Batting Heavy',icon: '💥', color: '#f59e0b',
     comp: { opener: 2, 'top-order': 2, 'middle-order': 2, 'wicket-keeper': 1, 'all-rounder': 2, 'pace-bowler': 1, 'spin-bowler': 1 } },
@@ -514,7 +514,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
           <div style={{ background: 'var(--card)', border: `1px solid ${compReady ? '#22c55e66' : 'var(--border)'}`, borderRadius: '1.25rem', overflow: 'hidden' }}>
             {/* header */}
             <div style={{ padding: '0.875rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: compReady ? '#22c55e' : '#4169E1', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.15rem' }}>
+              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: compReady ? '#22c55e' : '#C8102E', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.15rem' }}>
                 {compReady ? '✓ Locked In' : 'Your Composition'}
               </div>
               <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--text)' }}>{myName2}</div>
@@ -540,7 +540,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
                 <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Total</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {total !== 11 && <span style={{ fontSize: '0.7rem', color: total < 11 ? '#f59e0b' : '#ef4444', fontWeight: 700 }}>{total < 11 ? `${11-total} more` : `${total-11} too many`}</span>}
-                  <span style={{ fontSize: '1.5rem', fontWeight: 900, color: total === 11 ? '#4169E1' : total > 11 ? '#ef4444' : '#f59e0b' }}>{total}/11</span>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 900, color: total === 11 ? '#C8102E' : total > 11 ? '#ef4444' : '#f59e0b' }}>{total}/11</span>
                 </div>
               </div>
             </div>
@@ -646,10 +646,10 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
             </p>
 
             {/* Draft Mode — Live Auction only (snake hidden for now) */}
-            <div style={{ padding: '0.75rem', borderRadius: '0.625rem', border: '2px solid #4169E1', background: '#4169E118', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ padding: '0.75rem', borderRadius: '0.625rem', border: '2px solid #C8102E', background: '#C8102E18', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <div style={{ fontSize: '1.4rem' }}>🔨</div>
               <div>
-                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#4169E1' }}>Live Auction</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#C8102E' }}>Live Auction</div>
                 <div style={{ fontSize: '0.62rem', color: '#64748b', lineHeight: 1.3 }}>Bid on players in real time — highest bid wins</div>
               </div>
             </div>
@@ -668,11 +668,11 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
                       onClick={() => setRatingType(val)}
                       style={{
                         flex: 1, padding: '0.45rem 0.5rem',
-                        background: ratingType === val ? (val === 'prime' ? '#a855f722' : '#4169E122') : 'transparent',
-                        border: `1.5px solid ${ratingType === val ? (val === 'prime' ? '#a855f7' : '#4169E1') : 'var(--border)'}`,
+                        background: ratingType === val ? (val === 'prime' ? '#a855f722' : '#C8102E22') : 'transparent',
+                        border: `1.5px solid ${ratingType === val ? (val === 'prime' ? '#a855f7' : '#C8102E') : 'var(--border)'}`,
                         borderRadius: '0.5rem', cursor: 'pointer',
                         fontSize: '0.7rem', fontWeight: ratingType === val ? 800 : 600,
-                        color: ratingType === val ? (val === 'prime' ? '#a855f7' : '#4169E1') : '#64748b',
+                        color: ratingType === val ? (val === 'prime' ? '#a855f7' : '#C8102E') : '#64748b',
                         transition: 'all 0.15s',
                       }}
                     >{label}</button>
@@ -840,7 +840,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                 <div style={{ flex: 1, padding: '0.4rem 0.6rem', background: 'var(--bg)', border: '1px solid var(--border2)', borderRadius: '0.4rem', textAlign: 'center' }}>
                   <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, marginBottom: '0.15rem' }}>RATINGS</div>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 900, color: room.rating_type === 'prime' ? '#a855f7' : '#4169E1' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 900, color: room.rating_type === 'prime' ? '#a855f7' : '#C8102E' }}>
                     {room.rating_type === 'prime' ? '⚡ Prime' : '🏏 Season'}
                   </div>
                 </div>
@@ -883,11 +883,11 @@ function CompRevealCard({ name, compData, isMe }) {
   return (
     <div style={{
       background: 'var(--card)',
-      border: `2px solid ${isMe ? '#4169E166' : 'var(--card-border)'}`,
+      border: `2px solid ${isMe ? '#C8102E66' : 'var(--card-border)'}`,
       borderRadius: '1.25rem', overflow: 'hidden',
     }}>
       <div style={{ padding: '1rem 1.75rem', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontSize: '0.68rem', fontWeight: 800, color: isMe ? '#4169E1' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>
+        <div style={{ fontSize: '0.68rem', fontWeight: 800, color: isMe ? '#C8102E' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>
           {isMe ? 'Your Composition' : "Opponent's Composition"}
         </div>
         <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>{name}</div>

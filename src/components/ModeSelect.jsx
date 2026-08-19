@@ -17,10 +17,10 @@ const LIGHT = {
   cardBorder: '#D4172C',
   cardHover:  '#f0f4ff',
   htpBg:      '#f8faff',
-  accent:     '#4169E1',
-  accentHov:  '#2952CC',
-  accentDim:  'rgba(65,105,225,0.1)',
-  accentBrd:  'rgba(65,105,225,0.3)',
+  accent:     '#C8102E',
+  accentHov:  '#a50d24',
+  accentDim:  'rgba(200,16,46,0.1)',
+  accentBrd:  'rgba(200,16,46,0.3)',
   text:       '#0f172a',
   muted:      '#64748b',
   dimText:    '#94a3b8',
@@ -33,10 +33,10 @@ const DARK = {
   cardBorder: '#2a2a3a',
   cardHover:  '#1a1a28',
   htpBg:      '#0d0d18',
-  accent:     '#4169E1',
-  accentHov:  '#2952CC',
-  accentDim:  'rgba(65,105,225,0.12)',
-  accentBrd:  'rgba(65,105,225,0.25)',
+  accent:     '#C8102E',
+  accentHov:  '#a50d24',
+  accentDim:  'rgba(200,16,46,0.12)',
+  accentBrd:  'rgba(200,16,46,0.25)',
   text:       '#f1f5f9',
   muted:      '#64748b',
   dimText:    '#475569',
@@ -222,7 +222,7 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
               height: 40, borderRadius: '999px',
               padding: '0 0.875rem',
               background: dark ? '#1e2235' : C.cardBg,
-              border: `1.5px solid ${dark ? '#4169E155' : C.cardBorder}`,
+              border: `1.5px solid ${dark ? '#C8102E55' : C.cardBorder}`,
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               color: C.muted,
@@ -230,7 +230,7 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
               whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#4169E155' : C.cardBorder; e.currentTarget.style.color = C.muted }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#C8102E55' : C.cardBorder; e.currentTarget.style.color = C.muted }}
           >
             <span style={{ fontSize: '1rem' }}>👤</span>
             My Account
@@ -248,16 +248,16 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
               height: 40, borderRadius: '999px',
               padding: '0 0.875rem',
               background: dark ? '#1e2235' : C.cardBg,
-              border: `1.5px solid ${dark ? '#4169E155' : C.cardBorder}`,
+              border: `1.5px solid ${dark ? '#C8102E55' : C.cardBorder}`,
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               color: C.muted,
               transition: 'border-color 0.15s, background 0.15s, box-shadow 0.15s',
-              boxShadow: dark ? '0 0 12px #4169E118' : '0 1px 6px rgba(0,0,0,0.1)',
+              boxShadow: dark ? '0 0 12px #C8102E18' : '0 1px 6px rgba(0,0,0,0.1)',
               whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#4169E155' : C.cardBorder; e.currentTarget.style.color = C.muted }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = dark ? '#C8102E55' : C.cardBorder; e.currentTarget.style.color = C.muted }}
           >
             <span style={{ fontSize: '1rem' }}>{dark ? '☀️' : '🌙'}</span>
             {dark ? 'Light' : 'Night'}

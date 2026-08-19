@@ -60,8 +60,8 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
 
   // ── Role definitions ──────────────────────────────────────────────────────
   const ROLE_TAGS = {
-    'opener':        ['OPN',  '#4169E1'],
-    'top-order':     ['TOP',  '#3b82f6'],
+    'opener':        ['OPN',  '#C8102E'],
+    'top-order':     ['TOP',  '#C8102E'],
     'middle-order':  ['MID',  '#60a5fa'],
     'wicket-keeper': ['WK',   '#93c5fd'],
     'all-rounder':   ['AR',   '#bfdbfe'],
@@ -76,14 +76,14 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
 
   // Blue glow top-center
   const glow = ctx.createRadialGradient(W / 2, 0, 0, W / 2, 0, 380)
-  glow.addColorStop(0, 'rgba(31,111,235,0.18)')
+  glow.addColorStop(0, 'rgba(200,16,46,0.18)')
   glow.addColorStop(1, 'transparent')
   ctx.fillStyle = glow
   ctx.fillRect(0, 0, W, H)
 
   // Bottom glow
   const glow2 = ctx.createRadialGradient(W / 2, H, 0, W / 2, H, 300)
-  glow2.addColorStop(0, 'rgba(31,111,235,0.08)')
+  glow2.addColorStop(0, 'rgba(200,16,46,0.08)')
   glow2.addColorStop(1, 'transparent')
   ctx.fillStyle = glow2
   ctx.fillRect(0, 0, W, H)
@@ -104,7 +104,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     ctx.font = '700 12px system-ui, sans-serif'
     const ovrLabel = `OVR ${myStr}`
     const ovrW = ctx.measureText(ovrLabel).width + 18
-    ctx.fillStyle = '#4169E1'
+    ctx.fillStyle = '#C8102E'
     roundRect(ctx, nextRight - ovrW, badgeY, ovrW, badgeH, badgeR)
     ctx.fill()
     ctx.fillStyle = '#ffffff'
@@ -141,7 +141,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   // Rating label
   if (ratingLabel) {
     ctx.font = '800 12px system-ui, sans-serif'
-    ctx.fillStyle = ratingColor || '#4169E1'
+    ctx.fillStyle = ratingColor || '#C8102E'
     ctx.letterSpacing = '3px'
     ctx.fillText(ratingLabel.toUpperCase(), W / 2, 108)
     ctx.letterSpacing = '0px'
@@ -149,7 +149,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
 
   // Big W-L (app blue glow)
   ctx.save()
-  ctx.shadowColor = '#4169E1'
+  ctx.shadowColor = '#C8102E'
   ctx.shadowBlur = 32
   ctx.font = '900 92px system-ui, sans-serif'
   ctx.fillStyle = '#ffffff'
@@ -180,10 +180,10 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     ctx.font = '800 12px system-ui, sans-serif'
     const bw = ctx.measureText(badgeTxt).width + 26
     const bx = W / 2 - bw / 2
-    ctx.fillStyle = isChampion ? 'rgba(31,111,235,0.2)' : 'rgba(148,163,184,0.1)'
+    ctx.fillStyle = isChampion ? 'rgba(200,16,46,0.2)' : 'rgba(148,163,184,0.1)'
     roundRect(ctx, bx, 268, bw, 28, 14)
     ctx.fill()
-    ctx.strokeStyle = isChampion ? 'rgba(31,111,235,0.5)' : 'rgba(148,163,184,0.25)'
+    ctx.strokeStyle = isChampion ? 'rgba(200,16,46,0.5)' : 'rgba(148,163,184,0.25)'
     ctx.lineWidth = 1
     ctx.stroke()
     ctx.fillStyle = isChampion ? '#60a5fa' : '#94a3b8'
@@ -197,7 +197,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     let bx = W / 2 - totalBW / 2
     const by = 310
     matchResults.forEach(r => {
-      ctx.fillStyle = r.won ? '#4169E1' : '#ef4444'
+      ctx.fillStyle = r.won ? '#C8102E' : '#ef4444'
       roundRect(ctx, bx, by, BLOCK, BLOCK, BRAD)
       ctx.fill()
       bx += BLOCK + GAP
@@ -220,28 +220,28 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   ctx.fill()
 
   // Vertical divider
-  ctx.strokeStyle = 'rgba(31,111,235,0.15)'
+  ctx.strokeStyle = 'rgba(200,16,46,0.15)'
   ctx.lineWidth = 1
   ctx.beginPath(); ctx.moveTo(DIV_X, GRID_Y + 8); ctx.lineTo(DIV_X, GRID_Y + players.length * ROW_H + 2); ctx.stroke()
 
   function drawPlayer(p, col, row) {
     const x = col === 0 ? PAD_X + 6 : DIV_X + 6
     const y = GRID_Y + 5 + row * ROW_H
-    const [tag, tagClr] = ROLE_TAGS[p.role] || ['BAT', '#3b82f6']
+    const [tag, tagClr] = ROLE_TAGS[p.role] || ['BAT', '#C8102E']
     const rating = scaleDisp(p.overall)
 
     // Row hover stripe (alternating)
     if (row % 2 === 0) {
-      ctx.fillStyle = 'rgba(31,111,235,0.04)'
+      ctx.fillStyle = 'rgba(200,16,46,0.04)'
       ctx.fillRect(col === 0 ? PAD_X : DIV_X, y - 2, COL_W, ROW_H)
     }
 
     // Role tag pill
     const tagW = 38
-    ctx.fillStyle = 'rgba(31,111,235,0.22)'
+    ctx.fillStyle = 'rgba(200,16,46,0.22)'
     roundRect(ctx, x, y + 7, tagW, 19, 4)
     ctx.fill()
-    ctx.strokeStyle = 'rgba(31,111,235,0.35)'
+    ctx.strokeStyle = 'rgba(200,16,46,0.35)'
     ctx.lineWidth = 0.5
     ctx.stroke()
     ctx.font = '700 8.5px system-ui, sans-serif'
@@ -278,7 +278,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   // ── BOTTOM STATS ──────────────────────────────────────────────────────────
   const STATS_Y = GRID_Y + 5 + players.length * ROW_H + 22
 
-  ctx.strokeStyle = 'rgba(31,111,235,0.2)'
+  ctx.strokeStyle = 'rgba(200,16,46,0.2)'
   ctx.lineWidth = 1
   ctx.beginPath(); ctx.moveTo(PAD_X, STATS_Y); ctx.lineTo(W - PAD_X, STATS_Y); ctx.stroke()
 
@@ -402,9 +402,9 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   // ── FOOTER ────────────────────────────────────────────────────────────────
   const FOOT_Y = H - 74
 
-  ctx.fillStyle = 'rgba(31,111,235,0.08)'
+  ctx.fillStyle = 'rgba(200,16,46,0.08)'
   ctx.fillRect(0, FOOT_Y, W, H - FOOT_Y)
-  ctx.strokeStyle = 'rgba(31,111,235,0.18)'
+  ctx.strokeStyle = 'rgba(200,16,46,0.18)'
   ctx.lineWidth = 1
   ctx.beginPath(); ctx.moveTo(0, FOOT_Y); ctx.lineTo(W, FOOT_Y); ctx.stroke()
 
@@ -571,8 +571,8 @@ const ROLE_LABEL = {
   'pace-bowler': 'PACE', 'spin-bowler': 'SPIN',
 }
 const ROLE_COLOR = {
-  'opener': '#4169E1', 'top-order': '#4169E1', 'middle-order': '#2952CC',
-  'wicket-keeper': '#f59e0b', 'all-rounder': '#3b82f6',
+  'opener': '#C8102E', 'top-order': '#C8102E', 'middle-order': '#a50d24',
+  'wicket-keeper': '#f59e0b', 'all-rounder': '#C8102E',
   'pace-bowler': '#ef4444', 'spin-bowler': '#a855f7',
 }
 
@@ -580,17 +580,17 @@ function getRating(wins, losses, total, perfect, targetWins, iplOutcome) {
   if (!total) return { label: 'COMPLETE', color: '#94a3b8', emoji: '🏏', desc: 'Season complete.' }
   if (iplOutcome === 'champion')     return { label: 'IPL CHAMPIONS', color: '#f59e0b', emoji: '🏆', desc: 'You lifted the trophy. An all-time great team.' }
   if (iplOutcome === 'runner-up')    return { label: 'RUNNERS-UP',    color: '#94a3b8', emoji: '🥈', desc: 'So close — you made the Final and pushed hard.' }
-  if (iplOutcome === 'eliminated')   return { label: 'PLAYOFF RUN',   color: '#3b82f6', emoji: '⚡', desc: 'You made the playoffs but fell short of the Final.' }
+  if (iplOutcome === 'eliminated')   return { label: 'PLAYOFF RUN',   color: '#C8102E', emoji: '⚡', desc: 'You made the playoffs but fell short of the Final.' }
   if (iplOutcome === 'not_qualified') {
     const pct = wins / total
     if (pct >= 0.55) return { label: 'SOLID SEASON',  color: '#94a3b8', emoji: '📋', desc: 'Good league form but just missed the top 4.' }
     return { label: 'TOUGH SEASON', color: '#ef4444', emoji: '😬', desc: 'A difficult campaign — couldn\'t break into playoffs.' }
   }
   if (perfect) return { label: 'LEGENDARY', color: '#f59e0b', emoji: '🏆', desc: `You achieved the impossible — ${targetWins}-0!` }
-  if (losses === 0) return { label: 'DOMINANT', color: '#4169E1', emoji: '👑', desc: 'Unbeaten all season — extraordinary.' }
+  if (losses === 0) return { label: 'DOMINANT', color: '#C8102E', emoji: '👑', desc: 'Unbeaten all season — extraordinary.' }
   const pct = wins / total
-  if (pct >= 0.85) return { label: 'ELITE', color: '#4169E1', emoji: '⭐', desc: 'One of the all-time great sides.' }
-  if (pct >= 0.70) return { label: 'QUALITY', color: '#3b82f6', emoji: '🔵', desc: 'A strong side that fell just short.' }
+  if (pct >= 0.85) return { label: 'ELITE', color: '#C8102E', emoji: '⭐', desc: 'One of the all-time great sides.' }
+  if (pct >= 0.70) return { label: 'QUALITY', color: '#C8102E', emoji: '🔵', desc: 'A strong side that fell just short.' }
   if (pct >= 0.55) return { label: 'DECENT', color: '#94a3b8', emoji: '⚪', desc: 'Competitive but not quite elite.' }
   return { label: 'TOUGH RUN', color: '#ef4444', emoji: '😬', desc: 'Even legends have bad seasons.' }
 }
@@ -907,7 +907,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                 title={`Match ${i+1} vs ${r.opponent} — ${r.summary}`}
                 style={{
                   width: 26, height: 26, borderRadius: 4,
-                  background: r.won ? '#2952CC' : '#dc2626',
+                  background: r.won ? '#a50d24' : '#dc2626',
                 }}
               />
             ))}
@@ -918,9 +918,9 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.3rem 0.875rem',
-              background: '#4169E118', border: '1px solid #4169E133',
+              background: '#C8102E18', border: '1px solid #C8102E33',
               borderRadius: '999px', marginBottom: '1.25rem',
-              fontSize: '0.78rem', fontWeight: 800, color: '#4169E1',
+              fontSize: '0.78rem', fontWeight: 800, color: '#C8102E',
             }}>
               🔥 Season-best streak: {bestWinStreak} wins in a row
             </div>
@@ -1042,7 +1042,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#f59e0b' }}>{myStr}</span>
             </div>
             <div style={{ height: 8, background: 'var(--border2)', borderRadius: 4 }}>
-              <div style={{ width: `${myStr}%`, height: '100%', background: 'linear-gradient(90deg, #4169E1, #f59e0b)', borderRadius: 4, transition: 'width 1s ease' }} />
+              <div style={{ width: `${myStr}%`, height: '100%', background: 'linear-gradient(90deg, #C8102E, #f59e0b)', borderRadius: 4, transition: 'width 1s ease' }} />
             </div>
           </div>
 
@@ -1187,7 +1187,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '0.75rem', alignItems: 'center', marginBottom: '0.875rem' }}>
               {/* My column */}
               <div style={{ textAlign: 'center', padding: '0.75rem', background: 'var(--card)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
-                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#4169E1', marginBottom: '0.3rem' }}>You</div>
+                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#C8102E', marginBottom: '0.3rem' }}>You</div>
                 <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{wins}</div>
                 <div style={{ fontSize: '0.62rem', color: '#64748b' }}>wins</div>
                 <div style={{ fontSize: '0.78rem', color: '#ef4444', fontWeight: 700, marginTop: '0.2rem' }}>{losses}L</div>
@@ -1330,7 +1330,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               onClick={() => setTab(t.id)}
               style={{
                 flex: 1, padding: '0.5rem 0.5rem',
-                background: tab === t.id ? '#4169E1' : 'transparent',
+                background: tab === t.id ? '#C8102E' : 'transparent',
                 color: tab === t.id ? 'var(--bg)' : '#64748b',
                 border: 'none', borderRadius: '0.5rem',
                 fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer',
@@ -1467,26 +1467,26 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
   const topBowl  = topWicketTakers?.[0]
 
   return (
-    <div style={{ marginBottom: '1.5rem', animation: 'fade-in-up 0.4s 0.1s ease both', animationFillMode: 'both' }}>
+    <div style={{ marginTop: '1.25rem', marginBottom: '1.5rem', animation: 'fade-in-up 0.4s 0.1s ease both', animationFillMode: 'both' }}>
 
       {/* Hero stat cards row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.625rem', marginBottom: '1rem' }}>
 
         {/* Top Batter */}
-        <div style={{ background: 'var(--card)', border: '1px solid #4169E133', borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
           <div style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>🏏</div>
-          <div style={{ fontSize: '0.55rem', color: '#4169E1', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.35rem' }}>Top Scorer</div>
+          <div style={{ fontSize: '0.55rem', color: '#C8102E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.35rem' }}>Top Scorer</div>
           {topBat ? (
             <>
               <div style={{ fontSize: '0.82rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1.2, marginBottom: '0.25rem' }}>{topBat.name}</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#4169E1' }}>{topBat.runs}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#C8102E' }}>{topBat.runs}</div>
               <div style={{ fontSize: '0.55rem', color: '#64748b' }}>runs</div>
             </>
           ) : <div style={{ fontSize: '0.7rem', color: 'var(--border)' }}>—</div>}
         </div>
 
         {/* Top Bowler */}
-        <div style={{ background: 'var(--card)', border: '1px solid #a855f733', borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
           <div style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>🎯</div>
           <div style={{ fontSize: '0.55rem', color: '#a855f7', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.35rem' }}>Top Bowler</div>
           {topBowl ? (
@@ -1499,7 +1499,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
         </div>
 
         {/* Best Player / POTM */}
-        <div style={{ background: 'var(--card)', border: '1px solid #f59e0b33', borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center' }}>
           <div style={{ fontSize: '1.4rem', marginBottom: '0.25rem' }}>🏅</div>
           <div style={{ fontSize: '0.55rem', color: '#f59e0b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.35rem' }}>Best Player</div>
           {potm ? (
@@ -1526,7 +1526,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
           isChampion ? '#f59e0b' :
           isRunnerup ? '#94a3b8' :
           isFinal    ? '#a78bfa' :
-          isSemi || isElim ? '#3b82f6' :
+          isSemi || isElim ? '#C8102E' :
           isSuper8   ? '#94a3b8' :
           isGroup || isNoQ ? '#ef4444' :
           'var(--text)'
@@ -1554,14 +1554,14 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
             padding: '1.25rem',
             animation: 'fade-in-up 0.3s ease both',
           }}>
-            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#4169E1', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '1rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#C8102E', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '1rem', textAlign: 'center' }}>
               ⚡ Season Story
             </div>
 
             {/* Predicted → Actual */}
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'stretch', marginBottom: '1.25rem' }}>
               {/* Predicted box */}
-              <div style={{ flex: 1, textAlign: 'center', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem', padding: '0.875rem 0.5rem' }}>
+              <div style={{ flex: 1, textAlign: 'center', background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '0.75rem', padding: '0.875rem 0.5rem' }}>
                 <div style={{ fontSize: '0.5rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>Predicted</div>
                 <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#64748b', letterSpacing: '-0.02em', lineHeight: 1.1 }}>{predictedPos}</div>
                 <div style={{ fontSize: '0.55rem', color: 'var(--border)', marginTop: '0.25rem', fontWeight: 600 }}>{predictedShort}</div>
@@ -1569,7 +1569,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
 
               {/* Arrow */}
               <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '0 0.1rem' }}>
-                <div style={{ fontSize: '1.25rem', color: exceeded ? '#4169E1' : '#ef4444', fontWeight: 900 }}>
+                <div style={{ fontSize: '1.25rem', color: exceeded ? '#C8102E' : '#ef4444', fontWeight: 900 }}>
                   {exceeded ? '→' : '→'}
                 </div>
               </div>
@@ -1639,7 +1639,7 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
         {/* Top 3 Batsmen */}
         {top3bat.length > 0 && (
           <div>
-            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#4169E1', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem', paddingLeft: '0.25rem' }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#C8102E', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem', paddingLeft: '0.25rem' }}>
               🏏 Top Batters
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -1647,14 +1647,14 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
                 <div key={p.name} style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.625rem 0.75rem',
-                  background: i === 0 ? '#4169E112' : 'var(--card)',
-                  border: `1px solid ${i === 0 ? '#4169E144' : 'var(--border)'}`,
+                  background: i === 0 ? '#C8102E12' : 'var(--card)',
+                  border: `1px solid ${i === 0 ? '#C8102E44' : 'var(--border)'}`,
                   borderRadius: '0.625rem',
                 }}>
                   <div style={{ fontSize: i === 0 ? '1rem' : '0.8rem', width: 20, textAlign: 'center', flexShrink: 0 }}>{medals[i]}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                    <div style={{ fontSize: i === 0 ? '1rem' : '0.85rem', fontWeight: 900, color: i === 0 ? '#4169E1' : '#94a3b8' }}>{p.runs} <span style={{ fontSize: '0.52rem', color: '#64748b', fontWeight: 600 }}>runs</span></div>
+                    <div style={{ fontSize: i === 0 ? '1rem' : '0.85rem', fontWeight: 900, color: i === 0 ? '#C8102E' : '#94a3b8' }}>{p.runs} <span style={{ fontSize: '0.52rem', color: '#64748b', fontWeight: 600 }}>runs</span></div>
                   </div>
                 </div>
               ))}
@@ -1711,8 +1711,8 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
                   padding: '0.55rem 0.875rem',
                   borderBottom: i < xiEntries.length - 2 ? '1px solid var(--border2)' : 'none',
                   borderRight: i % 2 === 0 ? '1px solid var(--border2)' : 'none',
-                  background: isUser ? '#4169E108' : '#3b82f608',
-                  borderLeft: `3px solid ${isUser ? '#4169E144' : '#3b82f644'}`,
+                  background: isUser ? '#C8102E0d' : '#C8102E0d',
+                  borderLeft: `3px solid ${isUser ? '#C8102E44' : '#C8102E44'}`,
                 }}>
                   <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--border)', width: 16, textAlign: 'center', flexShrink: 0 }}>{i+1}</div>
                   <div style={{ padding: '0.1rem 0.3rem', borderRadius: '0.2rem', flexShrink: 0, background: roleClr + '22', border: `1px solid ${roleClr}44`, fontSize: '0.45rem', fontWeight: 900, color: roleClr, minWidth: 30, textAlign: 'center' }}>
@@ -1722,7 +1722,7 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
                     <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.name}
                     </div>
-                    <div style={{ fontSize: '0.55rem', color: isUser ? '#4169E1' : '#64748b', fontWeight: isUser ? 700 : 400 }}>
+                    <div style={{ fontSize: '0.55rem', color: isUser ? '#C8102E' : '#64748b', fontWeight: isUser ? 700 : 400 }}>
                       {isUser ? 'Your XI' : p.team}
                     </div>
                   </div>
@@ -1797,8 +1797,8 @@ function TournamentXITab({ tournamentBestXI }) {
                   padding: '0.65rem 1rem',
                   borderBottom: i < entries.length - 2 ? '1px solid var(--border2)' : 'none',
                   borderRight: i % 2 === 0 ? '1px solid var(--border2)' : 'none',
-                  background: isUser ? '#4169E108' : '#3b82f608',
-                  borderLeft: `3px solid ${isUser ? '#4169E144' : '#3b82f644'}`,
+                  background: isUser ? '#C8102E0d' : '#C8102E0d',
+                  borderLeft: `3px solid ${isUser ? '#C8102E44' : '#C8102E44'}`,
                 }}>
                   {/* Number */}
                   <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--border)', width: 18, textAlign: 'center', flexShrink: 0 }}>
@@ -1818,7 +1818,7 @@ function TournamentXITab({ tournamentBestXI }) {
                     <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.name}
                     </div>
-                    <div style={{ fontSize: '0.58rem', color: isUser ? '#4169E1' : '#64748b', fontWeight: isUser ? 700 : 400 }}>
+                    <div style={{ fontSize: '0.58rem', color: isUser ? '#C8102E' : '#64748b', fontWeight: isUser ? 700 : 400 }}>
                       {isUser ? 'Your XI' : p.team}
                     </div>
                   </div>
@@ -1887,7 +1887,7 @@ function PlayerStatsTab({ playerStats, team }) {
                         {roleTag}
                       </span>
                     </td>
-                    <td style={{ ...tdStyle, color: showBat && p.runs > 0 ? '#4169E1' : 'var(--border)', fontWeight: showBat && p.runs > 0 ? 800 : 400 }}>
+                    <td style={{ ...tdStyle, color: showBat && p.runs > 0 ? '#C8102E' : 'var(--border)', fontWeight: showBat && p.runs > 0 ? 800 : 400 }}>
                       {showBat ? (p.runs || 0) : '—'}
                     </td>
                     <td style={{ ...tdStyle, color: showBat && p.sr !== '—' ? '#86efac' : 'var(--border)' }}>
@@ -1934,15 +1934,15 @@ function MatchesTab({ matchResults }) {
             <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text)' }}>vs {r.opponent}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.7rem', color: r.won ? '#2952CC' : '#dc2626', fontWeight: 700 }}>{r.summary}</div>
+            <div style={{ fontSize: '0.7rem', color: r.won ? '#a50d24' : '#dc2626', fontWeight: 700 }}>{r.summary}</div>
             <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{r.myScore} · {r.oppScore}</div>
           </div>
           <div style={{
             width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-            background: r.won ? '#4169E122' : '#ef444422',
-            border: `1px solid ${r.won ? '#4169E166' : '#ef444466'}`,
+            background: r.won ? '#C8102E22' : '#ef444422',
+            border: `1px solid ${r.won ? '#C8102E66' : '#ef444466'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.65rem', fontWeight: 900, color: r.won ? '#4169E1' : '#ef4444',
+            fontSize: '0.65rem', fontWeight: 900, color: r.won ? '#C8102E' : '#ef4444',
           }}>
             {r.won ? 'W' : 'L'}
           </div>

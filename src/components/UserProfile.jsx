@@ -12,7 +12,7 @@ const MODE_LABEL  = { ipl: 'IPL', 'odi-wc': 'ODI WC', 't20-wc': 'T20 WC' }
 function outcomeLabel(r) {
   if (r.ipl_outcome === 'champion')      return { text: 'IPL Champion',   color: '#f59e0b', icon: '🏆' }
   if (r.ipl_outcome === 'runner-up')     return { text: 'Runner-up',       color: '#94a3b8', icon: '🥈' }
-  if (r.ipl_outcome === 'eliminated')    return { text: 'Playoff Exit',    color: '#4169E1', icon: '⚡' }
+  if (r.ipl_outcome === 'eliminated')    return { text: 'Playoff Exit',    color: '#C8102E', icon: '⚡' }
   if (r.ipl_outcome === 'not_qualified') return { text: 'No Playoffs',     color: 'var(--muted)', icon: '📊' }
   if (r.stage_reached === 'Champion')    return { text: 'WC Champion',     color: '#f59e0b', icon: '🏆' }
   if (r.stage_reached === 'Runner-up')   return { text: 'WC Runner-up',    color: '#94a3b8', icon: '🥈' }
@@ -152,7 +152,7 @@ function ResultRow({ result }) {
       <div style={{ fontSize: '0.9rem', flexShrink: 0 }}>{MODE_EMOJI[result.mode] ?? '🏏'}</div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <span style={{ color: '#4169E1' }}>{result.wins}W</span>
+          <span style={{ color: '#C8102E' }}>{result.wins}W</span>
           <span style={{ color: 'var(--text-dim)' }}>–</span>
           <span style={{ color: '#ef4444' }}>{result.losses}L</span>
           {result.perfect && <span style={{ fontSize: '0.62rem', color: '#f59e0b' }}>✨</span>}
@@ -335,7 +335,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '1.75rem', fontWeight: 900, color: '#fff',
                 margin: '0 auto 0.875rem',
-                boxShadow: '0 0 24px #4169E144',
+                boxShadow: '0 0 24px #C8102E44',
               }}>
                 {initial}
               </div>
@@ -346,9 +346,9 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                     value={nameInput}
                     onChange={e => setNameInput(e.target.value)}
                     autoFocus
-                    style={{ padding: '0.4rem 0.75rem', background: 'var(--bg)', border: '1px solid #4169E1', borderRadius: '0.4rem', color: 'var(--text)', fontSize: '1rem', fontWeight: 700, textAlign: 'center' }}
+                    style={{ padding: '0.4rem 0.75rem', background: 'var(--bg)', border: '1px solid #C8102E', borderRadius: '0.4rem', color: 'var(--text)', fontSize: '1rem', fontWeight: 700, textAlign: 'center' }}
                   />
-                  <button onClick={saveName} style={{ background: '#4169E1', border: 'none', borderRadius: '0.4rem', color: '#fff', fontWeight: 800, padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✓</button>
+                  <button onClick={saveName} style={{ background: '#C8102E', border: 'none', borderRadius: '0.4rem', color: '#fff', fontWeight: 800, padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✓</button>
                   <button onClick={() => setEditingName(false)} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: 'var(--muted)', padding: '0.4rem 0.75rem', cursor: 'pointer' }}>✕</button>
                 </div>
               ) : (
@@ -374,7 +374,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
               <SectionHeader title="Career Overview" icon="📊" />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                 <StatCard label="Seasons" value={totalSeasons} />
-                <StatCard label="All-Time Wins" value={totalWins} color="#4169E1" />
+                <StatCard label="All-Time Wins" value={totalWins} color="#C8102E" />
                 <StatCard label="Win Rate" value={`${overallWinPct}%`} color={overallWinPct >= 60 ? '#f59e0b' : 'var(--text)'} />
                 <StatCard
                   label="Best Season"
@@ -418,7 +418,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                   value={playoffApps}
                   label="playoff runs"
                   desc="IPL playoff appearances (last 20)"
-                  color={playoffApps >= 5 ? '#f59e0b' : '#4169E1'}
+                  color={playoffApps >= 5 ? '#f59e0b' : '#C8102E'}
                 />
                 <HighlightCard
                   icon="🎯"
@@ -558,7 +558,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                         display: 'flex', alignItems: 'center', gap: '0.75rem',
                         padding: '0.625rem 0.875rem',
                         background: 'var(--card)', borderRadius: '0.625rem',
-                        border: `1px solid ${leading ? '#4169E144' : behind ? '#ef444433' : 'var(--border)'}`,
+                        border: `1px solid ${leading ? '#C8102E44' : behind ? '#ef444433' : 'var(--border)'}`,
                       }}>
                         <div style={{ fontSize: '0.9rem', flexShrink: 0 }}>⚔️</div>
                         <div style={{ flex: 1 }}>
@@ -569,7 +569,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                           <div style={{ fontSize: '0.9rem', fontWeight: 900, lineHeight: 1 }}>
-                            <span style={{ color: '#4169E1' }}>{r.wins}W</span>
+                            <span style={{ color: '#C8102E' }}>{r.wins}W</span>
                             <span style={{ color: 'var(--text-dim)', margin: '0 0.2rem' }}>–</span>
                             <span style={{ color: '#ef4444' }}>{r.losses}L</span>
                           </div>

@@ -137,7 +137,7 @@ function roleColor(role) {
   const map = {
     'opener': '#f59e0b', 'top-order': '#f59e0b',
     'middle-order': '#22c55e', 'wicket-keeper': '#a78bfa',
-    'all-rounder': '#4169E1', 'pace-bowler': '#ef4444', 'spin-bowler': '#f97316',
+    'all-rounder': '#C8102E', 'pace-bowler': '#ef4444', 'spin-bowler': '#f97316',
   }
   return map[role] ?? '#64748b'
 }
@@ -228,14 +228,14 @@ function XIPanel({ name, team, isMe, comp, budget, ratingType = 'overall' }) {
   return (
     <div style={{
       background: 'var(--card2)',
-      border: `1px solid ${isMe ? '#4169E144' : 'var(--card-border)'}`,
+      border: `1px solid ${isMe ? '#C8102E44' : 'var(--card-border)'}`,
       borderRadius: '0.75rem', overflow: 'hidden',
       position: 'sticky', top: '4.5rem',
     }}>
       {/* Header */}
       <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 900, color: isMe ? '#4169E1' : '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>{name}</div>
+          <div style={{ fontSize: '0.75rem', fontWeight: 900, color: isMe ? '#C8102E' : '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>{name}</div>
           <div style={{ display: 'flex', gap: '0.4rem', fontSize: '0.6rem', flexShrink: 0 }}>
             {budget != null && <span style={{ color: (budget < 5) ? '#ef4444' : '#22c55e', fontWeight: 800 }}>₹{budget}cr</span>}
             <span style={{ color: oc >= 4 ? '#ef4444' : '#475569', fontWeight: 700 }}>🌍{oc}/4</span>
@@ -247,7 +247,7 @@ function XIPanel({ name, team, isMe, comp, budget, ratingType = 'overall' }) {
       <div style={{ padding: '0.3rem 0.75rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
         <span style={{ fontSize: '0.5rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: '0.25rem' }}>✈️ OS</span>
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: i < oc ? '#3b82f6' : 'var(--border2)', border: `1.5px solid ${i < oc ? '#3b82f6' : 'var(--border)'}` }} />
+          <div key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: i < oc ? '#C8102E' : 'var(--border2)', border: `1.5px solid ${i < oc ? '#C8102E' : 'var(--border)'}` }} />
         ))}
         <span style={{ fontSize: '0.6rem', color: oc >= 4 ? '#ef4444' : '#475569', fontWeight: 700, marginLeft: '0.15rem' }}>{oc}/4</span>
       </div>
@@ -271,7 +271,7 @@ function XIPanel({ name, team, isMe, comp, budget, ratingType = 'overall' }) {
             <>
               <span style={{ fontSize: '0.66rem', fontWeight: 600, color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</span>
               <span style={{ fontSize: '0.58rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>{displayOverall(player, ratingType)}</span>
-              {player.nationality !== 'India' && <span style={{ fontSize: '0.46rem', color: '#3b82f6', fontWeight: 800, flexShrink: 0 }}>OS</span>}
+              {player.nationality !== 'India' && <span style={{ fontSize: '0.46rem', color: '#C8102E', fontWeight: 800, flexShrink: 0 }}>OS</span>}
             </>
           ) : (
             <span style={{ fontSize: '0.6rem', color: 'var(--border)', fontStyle: 'italic' }}>—</span>
@@ -1075,7 +1075,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
 
               {(spinning || cycleEntry) && !currentEntry && (
                 <div style={{ padding: '1.25rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', textAlign: 'center', marginBottom: '0.875rem' }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: cycleEntry?.color ?? '#4169E1' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: cycleEntry?.color ?? '#C8102E' }}>
                     {cycleEntry?.teamName ?? '—'}
                   </div>
                 </div>
@@ -1131,7 +1131,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
             <>
               {/* Room settings badge */}
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.625rem', flexWrap: 'wrap' }}>
-                <div style={{ padding: '0.3rem 0.65rem', background: ratingType === 'prime' ? '#a855f722' : '#4169E122', border: `1px solid ${ratingType === 'prime' ? '#a855f755' : '#4169E155'}`, borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, color: ratingType === 'prime' ? '#a855f7' : '#4169E1', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <div style={{ padding: '0.3rem 0.65rem', background: ratingType === 'prime' ? '#a855f722' : '#C8102E22', border: `1px solid ${ratingType === 'prime' ? '#a855f755' : '#C8102E55'}`, borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, color: ratingType === 'prime' ? '#a855f7' : '#C8102E', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   {ratingType === 'prime' ? '⚡' : '🏏'} {ratingType === 'prime' ? 'Prime Ratings' : 'Season Ratings'}
                 </div>
                 <div style={{ padding: '0.3rem 0.65rem', background: '#f59e0b18', border: '1px solid #f59e0b44', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
@@ -1250,7 +1250,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                             </div>
                           ) : iAmBidder && auctionPhase === 'war' ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                              <div style={{ fontSize: '0.75rem', color: '#4169E1', fontWeight: 700, textAlign: 'center', padding: '0.5rem', background: '#0d1020', border: '1px solid #4169E133', borderRadius: '0.4rem' }}>
+                              <div style={{ fontSize: '0.75rem', color: '#C8102E', fontWeight: 700, textAlign: 'center', padding: '0.5rem', background: '#0d1020', border: '1px solid #C8102E33', borderRadius: '0.4rem' }}>
                                 ✅ You bid ₹{currentBid}cr — waiting for {oppName}
                               </div>
                               <button onClick={foldBid} style={{ width: '100%', padding: '0.5rem', background: '#1a0d0d', border: '1px solid #ef444444', borderRadius: '0.4rem', color: '#ef4444', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}>
@@ -1270,7 +1270,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
                                   border: 'none', borderRadius: '0.5rem',
                                   fontSize: '0.9rem', fontWeight: 900,
                                   cursor: canBid ? 'pointer' : 'not-allowed',
-                                  boxShadow: canBid ? '0 4px 16px rgba(65,105,225,0.35)' : 'none',
+                                  boxShadow: canBid ? '0 4px 16px rgba(200,16,46,0.35)' : 'none',
                                   transition: 'all 0.12s',
                                 }}
                               >
@@ -1387,9 +1387,9 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
 
 function TeamColumn({ name, team, budget, highlight }) {
   return (
-    <div style={{ background: 'var(--card)', border: `1px solid ${highlight ? '#4169E144' : 'var(--border)'}`, borderRadius: '0.75rem', overflow: 'hidden' }}>
+    <div style={{ background: 'var(--card)', border: `1px solid ${highlight ? '#C8102E44' : 'var(--border)'}`, borderRadius: '0.75rem', overflow: 'hidden' }}>
       <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: '0.78rem', fontWeight: 800, color: highlight ? '#4169E1' : '#64748b' }}>{name} ({team.length}/11)</div>
+        <div style={{ fontSize: '0.78rem', fontWeight: 800, color: highlight ? '#C8102E' : '#64748b' }}>{name} ({team.length}/11)</div>
         {budget != null && <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#22c55e' }}>₹{budget}cr</div>}
       </div>
       {team.map((p, i) => (
