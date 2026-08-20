@@ -825,7 +825,9 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     }
   }
 
-  const [waSharing, setWaSharing] = useState(false)
+  const [waSharing,     setWaSharing]     = useState(false)
+  const [waTeamSharing, setWaTeamSharing] = useState(false)
+  const [expandedMatch, setExpandedMatch] = useState(null)
   const shareWhatsApp = async () => {
     setWaSharing(true)
     try {
@@ -899,19 +901,105 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             {rating.desc}
           </div>
 
-          {/* Match blocks */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, marginBottom: '0.875rem' }}>
+          {/* Match blocks — click to expand */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, marginBottom: '0.5rem' }}>
             {(matchResults || []).map((r, i) => (
               <div
                 key={i}
-                title={`Match ${i+1} vs ${r.opponent} — ${r.summary}`}
+                title={`Match ${i+1} vs ${r.opponent}`}
+                onClick={() => setExpandedMatch(expandedMatch === i ? null : i)}
                 style={{
                   width: 26, height: 26, borderRadius: 4,
-                  background: r.won ? '#a50d24' : '#dc2626',
+                  background: r.won ? '#a50d24' : '#3a3a4a',
+                  cursor: 'pointer',
+                  outline: expandedMatch === i ? '2px solid #f59e0b' : 'none',
+                  outlineOffset: 2,
+                  transition: 'outline 0.1s, transform 0.1s',
+                  transform: expandedMatch === i ? 'scale(1.15)' : 'scale(1)',
                 }}
               />
             ))}
           </div>
+          <div style={{ fontSize: '0.62rem', color: '#475569', marginBottom: '0.875rem' }}>
+            Tap a result to see match details
+          </div>
+
+          {/* Expanded match detail */}
+          {expandedMatch !== null && matchResults?.[expandedMatch] && (() => {
+            const r = matchResults[expandedMatch]
+            const scorer  = r.stats?.topScorer  || r.stats?.topScorer2
+            const bowler  = r.stats?.topBowler
+            const mvp     = r.won
+              ? (scorer?.name || bowler?.name)
+              : (bowler?.name || scorer?.name)
+            const commentary = r.summary || (r.won
+              ? `A strong performance against ${r.opponent}.`
+              : `${r.opponent} edged this one.`)
+            return (
+              <div style={{
+                margin: '0 0 1rem',
+                padding: '1rem 1.25rem',
+                background: r.won ? 'rgba(165,13,36,0.12)' : 'rgba(58,58,74,0.18)',
+                border: `1.5px solid ${r.won ? '#C8102E55' : '#3a3a5a'}`,
+                borderRadius: '0.875rem',
+                textAlign: 'left',
+                animation: 'fade-in-up 0.2s ease both',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.58rem', fontWeight: 800, color: r.won ? '#C8102E' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>
+                      Match {expandedMatch + 1}{r.stage ? ` · ${r.stage}` : ''}
+                    </div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--text)' }}>
+                      vs {r.opponent}
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: '0.3rem 0.75rem', borderRadius: '999px',
+                    background: r.won ? '#C8102E22' : 'var(--border2)',
+                    border: `1px solid ${r.won ? '#C8102E55' : 'var(--border)'}`,
+                    fontSize: '0.75rem', fontWeight: 800,
+                    color: r.won ? '#C8102E' : '#64748b',
+                  }}>
+                    {r.won ? 'WIN' : 'LOSS'}
+                  </div>
+                </div>
+
+                {(r.myScore != null || r.oppScore != null) && (
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.625rem' }}>
+                    {r.myScore ?? '–'} <span style={{ color: '#475569' }}>vs</span> {r.oppScore ?? '–'}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.625rem' }}>
+                  {scorer?.name && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem' }}>
+                      <span>🏏</span>
+                      <span style={{ color: 'var(--text)', fontWeight: 700 }}>{scorer.name}</span>
+                      {scorer.runs != null && <span style={{ color: '#f97316', fontWeight: 800 }}>{scorer.runs} runs</span>}
+                    </div>
+                  )}
+                  {bowler?.name && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem' }}>
+                      <span>🎯</span>
+                      <span style={{ color: 'var(--text)', fontWeight: 700 }}>{bowler.name}</span>
+                      {bowler.wickets != null && <span style={{ color: '#a855f7', fontWeight: 800 }}>{bowler.wickets} wkts</span>}
+                    </div>
+                  )}
+                </div>
+
+                {mvp && (
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#f59e0b', marginBottom: '0.5rem' }}>
+                    ⭐ MVP: {mvp}
+                  </div>
+                )}
+
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', lineHeight: 1.5 }}>
+                  "{commentary}"
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Season-best streak */}
           {bestWinStreak >= 2 && (
@@ -1303,6 +1391,36 @@ export default function Results({ team, mode, manager, summary, matchResults, on
           <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.875rem' }}>
             Can they beat your {wins}W–{losses}L record with the <strong style={{ color: 'var(--text)' }}>exact same squad?</strong> Send them your squad — they play blind.
           </div>
+          {/* WhatsApp share team button */}
+          <button
+            onClick={async () => {
+              setWaTeamSharing(true)
+              try {
+                const url  = await buildChallengeUrl()
+                const text = `🏏 Here's my Cricket 16-0 XI — ${dispWins}W–${dispLosses}L!\n\nPlay a full season with my exact 11 players. Can you go further?\n${url}`
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+              } finally {
+                setWaTeamSharing(false)
+              }
+            }}
+            disabled={waTeamSharing}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.75rem 1.5rem',
+              background: waTeamSharing ? '#1aaa52' : '#25D366',
+              color: '#fff', border: 'none', borderRadius: '0.625rem',
+              fontSize: '0.88rem', fontWeight: 800,
+              cursor: waTeamSharing ? 'wait' : 'pointer',
+              marginBottom: '0.5rem',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            {waTeamSharing ? '⏳ Generating…' : 'Share My XI on WhatsApp'}
+          </button>
+
+          {/* Copy link button */}
           <button
             onClick={async () => {
               const btn = document.getElementById('challenge-copy-btn')
@@ -1328,7 +1446,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             📋 Copy Challenge Link
           </button>
           <div style={{ fontSize: '0.6rem', color: '#475569', marginTop: '0.5rem' }}>
-            This is NOT the same as the WhatsApp result share above — it locks your squad for them to play with.
+            Recipient sees your 11 players and plays a full season with that exact squad.
           </div>
         </div>
 
@@ -1550,8 +1668,8 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
         </div>
       </div>
 
-      {/* Predicted vs Actual — hero block */}
-      {(() => {
+      {/* Predicted vs Actual removed per user request */}
+      {false && (() => {
         const isChampion = iplOutcome === 'champion' || stageReached === 'Champion'
         const isRunnerup = iplOutcome === 'runner-up' || stageReached === 'Runner-up'
         const isFinal    = stageReached === 'Final'

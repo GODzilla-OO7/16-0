@@ -156,16 +156,20 @@ export default function WheelSpin({
   const [activeBiddingPlayer, setActiveBiddingPlayer] = useState(null)  // triggers bidding war overlay
   const cycleRef = useRef(null)
 
-  const entries    = settings.filteredEntries
-  const hardMode   = settings.hardMode
-  const ratingType = settings.ratingType || 'season'
-  const needs      = getPositionNeeds(team, composition)
-  const mustPick   = needs.find(n => n.must) || null
+  const entries             = settings.filteredEntries
+  const hardMode            = settings.hardMode
+  const ratingType          = settings.ratingType || 'season'
+  const freePositions       = settings.freePositions ?? false
+  const overseasLimitEnabled = settings.overseasLimit ?? true
 
-  // IPL overseas rule
-  const isIPLMode = mode === 'ipl'
-  const overseasInTeam = isIPLMode ? team.filter(p => isOverseas(p)).length : 0
-  const overseasLimitReached = isIPLMode && overseasInTeam >= 4
+  // Position needs — skipped entirely when freePositions is ON
+  const needs    = freePositions ? [] : getPositionNeeds(team, composition)
+  const mustPick = freePositions ? null : (needs.find(n => n.must) || null)
+
+  // IPL overseas rule — only enforced when overseasLimit is ON
+  const isIPLMode            = mode === 'ipl'
+  const overseasInTeam       = isIPLMode ? team.filter(p => isOverseas(p)).length : 0
+  const overseasLimitReached = isIPLMode && overseasLimitEnabled && overseasInTeam >= 4
 
   useEffect(() => () => clearTimeout(cycleRef.current), [])
 
@@ -181,10 +185,10 @@ export default function WheelSpin({
     //   • not overseas-blocked (IPL: max 4 overseas)
 
     const draftedNameSet  = new Set(team.map(p => p.name))
-    const currentNeeds    = getPositionNeeds(team, composition)
-    const currentMust     = currentNeeds.find(n => n.must) || null
+    const currentNeeds    = freePositions ? [] : getPositionNeeds(team, composition)
+    const currentMust     = freePositions ? null : (currentNeeds.find(n => n.must) || null)
     const overseasInTeamNow = isIPLMode ? team.filter(p => isOverseas(p)).length : 0
-    const overseasFull    = isIPLMode && overseasInTeamNow >= 4
+    const overseasFull    = isIPLMode && overseasLimitEnabled && overseasInTeamNow >= 4
 
     const budgetExhausted = budget != null && budget < 0.5
 
@@ -195,11 +199,11 @@ export default function WheelSpin({
       if (releasedPlayerIds?.has(p.name)) return false
       // Pakistani players are barred from the IPL since 2009
       if (isIPLMode && p.nationality === 'Pakistan') return false
-      // Role quota full?
-      if (isRoleFull(p, team, composition)) return false
-      // Mandatory role not satisfied?
+      // Role quota full? (skipped in freePositions mode)
+      if (!freePositions && isRoleFull(p, team, composition)) return false
+      // Mandatory role not satisfied? (skipped in freePositions mode)
       if (currentMust && !satisfiesNeed(p, currentMust)) return false
-      // Overseas blocked?
+      // Overseas blocked? (skipped when overseasLimit is OFF)
       if (overseasFull && isOverseas(p)) return false
       // Over budget? (skip check if budget exhausted — must always be able to proceed)
       if (!budgetExhausted && budget != null) {
@@ -224,7 +228,7 @@ export default function WheelSpin({
         entry.players.some(p =>
           !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
           notReleased(p) &&
-          !isRoleFull(p, team, composition) &&
+          (freePositions || !isRoleFull(p, team, composition)) &&
           !(overseasFull && isOverseas(p)) &&
           (budgetExhausted || budget == null || calcPrice(displayRating(p, 'season').overall) <= budget)
         )
@@ -236,7 +240,7 @@ export default function WheelSpin({
         entry.players.some(p =>
           !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
           notReleased(p) &&
-          !isRoleFull(p, team, composition) &&
+          (freePositions || !isRoleFull(p, team, composition)) &&
           (budgetExhausted || budget == null || calcPrice(displayRating(p, 'season').overall) <= budget)
         )
       )
@@ -247,7 +251,7 @@ export default function WheelSpin({
         entry.players.some(p =>
           !draftedIds.has(p.id) && !draftedNameSet.has(p.name) &&
           notReleased(p) &&
-          !isRoleFull(p, team, composition)
+          (freePositions || !isRoleFull(p, team, composition))
         )
       )
     }
@@ -352,8 +356,8 @@ export default function WheelSpin({
 
   let squadPlayers
   if (mustPick) {
-    const eligible   = sortByOvr(rawPlayers.filter(p => satisfiesNeed(p, mustPick) && !isRoleFull(p, team, composition)))
-    const ineligible = sortByOvr(rawPlayers.filter(p => !satisfiesNeed(p, mustPick) || isRoleFull(p, team, composition)))
+    const eligible   = sortByOvr(rawPlayers.filter(p => satisfiesNeed(p, mustPick) && (freePositions || !isRoleFull(p, team, composition))))
+    const ineligible = sortByOvr(rawPlayers.filter(p => !satisfiesNeed(p, mustPick) || (!freePositions && isRoleFull(p, team, composition))))
     if (eligible.length === 0) {
       squadPlayers = sortByOvr(rawPlayers).map(p => ({ ...withBudget(p), _eligible: false }))
     } else {
@@ -365,7 +369,7 @@ export default function WheelSpin({
   } else {
     squadPlayers = sortByOvr(rawPlayers).map(p => ({
       ...withBudget(p),
-      _eligible: !isRoleFull(p, team, composition),
+      _eligible: freePositions || !isRoleFull(p, team, composition),
     }))
   }
 
@@ -426,6 +430,7 @@ export default function WheelSpin({
           isIPLMode={isIPLMode}
           overseasInTeam={overseasInTeam}
           overseasLimitReached={overseasLimitReached}
+          overseasLimitEnabled={overseasLimitEnabled}
           onSpin={spin}
         />
       ) : (
@@ -446,6 +451,7 @@ export default function WheelSpin({
           rerollsLeft={rerollsLeft}
           overseasInTeam={overseasInTeam}
           overseasLimitReached={overseasLimitReached}
+          overseasLimitEnabled={overseasLimitEnabled}
           isIPLMode={isIPLMode}
           budget={budget}
           onPick={tryPickPlayer}
@@ -540,13 +546,14 @@ function OverseasTracker({ overseasInTeam, limitReached }) {
   )
 }
 
-function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, rerollsLeft, budget, isIPLMode, overseasInTeam, overseasLimitReached, onSpin }) {
+function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, rerollsLeft, budget, isIPLMode, overseasInTeam, overseasLimitReached, overseasLimitEnabled, onSpin }) {
   const isSpinning = phase === 'spinning'
   const year = cycleEntry ? extractYear(cycleEntry.season) : null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', padding: '2rem 1rem', animation: 'fade-in 0.3s ease both' }}>
       {budget != null && <BudgetBar budget={budget} />}
+      {isIPLMode && overseasLimitEnabled && <OverseasTracker overseasInTeam={overseasInTeam} limitReached={overseasLimitReached} />}
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700, marginBottom: '0.3rem' }}>
           Pick {slotIndex + 1} of {totalSlots}
@@ -612,7 +619,7 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
 
 // ─── Select phase ─────────────────────────────────────────────────────────
 
-function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetExhausted, budgetStuck, hardMode, ratingType, mode, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, isIPLMode, budget, onPick, onSpinAgain, onRetryFromBeginning, onRetryBidding }) {
+function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetExhausted, budgetStuck, hardMode, ratingType, mode, needs, mustPick, slotIndex, totalSlots, rerollsLeft, overseasInTeam, overseasLimitReached, overseasLimitEnabled, isIPLMode, budget, onPick, onSpinAgain, onRetryFromBeginning, onRetryBidding }) {
   const canReroll = rerollsLeft > 0
   const year      = extractYear(entry.season)
   const rarity    = spinRarity(entry)
@@ -716,7 +723,12 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
         </div>
       )}
 
-      {/* Overseas tracker (IPL only) */}
+      {/* Overseas tracker (IPL only, when limit is ON) */}
+      {isIPLMode && overseasLimitEnabled && (
+        <div style={{ padding: '0.4rem 1.25rem', background: 'var(--card2)', borderBottom: '1px solid var(--border2)' }}>
+          <OverseasTracker overseasInTeam={overseasInTeam} limitReached={overseasLimitReached} />
+        </div>
+      )}
 
       {/* Info bar */}
       <div style={{ padding: '0.45rem 1.25rem', background: 'var(--card)', borderBottom: '1px solid var(--border2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

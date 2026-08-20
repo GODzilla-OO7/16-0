@@ -164,10 +164,16 @@ export default function App() {
     setRerollsLeft(s.rerolls ?? 3)
     // Streak bonus only rewarded to signed-in users
     const bonus = user ? consumeStreakBonus() : 0
-    setBudgetLeft(STARTING_BUDGET + bonus)
+    setBudgetLeft((s.budget ?? STARTING_BUDGET) + bonus)
     setStreakBonus(0)  // shown on banner — now consumed
     setBiddingWarsUsed(0)
-    setPhase('compose')
+    // Free Positions: skip composition screen, go straight to draft
+    if (s.freePositions) {
+      setComposition(null)
+      setPhase('draft')
+    } else {
+      setPhase('compose')
+    }
   }
 
   function handleCompositionDone(comp) {
@@ -696,8 +702,8 @@ export default function App() {
             height: activeChallenge ? 'calc(100vh - 5.5rem - 36px)' : 'calc(100vh - 5.5rem)',
             display: 'flex', flexDirection: 'column', gap: '0.625rem',
           }}>
-            {/* Overseas tracker — IPL only, always visible at top of right column */}
-            {mode === 'ipl' && (() => {
+            {/* Overseas tracker — IPL only, only when overseas limit is ON */}
+            {mode === 'ipl' && settings?.overseasLimit !== false && (() => {
               const overseasCount = team.filter(p => p.nationality !== 'India').length
               const limitReached  = overseasCount >= 4
               return (

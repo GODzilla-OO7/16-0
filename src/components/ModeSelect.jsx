@@ -619,17 +619,6 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
           </div>
         )}
 
-        {/* Daily Challenge — kept as a secondary option */}
-        <div style={{ marginBottom: '0.625rem' }}>
-          <ModeCard
-            icon="📅"
-            title="Daily Challenge"
-            desc="Today's puzzle: one go, fresh every day."
-            onClick={onDailyChallenge}
-            C={C}
-          />
-        </div>
-
         {/* ACCOUNT — only shown when signed in */}
         {user && (
         <div style={{ marginTop: '1.75rem', borderTop: `1px solid ${C.cardBorder}`, paddingTop: '1.5rem' }}>

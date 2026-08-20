@@ -413,8 +413,9 @@ export default function SquadComposer({ onDone, onBack }) {
 
         {/* Sliders card */}
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--card-border)',
+          background: 'var(--bg)', border: '1.5px solid rgba(200,16,46,0.4)',
           borderRadius: '1rem', padding: '1.1rem 1.25rem',
+          boxShadow: '0 0 24px rgba(200,16,46,0.06)',
         }}>
           <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.875rem' }}>
             Role Sliders
@@ -448,8 +449,9 @@ export default function SquadComposer({ onDone, onBack }) {
 
         {/* Formation */}
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--card-border)',
+          background: 'var(--bg)', border: '1.5px solid rgba(200,16,46,0.4)',
           borderRadius: '1rem', padding: '0.875rem',
+          boxShadow: '0 0 24px rgba(200,16,46,0.06)',
         }}>
           <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>
             Formation
@@ -461,8 +463,9 @@ export default function SquadComposer({ onDone, onBack }) {
 
         {/* Breakdown */}
         <div style={{
-          background: 'var(--card)', border: '1px solid var(--card-border)',
+          background: 'var(--bg)', border: '1.5px solid rgba(200,16,46,0.4)',
           borderRadius: '1rem', padding: '0.875rem',
+          boxShadow: '0 0 24px rgba(200,16,46,0.06)',
         }}>
           <CompositionBar comp={comp} />
         </div>
@@ -525,8 +528,8 @@ export default function SquadComposer({ onDone, onBack }) {
               {PRESETS.map((p, i) => (
                 <button key={p.label} onClick={() => applyPreset(p, i)} style={{
                   padding: '0.4rem 0.4rem',
-                  background: activePreset === i ? p.color + '22' : 'var(--card)',
-                  border: `1.5px solid ${activePreset === i ? p.color : 'var(--border)'}`,
+                  background: activePreset === i ? p.color + '22' : 'var(--bg)',
+                  border: `1.5px solid ${activePreset === i ? p.color : 'rgba(200,16,46,0.3)'}`,
                   borderRadius: '0.75rem',
                   color: activePreset === i ? p.color : '#64748b',
                   fontSize: '0.62rem', fontWeight: 700, cursor: 'pointer',
@@ -540,13 +543,14 @@ export default function SquadComposer({ onDone, onBack }) {
               ))}
             </div>
 
-            {/* Slider card — unchanged */}
+            {/* Slider card */}
             <div style={{
               flex: 1, minHeight: 0,
-              background: 'var(--card)', border: '1px solid var(--card-border)',
+              background: 'var(--bg)', border: '1.5px solid rgba(200,16,46,0.45)',
               borderRadius: '1.5rem', padding: '1.5rem 1.75rem',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
+              boxShadow: '0 0 32px rgba(200,16,46,0.08)',
             }}>
               <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.75rem', flexShrink: 0 }}>
                 Role Sliders
@@ -593,9 +597,10 @@ export default function SquadComposer({ onDone, onBack }) {
             {/* Formation card — takes most of the height */}
             <div style={{
               flex: 1, minHeight: 0,
-              background: 'var(--card)', border: '1px solid var(--card-border)',
+              background: 'var(--bg)', border: '1.5px solid rgba(200,16,46,0.45)',
               borderRadius: '1.5rem', padding: '1.25rem',
               display: 'flex', flexDirection: 'column',
+              boxShadow: '0 0 32px rgba(200,16,46,0.08)',
             }}>
               <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.75rem', flexShrink: 0 }}>
                 Formation
@@ -608,8 +613,9 @@ export default function SquadComposer({ onDone, onBack }) {
             {/* Composition breakdown */}
             <div style={{
               flexShrink: 0,
-              background: 'var(--card)', border: '1px solid var(--card-border)',
+              background: 'var(--bg)', border: '1.5px solid rgba(200,16,46,0.45)',
               borderRadius: '1.5rem', padding: '1.1rem 1.35rem',
+              boxShadow: '0 0 32px rgba(200,16,46,0.08)',
             }}>
               <CompositionBar comp={comp} />
             </div>
