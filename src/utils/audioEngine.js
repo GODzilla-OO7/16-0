@@ -17,40 +17,35 @@ export function playSpinSound() {
     const ac = getAudioContext()
     if (ac.state === 'suspended') ac.resume()
 
-    const now = ac.currentTime
-    const dur  = 0.45
+    const now    = ac.currentTime
+    const clicks = 28
+    const dur    = 0.72
 
-    // Rising pitch sweep (reel effect)
-    const osc   = ac.createOscillator()
-    const gain  = ac.createGain()
-    osc.connect(gain)
-    gain.connect(ac.destination)
+    for (let i = 0; i < clicks; i++) {
+      // Clicks start slow then rapidly bunch up — like a wheel gaining speed
+      const t = now + dur * Math.pow(i / clicks, 0.55)
 
-    osc.type = 'sawtooth'
-    osc.frequency.setValueAtTime(180, now)
-    osc.frequency.exponentialRampToValueAtTime(520, now + dur * 0.7)
-    osc.frequency.exponentialRampToValueAtTime(340, now + dur)
+      // Very short impulsive noise burst (8 ms) — mechanical click character
+      const bufLen = Math.ceil(ac.sampleRate * 0.008)
+      const buf    = ac.createBuffer(1, bufLen, ac.sampleRate)
+      const data   = buf.getChannelData(0)
+      for (let j = 0; j < bufLen; j++) {
+        data[j] = (Math.random() * 2 - 1) * Math.exp(-j / (bufLen * 0.18))
+      }
 
-    gain.gain.setValueAtTime(0, now)
-    gain.gain.linearRampToValueAtTime(0.18, now + 0.03)
-    gain.gain.linearRampToValueAtTime(0.08, now + dur * 0.6)
-    gain.gain.linearRampToValueAtTime(0, now + dur)
-
-    osc.start(now)
-    osc.stop(now + dur)
-
-    // Short tick clicks during spin
-    for (let i = 0; i < 6; i++) {
-      const t = now + i * (dur / 7)
-      const buf = ac.createBuffer(1, ac.sampleRate * 0.015, ac.sampleRate)
-      const data = buf.getChannelData(0)
-      for (let j = 0; j < data.length; j++) data[j] = (Math.random() * 2 - 1) * Math.exp(-j / (data.length * 0.4))
       const src = ac.createBufferSource()
       src.buffer = buf
-      const g = ac.createGain()
-      g.gain.value = 0.12
-      src.connect(g)
-      g.connect(ac.destination)
+
+      // Bandpass filter → plastic/metal click tone
+      const bpf           = ac.createBiquadFilter()
+      bpf.type            = 'bandpass'
+      bpf.frequency.value = 1400 + (i % 4) * 180  // slight variation per click
+      bpf.Q.value         = 2.5
+
+      const g       = ac.createGain()
+      g.gain.value  = 0.52
+
+      src.connect(bpf); bpf.connect(g); g.connect(ac.destination)
       src.start(t)
     }
   } catch (_) {

@@ -4,6 +4,7 @@ import { MODE_CONFIG, applyPrimeRatings } from '../data/players.js'
 import MatchEvent from './MatchEvent.jsx'
 import ImpactSub from './ImpactSub.jsx'
 import { getSupabase } from '../lib/supabase.js'
+import ConfirmLeaveModal from './ConfirmLeaveModal.jsx'
 
 // ─── Final drama commentary ─────────────────────────────────────────────────
 
@@ -24,7 +25,7 @@ const COMMENTARY_ODI = [
   'The last ball of the Final is delivered…',
 ]
 
-export default function MatchSimulator({ team, mode, manager, ratingType, onDone, h2hContext = null }) {
+export default function MatchSimulator({ team, mode, manager, ratingType, onDone, h2hContext = null, onHome }) {
   const [leagueSeason,    setLeagueSeason]    = useState(null)
   const [revealed,        setRevealed]        = useState([])
   const [liveRuns,        setLiveRuns]        = useState({})
@@ -59,6 +60,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   const [impactSubDone,   setImpactSubDone]   = useState(false)
   const [impactSubLog,    setImpactSubLog]    = useState(null)  // { out, in, event }
   const [iconSubPlayer,   setIconSubPlayer]   = useState(null)  // set if impact sub brought in a legend
+  const [showSimConfirm,  setShowSimConfirm]  = useState(false) // back-to-home confirmation
 
   // Win streak tracker
   const [currentStreak,   setCurrentStreak]   = useState({ type: null, count: 0 })
@@ -579,7 +581,30 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
       )}
 
       {/* ── Main layout ───────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '1.5rem 1rem' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '1.5rem 1rem', position: 'relative' }}>
+
+        {/* Back button — top left */}
+        {onHome && (
+          <button
+            onClick={() => setShowSimConfirm(true)}
+            style={{
+              position: 'absolute', top: '1.5rem', left: '1rem', zIndex: 10,
+              background: 'none', border: 'none',
+              color: 'var(--text-muted)', fontSize: '0.85rem',
+              cursor: 'pointer', fontWeight: 600, padding: 0,
+            }}
+          >
+            ← Back
+          </button>
+        )}
+
+        {showSimConfirm && (
+          <ConfirmLeaveModal
+            message="Going back will take you all the way to the home screen and your season progress will be lost. Are you sure?"
+            onYes={() => { setShowSimConfirm(false); onHome?.() }}
+            onNo={() => setShowSimConfirm(false)}
+          />
+        )}
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>

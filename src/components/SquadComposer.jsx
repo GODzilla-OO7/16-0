@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import ConfirmLeaveModal from './ConfirmLeaveModal.jsx'
 
 const ROLE_DEFS = [
   { key: 'opener',        label: 'Openers',       short: 'OPR', icon: '🏏', color: '#f59e0b',  min: 1, max: 4 },
@@ -313,10 +314,13 @@ function FormationPreview({ comp, circleSize = 44 }) {
   )
 }
 
-export default function SquadComposer({ onDone, onBack }) {
+export default function SquadComposer({ onDone, onBack, onHome }) {
   const [comp, setComp] = useState({ ...DEFAULT })
   const [activePreset, setActivePreset] = useState(0)
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 700)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [confirmDest, setConfirmDest] = useState(null) // 'back' | 'home'
+  const dirty = useRef(false)
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 700)
@@ -329,6 +333,7 @@ export default function SquadComposer({ onDone, onBack }) {
   const isValid = total === 11 && bowlers >= 2
 
   const handleDrag = useCallback((key, val) => {
+    dirty.current = true
     setComp(prev => {
       const next = autoBalance(prev, key, val)
       setActivePreset(-1)
@@ -337,14 +342,31 @@ export default function SquadComposer({ onDone, onBack }) {
   }, [])
 
   const applyPreset = (preset, idx) => {
+    if (idx !== 0) dirty.current = true
     setComp({ ...preset.comp })
     setActivePreset(idx)
+  }
+
+  function handleBack() {
+    if (dirty.current) { setConfirmDest('back'); setShowConfirm(true) }
+    else onBack()
+  }
+
+  function handleHome() {
+    if (dirty.current) { setConfirmDest('home'); setShowConfirm(true) }
+    else onHome?.()
+  }
+
+  function handleConfirmYes() {
+    setShowConfirm(false)
+    if (confirmDest === 'home') onHome?.()
+    else onBack()
   }
 
   const actionButtons = (
     <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem' }}>
       {isMobile && (
-        <button onClick={onBack} style={{
+        <button onClick={handleBack} style={{
           padding: '0.75rem 1.1rem',
           background: 'transparent',
           border: '1px solid var(--border)', borderRadius: '0.5rem',
@@ -389,6 +411,21 @@ export default function SquadComposer({ onDone, onBack }) {
           opacity: 0.06,
           pointerEvents: 'none',
         }} />
+        {/* Back button — top left */}
+        <button onClick={handleBack} style={{
+          position: 'absolute', top: '1rem', left: '1rem', zIndex: 10,
+          background: 'none', border: 'none',
+          color: 'var(--text-muted)', fontSize: '0.85rem',
+          cursor: 'pointer', fontWeight: 600, padding: 0,
+        }}>← Back</button>
+        {showConfirm && (
+          <ConfirmLeaveModal
+            message="Your composition changes will be lost. Are you sure you want to go back?"
+            onYes={handleConfirmYes}
+            onNo={() => setShowConfirm(false)}
+            onHome={onHome ? handleHome : undefined}
+          />
+        )}
         {/* Header */}
         <div style={{ textAlign: 'center' }}>
           <div style={{
@@ -398,7 +435,7 @@ export default function SquadComposer({ onDone, onBack }) {
             fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em',
             textTransform: 'uppercase', marginBottom: '0.4rem',
           }}>Build Your XI</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#cbd5e1', margin: '0 0 0.25rem', letterSpacing: '0.01em' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#fff', margin: '0 0 0.25rem', letterSpacing: '0.01em' }}>
             Choose Composition
           </h2>
           <p style={{ color: '#64748b', fontSize: '0.78rem', margin: 0 }}>Drag sliders · Total = 11 · Min 1 opener, 1 keeper</p>
@@ -504,13 +541,25 @@ export default function SquadComposer({ onDone, onBack }) {
         pointerEvents: 'none',
       }} />
 
-      {/* Header — full size now that presets live inside the slider card */}
+      {/* Back button — top left absolute */}
+      <button onClick={handleBack} style={{
+        position: 'absolute', top: '1.25rem', left: '1.5rem', zIndex: 10,
+        background: 'none', border: 'none',
+        color: 'var(--text-muted)', fontSize: '0.85rem',
+        cursor: 'pointer', fontWeight: 600, padding: 0,
+      }}>← Back</button>
+
+      {showConfirm && (
+        <ConfirmLeaveModal
+          message="Your composition changes will be lost. Are you sure you want to go back?"
+          onYes={handleConfirmYes}
+          onNo={() => setShowConfirm(false)}
+          onHome={onHome ? handleHome : undefined}
+        />
+      )}
+
+      {/* Header */}
       <div style={{ textAlign: 'center', flexShrink: 0 }}>
-        <button onClick={onBack} style={{
-          display: 'block', margin: '0 auto 0.4rem',
-          background: 'none', border: 'none', color: '#64748b',
-          fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600,
-        }}>← Back</button>
         <div style={{
           display: 'inline-block', padding: '0.2rem 0.85rem',
           background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.3)',
@@ -518,7 +567,7 @@ export default function SquadComposer({ onDone, onBack }) {
           fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em',
           textTransform: 'uppercase', marginBottom: '0.35rem',
         }}>Build Your XI</div>
-        <h2 style={{ fontSize: '1.6rem', fontWeight: 600, color: '#cbd5e1', margin: '0 0 0.2rem', letterSpacing: '0.01em' }}>
+        <h2 style={{ fontSize: '1.6rem', fontWeight: 600, color: '#fff', margin: '0 0 0.2rem', letterSpacing: '0.01em' }}>
           Choose Your Composition
         </h2>
         <p style={{ color: '#64748b', fontSize: '0.78rem', margin: 0 }}>

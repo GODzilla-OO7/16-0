@@ -303,12 +303,20 @@ export default function DraftSettings({ mode, onStart, onBack }) {
   return (
     <div style={S.page}>
 
+      {/* Back button — top-left above card */}
+      <div style={{ width: '100%', maxWidth: 720, marginBottom: '0.4rem' }}>
+        <button onClick={onBack} style={{
+          background: 'none', border: 'none',
+          color: 'var(--text-muted)', fontSize: '0.85rem',
+          cursor: 'pointer', fontWeight: 600, padding: 0,
+        }}>← Back</button>
+      </div>
+
       {/* ── Card 1: Mode Settings ────────────────────────────────────── */}
       <div style={{ ...S.card, marginBottom: '0.875rem' }}>
 
         {/* Header */}
         <div style={S.cardHeader}>
-          <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.8rem', cursor: 'pointer', marginBottom: '0.6rem', display: 'block' }}>← Back</button>
           <div style={S.modeTag}>{cfg.icon} {cfg.label}</div>
           <div style={S.title}>Draft Rules</div>
         </div>

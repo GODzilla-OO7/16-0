@@ -19,6 +19,7 @@ import H2HDraft from './components/H2HDraft.jsx'
 import SharedLeague from './components/SharedLeague.jsx'
 import { STARTING_BUDGET } from './components/WheelSpin.jsx'
 import MusicPlayer from './components/MusicPlayer.jsx'
+import ConfirmLeaveModal from './components/ConfirmLeaveModal.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
 import { getStreakData, recordDailyLogin, recordPlayStreak, consumeStreakBonus } from './hooks/useStreak.js'
 import { useAuth, saveGameResult, incrementTotalPlays, signInWithGoogle } from './hooks/useAuth.js'
@@ -136,6 +137,7 @@ export default function App() {
   const [releasedPlayerNames, setReleasedPlayerNames] = useState(new Set()) // blocked by name for immediate next auction only
   const [impactSubOutName, setImpactSubOutName]     = useState(null)       // impact sub outgoing player name (added to released next retention)
   const [biddingWarsUsed, setBiddingWarsUsed]   = useState(0)          // max 4 bidding wars per draft
+  const [draftConfirmAction, setDraftConfirmAction] = useState(null)   // null | 'back' | 'home'
   const [prevBudgetLeftover, setPrevBudgetLeftover] = useState(0)    // leftover from last auction
   const [retentionTeam, setRetentionTeam]     = useState([])         // full season-end team snapshot for retention screen
   const [showH2H,      setShowH2H]        = useState(false)
@@ -290,6 +292,22 @@ export default function App() {
     // Clear any release blocks — back-to-settings is a full restart so these shouldn't persist
     setReleasedPlayerNames(new Set())
     setImpactSubOutName(null)
+  }
+
+  // Draft back/home with confirmation when players picked
+  function handleDraftBack() {
+    if (team.length > 0) setDraftConfirmAction('back')
+    else handleBackToComposition()
+  }
+  function handleDraftHome() {
+    if (team.length > 0) setDraftConfirmAction('home')
+    else handlePlayAgain()
+  }
+  function handleDraftConfirmYes() {
+    const action = draftConfirmAction
+    setDraftConfirmAction(null)
+    if (action === 'home') handlePlayAgain()
+    else handleBackToComposition()
   }
 
   // Back from draft → composition screen (S1) or retention screen (S2+)
@@ -593,7 +611,7 @@ export default function App() {
   if (phase === 'compose') return (
     <div style={{ paddingTop: activeChallenge ? BANNER_H : 0, minHeight: '100vh', position: 'relative' }}>
       <div className="page-overlay" />
-      <SquadComposer onDone={handleCompositionDone} onBack={() => setPhase('settings')} />
+      <SquadComposer onDone={handleCompositionDone} onBack={() => setPhase('settings')} onHome={handlePlayAgain} />
       {profileBtn}
       {globalOverlays}
     </div>
@@ -626,14 +644,12 @@ export default function App() {
           backdropFilter: 'blur(8px)', zIndex: 10,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <button onClick={handleBackToComposition} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer' }}>
+            <button onClick={handleDraftBack} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
               ← Back
             </button>
-            {seasonNumber > 1 && (
-              <button onClick={handlePlayAgain} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 700 }}>
-                🏠 Home
-              </button>
-            )}
+            <button onClick={handleDraftHome} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+              🏠 Home
+            </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>
             <img src="/logo.png" alt="16-0" style={{ height: 28, width: 28, objectFit: 'contain' }} />
@@ -773,6 +789,14 @@ export default function App() {
         </div>
       {profileBtn}
       {globalOverlays}
+      {draftConfirmAction && (
+        <ConfirmLeaveModal
+          message="Your drafted players will be lost. Are you sure you want to go back?"
+          onYes={handleDraftConfirmYes}
+          onNo={() => setDraftConfirmAction(null)}
+          onHome={() => { setDraftConfirmAction(null); handlePlayAgain() }}
+        />
+      )}
       </div>
     )
   }
@@ -780,7 +804,7 @@ export default function App() {
   if (phase === 'simulate') return (
     <div style={{ minHeight: '100vh', paddingTop: activeChallenge ? BANNER_H : 0, position: 'relative' }}>
       <div className="page-overlay" />
-      <MatchSimulator team={team} mode={mode} manager={manager} ratingType={settings?.ratingType} onDone={(sum) => { if (h2hSimContext) setH2hResultCtx(h2hSimContext); setH2hSimContext(null); handleSimDone(sum) }} h2hContext={h2hSimContext} />
+      <MatchSimulator team={team} mode={mode} manager={manager} ratingType={settings?.ratingType} onDone={(sum) => { if (h2hSimContext) setH2hResultCtx(h2hSimContext); setH2hSimContext(null); handleSimDone(sum) }} h2hContext={h2hSimContext} onHome={handlePlayAgain} />
       {profileBtn}
       {globalOverlays}
     </div>
