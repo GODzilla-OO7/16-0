@@ -403,7 +403,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
             <div style={{ fontSize: '1rem', fontWeight: 900, color: '#C8102E' }}>₹{draftBudget}cr</div>
           </div>
           <SingleSlider
-            min={60} max={150} step={5}
+            min={60} max={125} step={5}
             value={draftBudget}
             onChange={setDraftBudget}
             formatLabel={v => `₹${v}cr`}

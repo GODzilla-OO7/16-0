@@ -403,9 +403,9 @@ export const AWARDS = [
     id:    'big_spender',
     icon:  '🤑',
     name:  'Cash Splash',
-    desc:  'Win the IPL on ₹130cr+ starting budget',
+    desc:  'Win the IPL on the maximum ₹125cr starting budget',
     check: ({ iplOutcome, budget }) =>
-      iplOutcome === 'champion' && (budget ?? 110) >= 130,
+      iplOutcome === 'champion' && (budget ?? 110) >= 125,
   },
   {
     id:    'budget_squeeze',
