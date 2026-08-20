@@ -18,6 +18,7 @@ import H2HLobby from './components/H2HLobby.jsx'
 import H2HDraft from './components/H2HDraft.jsx'
 import SharedLeague from './components/SharedLeague.jsx'
 import { STARTING_BUDGET } from './components/WheelSpin.jsx'
+import MusicPlayer from './components/MusicPlayer.jsx'
 import { recordSeason, loadProfile } from './hooks/useProfile.js'
 import { getStreakData, recordDailyLogin, recordPlayStreak, consumeStreakBonus } from './hooks/useStreak.js'
 import { useAuth, saveGameResult, incrementTotalPlays, signInWithGoogle } from './hooks/useAuth.js'
@@ -493,6 +494,7 @@ export default function App() {
           }}
         />
       )}
+      <MusicPlayer />
     </>
   )
 
@@ -640,12 +642,6 @@ export default function App() {
             {settings?.ratingType === 'prime' && <span style={{ fontSize: '0.7rem', color: '#a855f7', marginLeft: '0.5rem' }}>⚡ PRIME</span>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              fontSize: '0.8rem', fontWeight: 800,
-              color: budgetLeft < 20 ? '#ef4444' : budgetLeft < 40 ? '#f59e0b' : '#22c55e',
-            }}>
-              💰 ₹{budgetLeft}cr
-            </div>
             <div style={{ fontSize: '0.85rem', color: isDone ? '#C8102E' : 'var(--text-muted)', fontWeight: 700 }}>
               {slotsFilled}/{totalSlots}
             </div>

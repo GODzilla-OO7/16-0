@@ -174,6 +174,7 @@ export default function WheelSpin({
   useEffect(() => () => clearTimeout(cycleRef.current), [])
 
   function startSpin() {
+    import('../utils/audioEngine.js').then(m => m.playSpinSound()).catch(() => {})
     setPhase('spinning')
     setLandedEntry(null)
 
@@ -565,9 +566,6 @@ function SpinPhase({ phase, cycleEntry, slotIndex, totalSlots, needs, mustPick, 
           <div style={{ display: 'inline-block', padding: '0.2rem 0.75rem', background: '#f59e0b22', border: '1px solid #f59e0b55', borderRadius: '999px', color: '#f59e0b', fontSize: '0.72rem', fontWeight: 700, marginBottom: '0.4rem' }}>
             ⚠ Must pick a {mustPick.label} this round
           </div>
-        )}
-        {!mustPick && needs.length > 0 && (
-          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Still need: {needs.map(n => n.label).join(', ')}</div>
         )}
       </div>
 

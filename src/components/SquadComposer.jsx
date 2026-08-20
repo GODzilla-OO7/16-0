@@ -398,7 +398,7 @@ export default function SquadComposer({ onDone, onBack }) {
             fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em',
             textTransform: 'uppercase', marginBottom: '0.4rem',
           }}>Build Your XI</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text)', margin: '0 0 0.25rem', letterSpacing: '-0.03em' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#cbd5e1', margin: '0 0 0.25rem', letterSpacing: '0.01em' }}>
             Choose Composition
           </h2>
           <p style={{ color: '#64748b', fontSize: '0.78rem', margin: 0 }}>Drag sliders · Total = 11 · Min 1 opener, 1 keeper</p>
@@ -518,7 +518,7 @@ export default function SquadComposer({ onDone, onBack }) {
           fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em',
           textTransform: 'uppercase', marginBottom: '0.35rem',
         }}>Build Your XI</div>
-        <h2 style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text)', margin: '0 0 0.2rem', letterSpacing: '-0.03em' }}>
+        <h2 style={{ fontSize: '1.6rem', fontWeight: 600, color: '#cbd5e1', margin: '0 0 0.2rem', letterSpacing: '0.01em' }}>
           Choose Your Composition
         </h2>
         <p style={{ color: '#64748b', fontSize: '0.78rem', margin: 0 }}>
