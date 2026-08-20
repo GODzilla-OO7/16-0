@@ -378,7 +378,17 @@ export default function SquadComposer({ onDone, onBack }) {
         minHeight: '100vh', padding: '1rem 1rem 2rem',
         background: 'var(--bg)',
         display: 'flex', flexDirection: 'column', gap: '0.875rem',
+        position: 'relative',
       }}>
+        {/* Stadium background */}
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 0,
+          backgroundImage: 'url(/stadium.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          opacity: 0.06,
+          pointerEvents: 'none',
+        }} />
         {/* Header */}
         <div style={{ textAlign: 'center' }}>
           <div style={{
@@ -482,7 +492,17 @@ export default function SquadComposer({ onDone, onBack }) {
       padding: '1rem 1.5rem',
       boxSizing: 'border-box',
       gap: '0.75rem',
+      position: 'relative',
     }}>
+      {/* Stadium background */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 0,
+        backgroundImage: 'url(/stadium.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        opacity: 0.06,
+        pointerEvents: 'none',
+      }} />
 
       {/* Header — full size now that presets live inside the slider card */}
       <div style={{ textAlign: 'center', flexShrink: 0 }}>

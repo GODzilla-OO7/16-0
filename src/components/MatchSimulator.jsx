@@ -662,15 +662,15 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               ))}
               {/* Orange Cap & Purple Cap quick boxes */}
               {topRunScorers.length > 0 && (
-                <div className="score-box" style={{ minWidth: 100, textAlign: 'center', padding: '0.75rem 0.75rem', background: 'var(--card)', border: '1px solid #f9731655', borderRadius: '0.75rem' }}>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.15rem' }}>🟠 Orange Cap</div>
+                <div className="score-box" style={{ minWidth: 100, textAlign: 'center', padding: '0.75rem 0.75rem', background: 'linear-gradient(135deg,#7c2d12,#1c1002)', border: '1px solid #f9731644', borderRadius: '0.75rem' }}>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.15rem' }}>🧡 Orange Cap</div>
                   <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>{topRunScorers[0].name.split(' ').slice(-1)[0]}</div>
                   <div style={{ fontSize: '1rem', fontWeight: 900, color: '#f97316', marginTop: '0.1rem' }}>{topRunScorers[0].runs} <span style={{ fontSize: '0.55rem', color: '#94a3b8' }}>runs</span></div>
                 </div>
               )}
               {topWicketTakers.length > 0 && (
-                <div className="score-box" style={{ minWidth: 100, textAlign: 'center', padding: '0.75rem 0.75rem', background: 'var(--card)', border: '1px solid #a855f755', borderRadius: '0.75rem' }}>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.15rem' }}>🟣 Purple Cap</div>
+                <div className="score-box" style={{ minWidth: 100, textAlign: 'center', padding: '0.75rem 0.75rem', background: 'linear-gradient(135deg,#2e1065,#0f0520)', border: '1px solid #a855f744', borderRadius: '0.75rem' }}>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.15rem' }}>💜 Purple Cap</div>
                   <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>{topWicketTakers[0].name.split(' ').slice(-1)[0]}</div>
                   <div style={{ fontSize: '1rem', fontWeight: 900, color: '#a855f7', marginTop: '0.1rem' }}>{topWicketTakers[0].wickets} <span style={{ fontSize: '0.55rem', color: '#94a3b8' }}>wkts</span></div>
                 </div>
@@ -810,45 +810,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               )
             })}
 
-            {/* Live Points Table — shown during IPL league stage */}
-            {isIPL && iplPhase === 'league' && liveIPLTable && revealed.length > 0 && (
-              <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '0.875rem', overflow: 'hidden', marginTop: '0.25rem', backdropFilter: 'blur(8px)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 1rem', borderBottom: '1px solid var(--border)' }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>📋 Points Table</div>
-                  <div style={{ fontSize: '0.6rem', color: '#64748b' }}>{revealed.length}/{14} played</div>
-                </div>
-                {/* Table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1rem 1fr 2.5rem 2.5rem 3rem 3.5rem', gap: '0.25rem', padding: '0.4rem 1rem', background: 'var(--border2)', fontSize: '0.55rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-                  <div>#</div><div>Team</div><div style={{ textAlign: 'center' }}>W</div><div style={{ textAlign: 'center' }}>L</div><div style={{ textAlign: 'center' }}>PTS</div><div style={{ textAlign: 'right' }}>NRR</div>
-                </div>
-                {/* Rows — live user row, other teams from pre-computed table */}
-                {(() => {
-                  const liveTable = liveIPLTable.table.map(row => row.isUser
-                    ? { ...row, wins: leagueWins, losses: leagueLosses, points: leagueWins * 2 }
-                    : row
-                  ).sort((a, b) => b.points !== a.points ? b.points - a.points : parseFloat(b.nrr) - parseFloat(a.nrr))
-                  const displayRows = showFullTable ? liveTable : liveTable.slice(0, 3)
-                  return displayRows.map((row, i) => (
-                    <div key={row.team} style={{ display: 'grid', gridTemplateColumns: '1rem 1fr 2.5rem 2.5rem 3rem 3.5rem', gap: '0.25rem', padding: '0.45rem 1rem', borderBottom: i < displayRows.length - 1 ? '1px solid var(--border2)' : 'none', background: row.isUser ? '#C8102E0d' : 'transparent', borderLeft: row.isUser ? '3px solid #C8102E' : 'none' }}>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 800, color: i < 4 ? '#C8102E' : '#64748b', alignSelf: 'center' }}>{liveTable.indexOf(row) + 1}</div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: row.isUser ? 900 : 600, color: row.isUser ? 'var(--text)' : '#94a3b8', alignSelf: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.isUser ? 'Your XI ⭐' : row.team.split(' ').slice(-1)[0]}</div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#22c55e', textAlign: 'center', alignSelf: 'center' }}>{row.wins}</div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#ef4444', textAlign: 'center', alignSelf: 'center' }}>{row.losses}</div>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 900, color: '#f59e0b', textAlign: 'center', alignSelf: 'center' }}>{row.points}</div>
-                      <div style={{ fontSize: '0.62rem', color: row.nrr?.startsWith('+') ? '#22c55e' : '#ef4444', textAlign: 'right', alignSelf: 'center', fontWeight: 600 }}>{row.nrr}</div>
-                    </div>
-                  ))
-                })()}
-                <button
-                  onClick={() => setShowFullTable(v => !v)}
-                  style={{ width: '100%', padding: '0.55rem', background: 'none', border: 'none', borderTop: '1px solid var(--border2)', cursor: 'pointer', fontSize: '0.65rem', color: '#64748b', fontWeight: 700 }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#C8102E'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
-                >
-                  {showFullTable ? '▲ Show less' : `▼ Full table (10 teams)`}
-                </button>
-              </div>
-            )}
+            {/* Live Points Table — removed from simulation view */}
 
           </div>
 

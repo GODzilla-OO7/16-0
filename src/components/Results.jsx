@@ -854,8 +854,18 @@ export default function Results({ team, mode, manager, summary, matchResults, on
       minHeight: '100vh',
       background: 'var(--bg)',
       padding: '2rem 1rem 4rem',
+      position: 'relative',
     }}>
-      <div style={{ maxWidth: 700, margin: '0 auto' }}>
+      {/* Stadium background — far behind, very subtle */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0,
+        backgroundImage: 'url(/stadium.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        opacity: 0.06,
+        pointerEvents: 'none',
+      }} />
+      <div style={{ maxWidth: 700, margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
         {/* Heartbreak overlay — shown when losing a Final */}
         {isHeartbreak && (
