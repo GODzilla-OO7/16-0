@@ -399,17 +399,97 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
           </div>
         </div>
 
-        {/* Primary CTA */}
+        {/* CHOOSE YOUR MODE label */}
+        <div style={{ textAlign: 'center', marginBottom: '0.875rem' }}>
+          <span style={{
+            fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.12em',
+            textTransform: 'uppercase', color: C.accent,
+            borderBottom: `1.5px solid ${C.accent}`,
+            paddingBottom: '2px',
+          }}>Choose Your Mode</span>
+        </div>
+
+        {/* Three mode cards: IPL | ODI WC | T20 WC */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.625rem', marginBottom: '0.75rem' }}>
+
+          {/* IPL card — active */}
+          <div style={{
+            background: C.cardBg, border: `1.5px solid ${C.cardBorder}`,
+            borderRadius: '0.875rem', padding: '1rem 0.75rem',
+            backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', gap: '0.5rem',
+          }}>
+            <span style={{ fontSize: '1.75rem', lineHeight: 1 }}>🏆</span>
+            <div style={{ fontSize: '0.9rem', fontWeight: 900, color: C.text, textAlign: 'center' }}>IPL</div>
+            <div style={{ fontSize: '0.65rem', color: C.muted, textAlign: 'center', lineHeight: 1.4 }}>Draft with full player stats visible</div>
+            <button
+              onClick={() => onSelect('ipl')}
+              style={{
+                marginTop: 'auto', width: '100%',
+                padding: '0.55rem 0', background: '#C8102E', border: 'none',
+                borderRadius: '0.5rem', color: '#fff',
+                fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer',
+                transition: 'background 0.15s, transform 0.1s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#a50d24'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#C8102E'; e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              PLAY IPL
+            </button>
+          </div>
+
+          {/* ODI WC card — coming soon */}
+          <div style={{
+            background: C.cardBg, border: `1px solid ${C.cardBorder}`,
+            borderRadius: '0.875rem', padding: '1rem 0.75rem',
+            backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', gap: '0.5rem', opacity: 0.5,
+          }}>
+            <span style={{ fontSize: '1.75rem', lineHeight: 1 }}>🌍</span>
+            <div style={{ fontSize: '0.9rem', fontWeight: 900, color: C.text, textAlign: 'center' }}>ODI WC</div>
+            <div style={{ fontSize: '0.65rem', color: C.muted, textAlign: 'center', lineHeight: 1.4 }}>Build the greatest ODI World Cup XI</div>
+            <div style={{
+              marginTop: 'auto', width: '100%',
+              padding: '0.55rem 0', background: 'var(--border2)', border: '1px solid var(--border)',
+              borderRadius: '0.5rem', color: C.muted,
+              fontSize: '0.72rem', fontWeight: 700, textAlign: 'center',
+            }}>
+              COMING SOON
+            </div>
+          </div>
+
+          {/* T20 WC card — coming soon */}
+          <div style={{
+            background: C.cardBg, border: `1px solid ${C.cardBorder}`,
+            borderRadius: '0.875rem', padding: '1rem 0.75rem',
+            backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', gap: '0.5rem', opacity: 0.5,
+          }}>
+            <span style={{ fontSize: '1.75rem', lineHeight: 1 }}>⚡</span>
+            <div style={{ fontSize: '0.9rem', fontWeight: 900, color: C.text, textAlign: 'center' }}>T20 WC</div>
+            <div style={{ fontSize: '0.65rem', color: C.muted, textAlign: 'center', lineHeight: 1.4 }}>Pick your nation's finest across every edition</div>
+            <div style={{
+              marginTop: 'auto', width: '100%',
+              padding: '0.55rem 0', background: 'var(--border2)', border: '1px solid var(--border)',
+              borderRadius: '0.5rem', color: C.muted,
+              fontSize: '0.72rem', fontWeight: 700, textAlign: 'center',
+            }}>
+              COMING SOON
+            </div>
+          </div>
+        </div>
+
+        {/* Multiplayer button — rectangular, full-width */}
         <button
-          onClick={() => onSelect('ipl')}
+          onClick={onH2H}
           style={{
             width: '100%',
-            padding: '0.9rem 1.5rem',
-            background: '#C8102E',
-            border: 'none',
+            padding: '0.75rem 1.25rem',
+            background: 'transparent',
+            border: `1.5px solid ${C.cardBorder}`,
             borderRadius: '0.625rem',
-            color: '#fff',
-            fontSize: '1rem',
+            color: C.text,
+            fontSize: '0.88rem',
             fontWeight: 800,
             cursor: 'pointer',
             display: 'flex',
@@ -417,12 +497,14 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
             justifyContent: 'center',
             gap: '0.5rem',
             marginBottom: '0.625rem',
-            transition: 'background 0.15s, transform 0.1s',
+            backdropFilter: 'blur(8px)',
+            background: C.cardBg,
+            transition: 'border-color 0.15s, background 0.15s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#a50d24'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#C8102E'; e.currentTarget.style.transform = 'translateY(0)' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.background = C.cardHover }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = C.cardBorder; e.currentTarget.style.background = C.cardBg }}
         >
-          Play Cricket 16-0 <span style={{ fontSize: '1.1rem' }}>→</span>
+          <span style={{ fontSize: '1rem' }}>⚔️</span> MULTIPLAYER <span style={{ fontSize: '0.75rem', color: C.muted, fontWeight: 600 }}>— Draft vs a friend</span>
         </button>
 
         {/* Sign-in prompt — only for signed-out users */}
@@ -537,45 +619,13 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
           </div>
         )}
 
-        {/* PLAY WITH MATES */}
-        <div style={{ marginBottom: '1.75rem' }}>
-          <div style={{
-            fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em',
-            textTransform: 'uppercase', color: C.sectionLbl,
-            marginBottom: '0.625rem', paddingLeft: '0.125rem',
-          }}>Play with mates</div>
-
-          <ModeCard
-            icon="⚔️"
-            title="Multiplayer"
-            desc="Draft your XI vs a friend — snake or live auction. Most points wins."
-            onClick={onH2H}
-            C={C}
-          />
-        </div>
-
-        {/* MORE WAYS TO PLAY */}
-        <div>
-          <div style={{
-            fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em',
-            textTransform: 'uppercase', color: C.sectionLbl,
-            marginBottom: '0.625rem', paddingLeft: '0.125rem',
-          }}>More ways to play</div>
-
+        {/* Daily Challenge — kept as a secondary option */}
+        <div style={{ marginBottom: '0.625rem' }}>
           <ModeCard
             icon="📅"
             title="Daily Challenge"
             desc="Today's puzzle: one go, fresh every day."
             onClick={onDailyChallenge}
-            C={C}
-          />
-
-          <ModeCard
-            icon="🌍"
-            title="World Cup Modes"
-            desc="ODI & T20 World Cups · 1975–2024."
-            disabled
-            comingSoon
             C={C}
           />
         </div>

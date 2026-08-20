@@ -191,7 +191,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
   const filteredCount = getFilteredEntries().length
 
   const S = {
-    page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', position: 'relative', zIndex: 1 },
+    page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem 3rem', position: 'relative', zIndex: 1 },
     card: { width: '100%', maxWidth: 560, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '1.25rem', overflow: 'hidden', backdropFilter: 'blur(8px)' },
     cardHeader: { padding: '1.5rem 1.75rem', borderBottom: '1px solid var(--border)' },
     modeTag: { fontSize: '0.72rem', color: '#C8102E', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
@@ -329,19 +329,31 @@ export default function DraftSettings({ mode, onStart, onBack }) {
           {filteredCount} team{filteredCount !== 1 ? 's' : ''} on the wheel
         </div>
 
-        {/* Footer */}
-        <div style={{ padding: '1.25rem 1.75rem', display: 'flex', gap: '0.75rem', borderTop: '1px solid var(--border)' }}>
-          <button onClick={onBack} style={{ padding: '0.875rem 1.25rem', background: 'transparent', color: '#64748b', border: '1px solid var(--border)', borderRadius: '0.625rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>
-            ← Back
-          </button>
-          <button
-            onClick={handleStart}
-            disabled={mode !== 'ipl' && filteredCount === 0}
-            style={{ flex: 1, padding: '0.875rem', background: (mode !== 'ipl' && filteredCount === 0) ? 'var(--border2)' : '#C8102E', color: (mode !== 'ipl' && filteredCount === 0) ? '#64748b' : 'var(--bg)', border: 'none', borderRadius: '0.625rem', fontSize: '0.95rem', fontWeight: 800, cursor: (mode !== 'ipl' && filteredCount === 0) ? 'default' : 'pointer' }}
-          >
-            {(mode !== 'ipl' && filteredCount === 0) ? 'Select editions first' : 'Start Draft →'}
-          </button>
-        </div>
+      </div>
+
+      {/* Full-width next button below card */}
+      <div style={{ width: '100%', maxWidth: 560, marginTop: '1rem' }}>
+        <button
+          onClick={handleStart}
+          disabled={mode !== 'ipl' && filteredCount === 0}
+          style={{
+            width: '100%',
+            padding: '1rem',
+            background: (mode !== 'ipl' && filteredCount === 0) ? 'var(--border2)' : '#C8102E',
+            color: (mode !== 'ipl' && filteredCount === 0) ? '#64748b' : '#fff',
+            border: 'none',
+            borderRadius: '0.75rem',
+            fontSize: '1rem',
+            fontWeight: 800,
+            cursor: (mode !== 'ipl' && filteredCount === 0) ? 'default' : 'pointer',
+            letterSpacing: '0.04em',
+            transition: 'background 0.15s, transform 0.1s',
+          }}
+          onMouseEnter={e => { if (!(mode !== 'ipl' && filteredCount === 0)) { e.currentTarget.style.background = '#a50d24'; e.currentTarget.style.transform = 'translateY(-1px)' } }}
+          onMouseLeave={e => { e.currentTarget.style.background = (mode !== 'ipl' && filteredCount === 0) ? 'var(--border2)' : '#C8102E'; e.currentTarget.style.transform = 'translateY(0)' }}
+        >
+          {(mode !== 'ipl' && filteredCount === 0) ? 'Select editions first' : 'NEXT: CHOOSE COMPOSITION →'}
+        </button>
       </div>
     </div>
   )

@@ -30,6 +30,8 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   const [liveRuns,        setLiveRuns]        = useState({})
   const [liveWkts,        setLiveWkts]        = useState({})
   const [expandedMatch,   setExpandedMatch]   = useState(null)
+  const [liveIPLTable,    setLiveIPLTable]    = useState(null)
+  const [showFullTable,   setShowFullTable]   = useState(false)
   const [iplPhase,        setIplPhase]        = useState('league') // league|table|playoffs|done
   const [iplTable,        setIplTable]        = useState(null)
   const [iplPosition,     setIplPosition]     = useState(null)
@@ -148,6 +150,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
       : null
     const season = simulateFullSeason(ratingType === 'prime' ? applyPrimeRatings(team, mode) : team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp })
     setLeagueSeason(season)
+    if (isIPL) setLiveIPLTable(generateIPLTable(season.wins))
 
     let i = 0
     // Consistent 1200ms for all matches — gives time to read each result
@@ -807,6 +810,46 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               )
             })}
 
+            {/* Live Points Table — shown during IPL league stage */}
+            {isIPL && iplPhase === 'league' && liveIPLTable && revealed.length > 0 && (
+              <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '0.875rem', overflow: 'hidden', marginTop: '0.25rem', backdropFilter: 'blur(8px)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 1rem', borderBottom: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>📋 Points Table</div>
+                  <div style={{ fontSize: '0.6rem', color: '#64748b' }}>{revealed.length}/{14} played</div>
+                </div>
+                {/* Table header */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1rem 1fr 2.5rem 2.5rem 3rem 3.5rem', gap: '0.25rem', padding: '0.4rem 1rem', background: 'var(--border2)', fontSize: '0.55rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                  <div>#</div><div>Team</div><div style={{ textAlign: 'center' }}>W</div><div style={{ textAlign: 'center' }}>L</div><div style={{ textAlign: 'center' }}>PTS</div><div style={{ textAlign: 'right' }}>NRR</div>
+                </div>
+                {/* Rows — live user row, other teams from pre-computed table */}
+                {(() => {
+                  const liveTable = liveIPLTable.table.map(row => row.isUser
+                    ? { ...row, wins: leagueWins, losses: leagueLosses, points: leagueWins * 2 }
+                    : row
+                  ).sort((a, b) => b.points !== a.points ? b.points - a.points : parseFloat(b.nrr) - parseFloat(a.nrr))
+                  const displayRows = showFullTable ? liveTable : liveTable.slice(0, 3)
+                  return displayRows.map((row, i) => (
+                    <div key={row.team} style={{ display: 'grid', gridTemplateColumns: '1rem 1fr 2.5rem 2.5rem 3rem 3.5rem', gap: '0.25rem', padding: '0.45rem 1rem', borderBottom: i < displayRows.length - 1 ? '1px solid var(--border2)' : 'none', background: row.isUser ? '#C8102E0d' : 'transparent', borderLeft: row.isUser ? '3px solid #C8102E' : 'none' }}>
+                      <div style={{ fontSize: '0.65rem', fontWeight: 800, color: i < 4 ? '#C8102E' : '#64748b', alignSelf: 'center' }}>{liveTable.indexOf(row) + 1}</div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: row.isUser ? 900 : 600, color: row.isUser ? 'var(--text)' : '#94a3b8', alignSelf: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.isUser ? 'Your XI ⭐' : row.team.split(' ').slice(-1)[0]}</div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#22c55e', textAlign: 'center', alignSelf: 'center' }}>{row.wins}</div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#ef4444', textAlign: 'center', alignSelf: 'center' }}>{row.losses}</div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 900, color: '#f59e0b', textAlign: 'center', alignSelf: 'center' }}>{row.points}</div>
+                      <div style={{ fontSize: '0.62rem', color: row.nrr?.startsWith('+') ? '#22c55e' : '#ef4444', textAlign: 'right', alignSelf: 'center', fontWeight: 600 }}>{row.nrr}</div>
+                    </div>
+                  ))
+                })()}
+                <button
+                  onClick={() => setShowFullTable(v => !v)}
+                  style={{ width: '100%', padding: '0.55rem', background: 'none', border: 'none', borderTop: '1px solid var(--border2)', cursor: 'pointer', fontSize: '0.65rem', color: '#64748b', fontWeight: 700 }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#C8102E'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
+                >
+                  {showFullTable ? '▲ Show less' : `▼ Full table (10 teams)`}
+                </button>
+              </div>
+            )}
+
           </div>
 
           {/* Right — leaderboard */}
@@ -827,6 +870,30 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
                   <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.35rem' }}>💜 Purple Cap Winner</div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#fff' }}>{topWicketTakers[0].name}</div>
                   <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#a855f7' }}>{topWicketTakers[0].wickets} <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>wkts</span></div>
+                </div>
+              )}
+
+              {/* Recent Form — last 5 results */}
+              {revealed.length > 0 && (
+                <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '0.875rem', padding: '0.875rem 1rem', backdropFilter: 'blur(8px)' }}>
+                  <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>Recent Form</div>
+                  <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                    {[...revealed].slice(-5).map((r, i) => (
+                      <div key={i} style={{
+                        width: 28, height: 28, borderRadius: '0.375rem',
+                        background: r.won ? '#16a34a22' : '#dc262622',
+                        border: `1px solid ${r.won ? '#16a34a55' : '#dc262655'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.7rem', fontWeight: 900,
+                        color: r.won ? '#22c55e' : '#ef4444',
+                      }}>
+                        {r.won ? 'W' : 'L'}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '0.6rem', color: '#475569', marginTop: '0.5rem' }}>
+                    Last {Math.min(revealed.length, 5)} match{Math.min(revealed.length, 5) !== 1 ? 'es' : ''}
+                  </div>
                 </div>
               )}
             </div>
