@@ -191,8 +191,8 @@ export default function DraftSettings({ mode, onStart, onBack }) {
   const filteredCount = getFilteredEntries().length
 
   const S = {
-    page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', background: 'var(--bg)' },
-    card: { width: '100%', maxWidth: 560, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '1.25rem', overflow: 'hidden' },
+    page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', position: 'relative', zIndex: 1 },
+    card: { width: '100%', maxWidth: 560, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '1.25rem', overflow: 'hidden', backdropFilter: 'blur(8px)' },
     cardHeader: { padding: '1.5rem 1.75rem', borderBottom: '1px solid var(--border)' },
     modeTag: { fontSize: '0.72rem', color: '#C8102E', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
     title: { fontSize: '1.4rem', fontWeight: 900, color: 'var(--text)' },

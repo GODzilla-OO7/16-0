@@ -652,11 +652,26 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
                 { label: 'Losses', value: leagueLosses,  color: '#ef4444' },
                 { label: 'Played', value: revealed.length, color: '#94a3b8' },
               ].map(s => (
-                <div key={s.label} className="score-box" style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
+                <div key={s.label} className="score-box" style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '0.75rem' }}>
                   <div style={{ fontSize: '1.75rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
                   <div style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.2rem' }}>{s.label}</div>
                 </div>
               ))}
+              {/* Orange Cap & Purple Cap quick boxes */}
+              {topRunScorers.length > 0 && (
+                <div className="score-box" style={{ minWidth: 100, textAlign: 'center', padding: '0.75rem 0.75rem', background: 'var(--card)', border: '1px solid #f9731655', borderRadius: '0.75rem' }}>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.15rem' }}>🟠 Orange Cap</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>{topRunScorers[0].name.split(' ').slice(-1)[0]}</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 900, color: '#f97316', marginTop: '0.1rem' }}>{topRunScorers[0].runs} <span style={{ fontSize: '0.55rem', color: '#94a3b8' }}>runs</span></div>
+                </div>
+              )}
+              {topWicketTakers.length > 0 && (
+                <div className="score-box" style={{ minWidth: 100, textAlign: 'center', padding: '0.75rem 0.75rem', background: 'var(--card)', border: '1px solid #a855f755', borderRadius: '0.75rem' }}>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.15rem' }}>🟣 Purple Cap</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>{topWicketTakers[0].name.split(' ').slice(-1)[0]}</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 900, color: '#a855f7', marginTop: '0.1rem' }}>{topWicketTakers[0].wickets} <span style={{ fontSize: '0.55rem', color: '#94a3b8' }}>wkts</span></div>
+                </div>
+              )}
             </div>
             {/* Live streak badge */}
             {currentStreak.count >= 2 && (

@@ -994,6 +994,45 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             </div>
           )}
 
+          {/* ── Orange Cap / Purple Cap Season Winners ── */}
+          {(topScorers.length > 0 || topWicketTakers.length > 0) && (
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>
+                Season Award Winners
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                {topScorers.length > 0 && (
+                  <div style={{
+                    flex: 1, minWidth: 120,
+                    background: 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(234,88,12,0.08))',
+                    border: '1px solid rgba(249,115,22,0.4)',
+                    borderRadius: '0.875rem', padding: '0.875rem 1rem', textAlign: 'center',
+                  }}>
+                    <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.35rem' }}>🟠 Orange Cap</div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--text)' }}>{topScorers[0].name}</div>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#f97316', marginTop: '0.1rem' }}>
+                      {topScorers[0].runs} <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600 }}>runs</span>
+                    </div>
+                  </div>
+                )}
+                {topWicketTakers.length > 0 && (
+                  <div style={{
+                    flex: 1, minWidth: 120,
+                    background: 'linear-gradient(135deg, rgba(168,85,247,0.12), rgba(126,34,206,0.08))',
+                    border: '1px solid rgba(168,85,247,0.4)',
+                    borderRadius: '0.875rem', padding: '0.875rem 1rem', textAlign: 'center',
+                  }}>
+                    <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.35rem' }}>🟣 Purple Cap</div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--text)' }}>{topWicketTakers[0].name}</div>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#a855f7', marginTop: '0.1rem' }}>
+                      {topWicketTakers[0].wickets} <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600 }}>wkts</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* ── Medals earned this season ── */}
           {newAwards.length > 0 && (
             <div style={{ marginBottom: '1.5rem' }}>

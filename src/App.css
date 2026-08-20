@@ -6,8 +6,8 @@
 
 :root {
   --bg:      #0a0a0f;
-  --card:    #12121a;
-  --card2:   #0b0b16;
+  --card:    rgba(18, 18, 26, 0.90);
+  --card2:   rgba(11, 11, 22, 0.88);
   --border:  #2a2a3a;
   --card-border: #D4172C;
   --border2: #1a1a26;
@@ -37,8 +37,8 @@
 
 body.light {
   --bg:      #f4f7ff;
-  --card:    #ffffff;
-  --card2:   #eef3ff;
+  --card:    rgba(255, 255, 255, 0.90);
+  --card2:   rgba(238, 243, 255, 0.88);
   --border:  #dce6f7;
   --card-border: #D4172C;
   --border2: #e8edf7;
@@ -61,8 +61,26 @@ body.light {
   --elim-border: #dc262644;
 }
 
+/* ─── Stadium background (fixed, behind everything) ───────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url('/stadium.png') center center / cover no-repeat;
+}
+
+/* Dark overlay for non-home screens (add class .with-overlay to wrapper) */
+.page-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
 body {
-  background: var(--bg);
+  background: transparent;
   color: var(--text);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   min-height: 100vh;

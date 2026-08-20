@@ -566,14 +566,16 @@ export default function App() {
     </>
   )
   if (phase === 'settings') return (
-    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0, background: 'var(--bg)', minHeight: '100vh' }}>
+    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0, minHeight: '100vh', position: 'relative' }}>
+      <div className="page-overlay" />
       <DraftSettings mode={mode} onStart={handleSettingsStart} onBack={() => setPhase('menu')} />
       {profileBtn}
       {globalOverlays}
     </div>
   )
   if (phase === 'compose') return (
-    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0, background: 'var(--bg)', minHeight: '100vh' }}>
+    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0, minHeight: '100vh', position: 'relative' }}>
+      <div className="page-overlay" />
       <SquadComposer onDone={handleCompositionDone} onBack={() => setPhase('settings')} />
       {profileBtn}
       {globalOverlays}
@@ -582,7 +584,8 @@ export default function App() {
 
   // Manager select now comes AFTER the draft is complete
   if (phase === 'manager')  return (
-    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0, background: 'var(--bg)', minHeight: '100vh' }}>
+    <div style={{ paddingTop: activeChallenge ? BANNER_H : 0, minHeight: '100vh', position: 'relative' }}>
+      <div className="page-overlay" />
       <ManagerSelect mode={mode} team={team} onSelect={handleManagerSelect} onBack={() => setPhase('draft')} />
       {profileBtn}
       {globalOverlays}
@@ -596,7 +599,8 @@ export default function App() {
     const cfg         = MODE_CONFIG[mode]
 
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: activeChallenge ? 36 : 0 }}>
+      <div style={{ minHeight: '100vh', paddingTop: activeChallenge ? 36 : 0, position: 'relative' }}>
+        <div className="page-overlay" />
         {/* Sticky header */}
         <div className="draft-header" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -614,7 +618,8 @@ export default function App() {
               </button>
             )}
           </div>
-          <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>
+            <img src="/logo.png" alt="16-0" style={{ height: 28, width: 28, objectFit: 'contain' }} />
             {cfg.icon} {cfg.label}
             {settings?.hardMode && <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginLeft: '0.5rem' }}>🔒 HARD</span>}
             {settings?.ratingType === 'prime' && <span style={{ fontSize: '0.7rem', color: '#a855f7', marginLeft: '0.5rem' }}>⚡ PRIME</span>}
@@ -701,7 +706,7 @@ export default function App() {
                   display: 'flex', alignItems: 'center', gap: '0.6rem',
                   padding: '0.5rem 0.875rem',
                   background: limitReached ? '#ef444410' : 'var(--card)',
-                  border: `1.5px solid ${limitReached ? '#ef444455' : 'var(--border)'}`,
+                  border: `1.5px solid ${limitReached ? '#ef444455' : 'var(--card-border)'}`,
                   borderRadius: '0.625rem',
                 }}>
                   <span style={{ fontSize: '0.75rem' }}>✈️</span>
@@ -762,7 +767,8 @@ export default function App() {
   }
 
   if (phase === 'simulate') return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: activeChallenge ? BANNER_H : 0 }}>
+    <div style={{ minHeight: '100vh', paddingTop: activeChallenge ? BANNER_H : 0, position: 'relative' }}>
+      <div className="page-overlay" />
       <MatchSimulator team={team} mode={mode} manager={manager} ratingType={settings?.ratingType} onDone={(sum) => { if (h2hSimContext) setH2hResultCtx(h2hSimContext); setH2hSimContext(null); handleSimDone(sum) }} h2hContext={h2hSimContext} />
       {profileBtn}
       {globalOverlays}
@@ -770,7 +776,8 @@ export default function App() {
   )
 
   if (phase === 'retention') return (
-    <>
+    <div style={{ minHeight: '100vh', position: 'relative' }}>
+      <div className="page-overlay" />
       {/* Home button bar for S2+ retention screen */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 20,
@@ -797,11 +804,12 @@ export default function App() {
         onConfirm={handleRetentionDone}
       />
       {globalOverlays}
-    </>
+    </div>
   )
 
   if (phase === 'results') return (
-    <>
+    <div style={{ minHeight: '100vh', position: 'relative' }}>
+      <div className="page-overlay" />
       <Results
         team={team} mode={mode} manager={manager}
         summary={summary} matchResults={matchResults}
@@ -816,7 +824,7 @@ export default function App() {
       />
       {profileBtn}
       {globalOverlays}
-    </>
+    </div>
   )
 
   return null

@@ -13,10 +13,10 @@ const HOW_TO_PLAY = [
 
 const LIGHT = {
   bg:         '#f4f7ff',
-  cardBg:     '#ffffff',
+  cardBg:     'rgba(255, 255, 255, 0.90)',
   cardBorder: '#D4172C',
-  cardHover:  '#f0f4ff',
-  htpBg:      '#f8faff',
+  cardHover:  'rgba(240, 244, 255, 0.93)',
+  htpBg:      'rgba(248, 250, 255, 0.92)',
   accent:     '#C8102E',
   accentHov:  '#a50d24',
   accentDim:  'rgba(200,16,46,0.1)',
@@ -29,10 +29,10 @@ const LIGHT = {
 
 const DARK = {
   bg:         '#0a0a0f',
-  cardBg:     '#12121a',
-  cardBorder: '#2a2a3a',
-  cardHover:  '#1a1a28',
-  htpBg:      '#0d0d18',
+  cardBg:     'rgba(18, 18, 26, 0.90)',
+  cardBorder: '#D4172C',
+  cardHover:  'rgba(26, 26, 40, 0.93)',
+  htpBg:      'rgba(13, 13, 24, 0.90)',
   accent:     '#C8102E',
   accentHov:  '#a50d24',
   accentDim:  'rgba(200,16,46,0.12)',
@@ -72,6 +72,7 @@ function ModeCard({ icon, title, desc, onClick, disabled, comingSoon, C }) {
         gap: '0.875rem',
         textAlign: 'left',
         opacity: disabled ? 0.45 : 1,
+        backdropFilter: 'blur(8px)',
         transition: 'border-color 0.15s, background 0.15s',
         marginBottom: '0.5rem',
       }}
@@ -206,8 +207,9 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
       alignItems: 'center',
       justifyContent: 'center',
       padding: '3rem 1.25rem',
-      background: C.bg,
+      background: 'transparent',
       position: 'relative',
+      zIndex: 1,
       overflow: 'hidden',
     }}>
 
@@ -330,7 +332,8 @@ export default function ModeSelect({ onSelect, onH2H, onDailyChallenge, user, on
         })()}
 
         {/* Badge */}
-        <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '0.875rem' }}>
+          <img src="/logo.png" alt="16-0" style={{ height: 52, width: 52, objectFit: 'contain', marginBottom: '0.5rem', display: 'block', margin: '0 auto 0.5rem' }} />
           <span style={{
             display: 'inline-block',
             padding: '0.2rem 0.75rem',
