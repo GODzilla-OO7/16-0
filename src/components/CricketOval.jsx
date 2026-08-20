@@ -106,7 +106,7 @@ function PlayerCard({ player, idx, isMispos, ratingType, mode, onMoveUp, onMoveD
       }}>
         <span style={{
           fontSize: '0.95rem', fontWeight: 900, letterSpacing: '-0.03em',
-          color, fontFamily: 'Inter, sans-serif', userSelect: 'none',
+          color, fontFamily: "'Barlow Condensed', sans-serif", userSelect: 'none',
         }}>
           {initials(player.name)}
         </span>
