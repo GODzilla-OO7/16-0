@@ -224,13 +224,18 @@ export default function App() {
       iplOutcome:   sum.iplOutcome,
       iplPosition:  sum.iplPosition,
       perfect:      sum.perfect,
-      difficulty:   settings?.difficulty,
-      ratingType:   settings?.ratingType,
+      difficulty:     settings?.difficulty,
+      ratingType:     settings?.ratingType,
       manager,
-      team:         finalTeam,
+      team:           finalTeam,
       composition,
       runId,
       seasonNumber,
+      freePositions:  settings?.freePositions  ?? false,
+      overseasLimit:  settings?.overseasLimit   ?? true,
+      biddingWars:    settings?.biddingWars     ?? true,
+      hiddenRatings:  settings?.hardMode        ?? false,
+      budget:         settings?.budget          ?? STARTING_BUDGET,
     })
     if (newlyEarned.length > 0) {
       setNewAwards(newlyEarned)
