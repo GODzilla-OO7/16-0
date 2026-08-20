@@ -64,13 +64,9 @@ function sortByBattingOrder(arr) {
 
 export default function App() {
   useEffect(() => {
-    const sync = () => {
-      const isDark = localStorage.getItem('cricket-theme') === 'dark'
-      document.body.classList.toggle('light', !isDark)
-    }
-    sync()
-    window.addEventListener('cricket-theme-change', sync)
-    return () => window.removeEventListener('cricket-theme-change', sync)
+    // Always dark mode — light mode removed
+    document.body.classList.remove('light')
+    localStorage.removeItem('cricket-theme')
   }, [])
 
   // ── URL-encoded share view (#share=...) ─────────────────────────────────────
@@ -387,6 +383,14 @@ export default function App() {
   }
 
   const profileBtn = null
+
+  // Profile full-screen page takeover
+  if (showProfile) return (
+    <ProfileModal
+      onClose={() => setShowProfile(false)}
+      newlyEarned={newAwards}
+    />
+  )
 
   // Shared League full-page takeover
   if (h2hLeagueRoom) {

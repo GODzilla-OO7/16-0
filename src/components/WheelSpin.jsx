@@ -827,7 +827,7 @@ function PlayerRow({ player, hardMode, ratingType, mode, teamColor, isLast, isNe
       onMouseLeave={() => setHovered(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: '0.875rem',
-        padding: '0.75rem 1.25rem',
+        padding: '0.9rem 1.25rem',
         borderBottom: isLast ? 'none' : '1px solid var(--border2)',
         cursor: blocked ? 'not-allowed' : 'pointer',
         background: blocked ? 'transparent' : hovered ? (highlight ? highlight + '15' : teamColor + '10') : highlight ? highlight + '08' : 'transparent',
@@ -838,23 +838,23 @@ function PlayerRow({ player, hardMode, ratingType, mode, teamColor, isLast, isNe
     >
       {/* Role category badge */}
       <div style={{
-        padding: '0.2rem 0.45rem', borderRadius: '0.3rem', flexShrink: 0,
+        padding: '0.2rem 0.5rem', borderRadius: '0.3rem', flexShrink: 0,
         background: catClr + '20', border: `1px solid ${catClr}44`,
-        fontSize: '0.52rem', fontWeight: 900, color: catClr, letterSpacing: '0.06em',
-        minWidth: 42, textAlign: 'center',
+        fontSize: '0.6rem', fontWeight: 900, color: catClr, letterSpacing: '0.06em',
+        minWidth: 46, textAlign: 'center',
       }}>
         {cat}
       </div>
 
       {/* Name + nationality + indicators */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+        <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           {player.name}
           {isOverseas && <span style={{ fontSize: '0.7rem' }} title="Overseas player">✈️</span>}
           {isMustPick && !blocked && <span style={{ marginLeft: '0.2rem', fontSize: '0.58rem', color: '#f59e0b', fontWeight: 800 }}>NEEDED</span>}
           {isNeeded && !isMustPick && !blocked && <span style={{ marginLeft: '0.2rem', fontSize: '0.58rem', color: '#C8102E', fontWeight: 800 }}>NEED</span>}
         </div>
-        <div style={{ fontSize: '0.67rem', color: '#64748b' }}>
+        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
           {player.nationality}
           {isOverseasBlocked && <span style={{ marginLeft: '0.4rem', color: '#ef444488', fontWeight: 700 }}>· Overseas limit reached</span>}
           {isBudgetBlocked && <span style={{ marginLeft: '0.4rem', color: '#ef444488', fontWeight: 700 }}>· Over budget</span>}
@@ -868,7 +868,7 @@ function PlayerRow({ player, hardMode, ratingType, mode, teamColor, isLast, isNe
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', flexShrink: 0 }}>
           <MiniBar label="Bat"  value={ratings.batting} color="#4169E1" />
           <MiniBar label="Bowl" value={ratings.bowling} color="#3b82f6" />
-          <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#f59e0b', minWidth: 26, textAlign: 'right' }}>
+          <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#f59e0b', minWidth: 30, textAlign: 'right' }}>
             {ratings.overall}
           </div>
           {player._price != null && (
@@ -876,7 +876,7 @@ function PlayerRow({ player, hardMode, ratingType, mode, teamColor, isLast, isNe
               padding: '0.15rem 0.4rem', borderRadius: '0.3rem',
               background: isBudgetBlocked ? '#ef444420' : '#22c55e18',
               border: `1px solid ${isBudgetBlocked ? '#ef444455' : '#22c55e44'}`,
-              fontSize: '0.62rem', fontWeight: 800,
+              fontSize: '0.72rem', fontWeight: 800,
               color: isBudgetBlocked ? '#ef4444' : '#22c55e',
               whiteSpace: 'nowrap',
             }}>

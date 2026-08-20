@@ -163,7 +163,7 @@ export default function TeamSheet({
               style={{
                 display: 'flex', alignItems: 'center',
                 gap: compact ? '0.3rem' : '0.4rem',
-                padding: compact ? '0.28rem 0.35rem' : '0.36rem 0.45rem',
+                padding: compact ? '0.28rem 0.35rem' : '0.5rem 0.55rem',
                 borderRadius: '0.375rem', marginBottom: '2px',
                 background: isHighlit
                   ? (roleColor[player?.role] ?? slotColor) + '18'
@@ -179,7 +179,7 @@ export default function TeamSheet({
             >
               {/* Role badge */}
               <div style={{
-                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
                 background: player
                   ? (roleColor[player.role] ?? '#64748b') + '22'
                   : slotColor + '18',
@@ -198,7 +198,7 @@ export default function TeamSheet({
                 {player ? (
                   <>
                     <div style={{
-                      fontSize: compact ? '0.7rem' : '0.76rem',
+                      fontSize: compact ? '0.7rem' : '0.875rem',
                       fontWeight: 700, color: 'var(--text)',
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       display: 'flex', alignItems: 'center', gap: '0.2rem',
@@ -208,7 +208,7 @@ export default function TeamSheet({
                         <span style={{ fontSize: '0.62rem' }} title="Overseas">✈️</span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.57rem', color: '#64748b' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>
                       {player.iplTeam
                         ? `${player.iplTeam}${player.iplYear ? ` · ${player.iplYear}` : ''}`
                         : player.nationality}
@@ -216,7 +216,7 @@ export default function TeamSheet({
                   </>
                 ) : (
                   <div style={{
-                    fontSize: compact ? '0.68rem' : '0.72rem',
+                    fontSize: compact ? '0.68rem' : '0.82rem',
                     color: isActive ? '#C8102E' : slotColor,
                     fontWeight: isActive ? 700 : 500,
                   }}>
@@ -227,7 +227,7 @@ export default function TeamSheet({
 
               {/* Overall rating */}
               {player && (
-                <span style={{ fontSize: '0.66rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#f59e0b', flexShrink: 0 }}>
                   {ratingType === 'prime' ? scalePrime(getPrimeRatings(mode)[player.name] ?? player.overall) : scaleDisplay(player.overall)}
                 </span>
               )}

@@ -7,33 +7,31 @@ function AwardBadge({ award, earned }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.75rem',
-      padding: '0.625rem 0.875rem',
-      background: earned ? 'var(--win-bg)' : 'var(--card)',
-      border: `1px solid ${earned ? 'var(--win-border)' : 'var(--border)'}`,
+      padding: '0.75rem 1rem',
+      background: earned ? 'rgba(200,16,46,0.10)' : 'rgba(255,255,255,0.03)',
+      border: `1px solid ${earned ? 'rgba(200,16,46,0.40)' : 'rgba(255,255,255,0.07)'}`,
       borderRadius: '0.75rem',
-      opacity: earned ? 1 : 0.45,
+      opacity: earned ? 1 : 0.42,
       transition: 'all 0.2s',
     }}>
-      {/* Icon circle — gold ring when earned */}
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <div style={{
-          width: 40, height: 40, borderRadius: '50%',
-          background: earned ? 'rgba(245,158,11,0.12)' : 'var(--border2)',
-          border: `2px solid ${earned ? '#f59e0b88' : 'var(--border)'}`,
+          width: 42, height: 42, borderRadius: '50%',
+          background: earned ? 'rgba(245,158,11,0.14)' : 'rgba(255,255,255,0.05)',
+          border: `2px solid ${earned ? '#f59e0b88' : 'rgba(255,255,255,0.10)'}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '1.25rem',
+          fontSize: '1.3rem',
           filter: earned ? 'none' : 'grayscale(1)',
           boxShadow: earned ? '0 0 10px rgba(245,158,11,0.2)' : 'none',
         }}>
           {award.icon}
         </div>
-        {/* Gold medal badge */}
         {earned && (
           <div style={{
             position: 'absolute', bottom: -2, right: -2,
             width: 16, height: 16, borderRadius: '50%',
             background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-            border: '2px solid var(--card)',
+            border: '2px solid var(--bg)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '0.55rem', lineHeight: 1,
           }}>
@@ -42,26 +40,55 @@ function AwardBadge({ award, earned }) {
         )}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 800, color: earned ? 'var(--text)' : '#64748b' }}>
+        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: earned ? '#f1f5f9' : '#64748b' }}>
           {award.name}
         </div>
-        <div style={{ fontSize: '0.65rem', color: '#64748b', lineHeight: 1.3 }}>
+        <div style={{ fontSize: '0.67rem', color: '#64748b', lineHeight: 1.4 }}>
           {award.desc}
         </div>
       </div>
       {earned && (
-        <div style={{ fontSize: '0.7rem', flexShrink: 0 }}>🥇</div>
+        <div style={{ fontSize: '0.72rem', flexShrink: 0 }}>🥇</div>
       )}
     </div>
   )
 }
 
+// ─── Career stat card ─────────────────────────────────────────────────────────
+
+function StatCard({ value, label, sub, color = '#f59e0b' }) {
+  return (
+    <div style={{
+      flex: '1 1 140px',
+      background: 'rgba(10,13,22,0.85)',
+      border: '1px solid rgba(200,16,46,0.35)',
+      borderRadius: '0.875rem',
+      padding: '1rem 1.25rem',
+      textAlign: 'center',
+    }}>
+      <div style={{ fontSize: '2rem', fontWeight: 900, color, lineHeight: 1, marginBottom: '0.2rem' }}>
+        {value}
+      </div>
+      <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#f1f5f9', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        {label}
+      </div>
+      {sub && (
+        <div style={{ fontSize: '0.58rem', color: '#64748b', marginTop: '0.15rem' }}>
+          {sub}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
 export default function ProfileModal({ onClose, newlyEarned = [] }) {
   const [profile, setProfile] = useState(() => loadProfile())
-  const [emailInput, setEmailInput]   = useState(profile.email ?? '')
-  const [nameInput,  setNameInput]    = useState(profile.displayName ?? '')
-  const [saved,      setSaved]        = useState(false)
-  const [tab,        setTab]          = useState(newlyEarned.length > 0 ? 'awards' : 'profile')
+  const [emailInput, setEmailInput] = useState(profile.email ?? '')
+  const [nameInput,  setNameInput]  = useState(profile.displayName ?? '')
+  const [saved,      setSaved]      = useState(false)
+  const [tab,        setTab]        = useState(newlyEarned.length > 0 ? 'awards' : 'profile')
 
   useEffect(() => {
     if (newlyEarned.length > 0) setTab('awards')
@@ -82,62 +109,77 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
     setNameInput('')
   }
 
-  const earnedSet = new Set(profile.awards ?? [])
+  const earnedSet   = new Set(profile.awards ?? [])
   const earnedCount = earnedSet.size
   const totalCount  = AWARDS.length
 
-  return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 9000,
-        background: 'rgba(0,0,0,0.75)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '1rem',
-        backdropFilter: 'blur(4px)',
-        animation: 'fade-in 0.2s ease both',
-      }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{
-        width: '100%', maxWidth: 480,
-        background: 'var(--card)',
-        border: '1px solid var(--card-border)',
-        borderRadius: '1.25rem',
-        overflow: 'hidden',
-        maxHeight: '90vh',
-        display: 'flex', flexDirection: 'column',
-        animation: 'fade-in-up 0.3s ease both',
-      }}>
+  const wins      = profile.totalWins    ?? 0
+  const seasons   = profile.totalSeasons ?? 0
+  const winRate   = seasons > 0 ? Math.round((wins / (seasons * 16)) * 100) : 0
+  const bestSeason = profile.bestSeason ?? null
+  const titles    = profile.iplWins ?? 0
 
-        {/* Header */}
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-          <div>
-            <div style={{ fontSize: '0.65rem', color: '#C8102E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>Cricket 16-0</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>
-              {profile.displayName ? `Hi, ${profile.displayName}` : 'Your Profile'}
-            </div>
-            <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.15rem' }}>
-              {earnedCount}/{totalCount} awards · {profile.totalSeasons ?? 0} season{profile.totalSeasons !== 1 ? 's' : ''} played
-            </div>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer', lineHeight: 1, padding: '0.25rem' }}>
-            ✕
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'transparent',
+      position: 'relative',
+      display: 'flex', flexDirection: 'column',
+      animation: 'fade-in 0.25s ease both',
+    }}>
+      {/* Dark overlay so content is readable over stadium */}
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(6,8,14,0.82)', zIndex: 0, pointerEvents: 'none' }} />
+
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 720, width: '100%', margin: '0 auto', padding: '1.5rem 1.25rem 3rem' }}>
+
+        {/* Top nav */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+            ← Back
           </button>
+          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#C8102E', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            My Account
+          </div>
+          <div style={{ width: 60 }} />
         </div>
 
-        {/* New award banner */}
+        {/* Avatar + name */}
+        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: '50%',
+            background: 'linear-gradient(135deg,#C8102E,#7f1d1d)',
+            border: '3px solid rgba(200,16,46,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.75rem', fontWeight: 900, color: '#fff',
+            margin: '0 auto 0.75rem',
+            boxShadow: '0 0 24px rgba(200,16,46,0.3)',
+          }}>
+            {(profile.displayName?.[0] ?? '?').toUpperCase()}
+          </div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#f1f5f9', marginBottom: '0.2rem' }}>
+            {profile.displayName ?? 'Your Account'}
+          </div>
+          {profile.email && (
+            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{profile.email}</div>
+          )}
+          <div style={{ fontSize: '0.65rem', color: '#475569', marginTop: '0.2rem' }}>
+            Manager since {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : 'recently'}
+          </div>
+        </div>
+
+        {/* New awards banner */}
         {newlyEarned.length > 0 && (
           <div style={{
-            padding: '0.875rem 1.5rem',
-            background: 'var(--win-bg)',
-            borderBottom: '1px solid var(--win-border)',
-            flexShrink: 0,
+            padding: '0.875rem 1.25rem', marginBottom: '1.25rem',
+            background: 'rgba(200,16,46,0.12)',
+            border: '1px solid rgba(200,16,46,0.40)',
+            borderRadius: '0.875rem',
           }}>
-            <div style={{ fontSize: '0.6rem', color: '#C8102E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.62rem', color: '#C8102E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
               🎉 New Award{newlyEarned.length > 1 ? 's' : ''} Unlocked!
             </div>
             {newlyEarned.map(a => (
-              <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.25rem' }}>
+              <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '0.25rem' }}>
                 <span>{a.icon}</span> {a.name}
                 <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 400 }}>— {a.desc}</span>
               </div>
@@ -145,17 +187,35 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
           </div>
         )}
 
+        {/* Career stats — compact grid */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem' }}>
+          <StatCard value={seasons} label="Seasons" color="#C8102E" />
+          <StatCard value={wins}    label="All-time wins" color="#f59e0b" />
+          <StatCard value={`${winRate}%`} label="Win rate" color="#f59e0b" />
+          <StatCard value={bestSeason != null ? `${bestSeason}W` : '—'} label="Best season" sub="wins in one run" color="#C8102E" />
+          <StatCard value={titles}  label="Titles" sub={`${titles} IPL 🏆`} color="#f59e0b" />
+          <StatCard value={profile.perfectSeasons ?? 0} label="Perfect" sub="zero-loss seasons" color="#22c55e" />
+        </div>
+
         {/* Tab bar */}
-        <div style={{ display: 'flex', padding: '0.5rem', gap: '0.375rem', background: 'var(--bg)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        <div style={{
+          display: 'flex', gap: '0.375rem', marginBottom: '1rem',
+          background: 'rgba(10,13,22,0.85)',
+          border: '1px solid rgba(200,16,46,0.35)',
+          borderRadius: '0.75rem', padding: '0.4rem',
+        }}>
           {[
             { id: 'awards',  label: `🏅 Awards (${earnedCount}/${totalCount})` },
             { id: 'profile', label: '👤 Profile' },
             { id: 'history', label: '📋 History' },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
-              flex: 1, padding: '0.4rem', background: tab === t.id ? '#C8102E' : 'transparent',
-              color: tab === t.id ? 'var(--bg)' : '#64748b', border: 'none', borderRadius: '0.4rem',
-              fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer',
+              flex: 1, padding: '0.5rem 0.75rem',
+              background: tab === t.id ? '#C8102E' : 'transparent',
+              color: tab === t.id ? '#fff' : '#64748b',
+              border: 'none', borderRadius: '0.5rem',
+              fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer',
+              transition: 'all 0.15s',
             }}>
               {t.label}
             </button>
@@ -163,18 +223,22 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
         </div>
 
         {/* Tab content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.25rem' }}>
+        <div style={{
+          background: 'rgba(10,13,22,0.85)',
+          border: '1px solid rgba(200,16,46,0.35)',
+          borderRadius: '1rem',
+          padding: '1.25rem',
+        }}>
 
-          {/* Awards tab */}
+          {/* Awards */}
           {tab === 'awards' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {/* Progress bar */}
-              <div style={{ marginBottom: '0.75rem' }}>
+              <div style={{ marginBottom: '0.875rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#64748b', marginBottom: '0.35rem' }}>
                   <span>Collection progress</span>
                   <span style={{ fontWeight: 700, color: '#C8102E' }}>{Math.round(earnedCount / totalCount * 100)}%</span>
                 </div>
-                <div style={{ height: 6, background: 'var(--border2)', borderRadius: 3 }}>
+                <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }}>
                   <div style={{ width: `${earnedCount / totalCount * 100}%`, height: '100%', background: 'linear-gradient(90deg,#C8102E,#a50d24)', borderRadius: 3, transition: 'width 0.5s ease' }} />
                 </div>
               </div>
@@ -184,10 +248,10 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
             </div>
           )}
 
-          {/* Profile tab */}
+          {/* Profile */}
           {tab === 'profile' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: 1.5, padding: '0.75rem', background: 'var(--border2)', borderRadius: '0.625rem' }}>
+              <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: 1.5, padding: '0.75rem', background: 'rgba(255,255,255,0.04)', borderRadius: '0.625rem' }}>
                 Save your email to link your progress when the game moves online. Your data stays on this device until then.
               </div>
 
@@ -201,10 +265,9 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                   placeholder="e.g. Ricky Ponting"
                   style={{
                     width: '100%', padding: '0.625rem 0.875rem',
-                    background: 'var(--border2)', border: '1px solid var(--border)',
-                    borderRadius: '0.625rem', color: 'var(--text)', fontSize: '0.875rem',
-                    outline: 'none', boxSizing: 'border-box',
-                    fontFamily: 'inherit',
+                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)',
+                    borderRadius: '0.625rem', color: '#f1f5f9', fontSize: '0.9rem',
+                    outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
                   }}
                 />
               </div>
@@ -220,13 +283,12 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                   placeholder="you@example.com"
                   style={{
                     width: '100%', padding: '0.625rem 0.875rem',
-                    background: 'var(--border2)', border: '1px solid var(--border)',
-                    borderRadius: '0.625rem', color: 'var(--text)', fontSize: '0.875rem',
-                    outline: 'none', boxSizing: 'border-box',
-                    fontFamily: 'inherit',
+                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)',
+                    borderRadius: '0.625rem', color: '#f1f5f9', fontSize: '0.9rem',
+                    outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
                   }}
                 />
-                <div style={{ fontSize: '0.6rem', color: 'var(--border)', marginTop: '0.3rem' }}>
+                <div style={{ fontSize: '0.6rem', color: '#475569', marginTop: '0.3rem' }}>
                   Used to restore progress when hosted online. Never shared.
                 </div>
               </div>
@@ -235,8 +297,8 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                 onClick={handleSave}
                 style={{
                   padding: '0.75rem', background: '#C8102E',
-                  color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
-                  fontSize: '0.875rem', fontWeight: 800, cursor: 'pointer',
+                  color: '#fff', border: 'none', borderRadius: '0.625rem',
+                  fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
                 }}
               >
                 {saved ? '✓ Saved!' : 'Save Profile'}
@@ -246,7 +308,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                 onClick={handleClear}
                 style={{
                   padding: '0.5rem', background: 'transparent',
-                  color: '#ef4444', border: '1px solid #7f1d1d',
+                  color: '#ef4444', border: '1px solid rgba(127,29,29,0.6)',
                   borderRadius: '0.625rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
                 }}
               >
@@ -255,32 +317,32 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
             </div>
           )}
 
-          {/* History tab */}
+          {/* History */}
           {tab === 'history' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {(profile.history ?? []).length === 0 ? (
-                <div style={{ textAlign: 'center', color: 'var(--border)', fontSize: '0.8rem', padding: '2rem' }}>
+                <div style={{ textAlign: 'center', color: '#475569', fontSize: '0.82rem', padding: '2rem' }}>
                   No seasons played yet.
                 </div>
               ) : (profile.history ?? []).map((h, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
-                  padding: '0.625rem 0.875rem',
-                  background: 'var(--border2)', border: '1px solid var(--border)',
-                  borderRadius: '0.625rem',
+                  padding: '0.75rem 1rem',
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: '0.75rem',
                 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text)' }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f1f5f9' }}>
                       {MODE_LABELS[h.mode] ?? h.mode}
                     </div>
-                    <div style={{ fontSize: '0.62rem', color: '#64748b' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>
                       {h.wins}W – {h.losses}L
                       {h.manager ? ` · ${h.manager}` : ''}
                       {h.difficulty === 'hard' ? ' · 🔒 Hard' : ''}
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color:
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color:
                       (h.stageReached === 'Champion' || h.iplOutcome === 'champion') ? '#f59e0b' :
                       (h.stageReached === 'Runner-up' || h.iplOutcome === 'runner-up') ? '#94a3b8' :
                       '#64748b'
@@ -291,7 +353,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
                        h.iplOutcome === 'runner-up' ? '🥈 Finalist' :
                        h.stageReached ?? h.iplOutcome ?? '—'}
                     </div>
-                    <div style={{ fontSize: '0.55rem', color: 'var(--border)' }}>
+                    <div style={{ fontSize: '0.55rem', color: '#475569' }}>
                       {new Date(h.date).toLocaleDateString()}
                     </div>
                   </div>

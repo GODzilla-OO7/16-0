@@ -92,8 +92,8 @@ function DualRangeSlider({ min, max, low, high, onChange, formatLabel }) {
           </div>
         </div>
 
-        <div style={{ position: 'absolute', left: 0, top: '150%', fontSize: '0.62rem', color: '#3a3a4a', fontWeight: 600, transform: 'translateX(-25%)' }}>{fmt(min)}</div>
-        <div style={{ position: 'absolute', right: 0, top: '150%', fontSize: '0.62rem', color: '#3a3a4a', fontWeight: 600, transform: 'translateX(25%)' }}>{fmt(max)}</div>
+        <div style={{ position: 'absolute', left: 0, top: '150%', fontSize: '0.62rem', color: 'var(--muted)', fontWeight: 600, transform: 'translateX(-25%)' }}>{fmt(min)}</div>
+        <div style={{ position: 'absolute', right: 0, top: '150%', fontSize: '0.62rem', color: 'var(--muted)', fontWeight: 600, transform: 'translateX(25%)' }}>{fmt(max)}</div>
       </div>
     </div>
   )
@@ -163,8 +163,8 @@ function SingleSlider({ min, max, step = 5, value, onChange, formatLabel }) {
             {fmt(value)}
           </div>
         </div>
-        <div style={{ position: 'absolute', left: 0, top: '150%', fontSize: '0.62rem', color: '#3a3a4a', fontWeight: 600, transform: 'translateX(-25%)' }}>{fmt(min)}</div>
-        <div style={{ position: 'absolute', right: 0, top: '150%', fontSize: '0.62rem', color: '#3a3a4a', fontWeight: 600, transform: 'translateX(25%)' }}>{fmt(max)}</div>
+        <div style={{ position: 'absolute', left: 0, top: '150%', fontSize: '0.62rem', color: 'var(--muted)', fontWeight: 600, transform: 'translateX(-25%)' }}>{fmt(min)}</div>
+        <div style={{ position: 'absolute', right: 0, top: '150%', fontSize: '0.62rem', color: 'var(--muted)', fontWeight: 600, transform: 'translateX(25%)' }}>{fmt(max)}</div>
       </div>
     </div>
   )
@@ -277,7 +277,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
 
   const S = {
     page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem 3rem', position: 'relative', zIndex: 1 },
-    card: { width: '100%', maxWidth: 560, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '1.25rem', overflow: 'hidden', backdropFilter: 'blur(8px)' },
+    card: { width: '100%', maxWidth: 720, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '1.25rem', overflow: 'hidden', backdropFilter: 'blur(8px)' },
     cardHeader: { padding: '1.25rem 1.75rem', borderBottom: '1px solid var(--border)' },
     modeTag: { fontSize: '0.72rem', color: '#C8102E', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
     title: { fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)' },
@@ -453,7 +453,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
       </div>
 
       {/* ── Next button ───────────────────────────────────────────────── */}
-      <div style={{ width: '100%', maxWidth: 560 }}>
+      <div style={{ width: '100%', maxWidth: 720 }}>
         <button
           onClick={handleStart}
           disabled={!canStart}
