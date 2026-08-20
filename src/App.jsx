@@ -648,7 +648,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="draft-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 296px', gap: '1.25rem', maxWidth: 1100, margin: '0 auto', padding: '1.25rem', alignItems: 'start' }}>
+        <div className="draft-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '1.25rem', maxWidth: 1200, margin: '0 auto', padding: '1.25rem', alignItems: 'start' }}>
 
           {/* Left column — wheel or done banner */}
           <div>
