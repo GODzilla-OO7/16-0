@@ -174,7 +174,7 @@ export default function WheelSpin({
   useEffect(() => () => clearTimeout(cycleRef.current), [])
 
   function startSpin() {
-    import('../utils/audioEngine.js').then(m => m.playSpinSound()).catch(() => {})
+    // playSpinSound removed — tick clicks now fire per-team in tick()
     setPhase('spinning')
     setLandedEntry(null)
 
@@ -271,6 +271,7 @@ export default function WheelSpin({
     function tick() {
       i++
       const isLast = i >= TOTAL_TICKS
+      import('../utils/audioEngine.js').then(m => m.playTickClick()).catch(() => {})
       // Use shuffled pool so years change throughout the animation
       setCycleEntry(isLast ? chosen : shuffled[i % shuffled.length])
       if (isLast) {

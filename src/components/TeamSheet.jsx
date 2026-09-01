@@ -21,6 +21,13 @@ const COMP_FULL_LABEL = {
 }
 const COMP_ORDER = ['opener', 'top-order', 'wicket-keeper', 'middle-order', 'all-rounder', 'pace-bowler', 'spin-bowler']
 
+// Free-positions display order — cosmetic sort only, doesn't affect simulation
+const FREE_POS_ROLE_ORDER = {
+  'opener': 0, 'top-order': 1, 'middle-order': 2,
+  'wicket-keeper': 3, 'all-rounder': 4,
+  'spin-bowler': 5, 'pace-bowler': 6,
+}
+
 // Zone determines valid reorder range: players can only swap within their zone
 const ROLE_ZONE = {
   'opener': 'top', 'top-order': 'top',
@@ -100,6 +107,15 @@ export default function TeamSheet({
           if (j >= 0) next[j] = { ...next[j], player }
         }
       }
+
+      // Free-positions mode (no composition): sort filled slots by role priority
+      if (!composition) {
+        const filled = next.filter(s => s.player)
+          .sort((a, b) => (FREE_POS_ROLE_ORDER[a.player.role] ?? 5) - (FREE_POS_ROLE_ORDER[b.player.role] ?? 5))
+        const empty  = next.filter(s => !s.player)
+        return [...filled, ...empty]
+      }
+
       return next
     })
   }, [team])
