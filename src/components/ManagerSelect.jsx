@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { getInterleavedManagers } from '../data/managers.js'
 import { MODE_CONFIG } from '../data/players.js'
 import { calcTeamStrength } from '../utils/simulator.js'
+import { playTickClick } from '../utils/audioEngine.js'
 
 function scaleDisplay(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
 
@@ -103,6 +104,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
 
     function tick() {
       i++
+      playTickClick()
       const isLast = i >= 28
       if (isLast) {
         setDisplayIdx(managers.indexOf(chosen) >= 0 ? managers.indexOf(chosen) : 0)

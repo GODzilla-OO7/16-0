@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { WHEEL_ENTRIES, getPrimeRatings } from '../data/players.js'
+import { playTickClick } from '../utils/audioEngine.js'
 
 // ─── Legendary icon players — appear with 0.05% chance in player spin ────────
 // These are all-time greats NOT present in the regular WHEEL_ENTRIES pool.
@@ -185,6 +186,7 @@ export default function ImpactSub({ team, mode, ratingType = 'season', onComplet
     function tick() {
       i++
       const last = i >= TICKS
+      playTickClick()
       setCycleEvent(last ? chosen : shuffledEvents[i % shuffledEvents.length])
       if (last) {
         timerRef.current = setTimeout(() => {
@@ -290,6 +292,7 @@ export default function ImpactSub({ team, mode, ratingType = 'season', onComplet
     function tick() {
       i++
       const last = i >= TICKS
+      playTickClick()
       setCyclePlayer(last ? chosen : shuffled[i % shuffled.length])
       if (last) {
         timerRef.current = setTimeout(() => {

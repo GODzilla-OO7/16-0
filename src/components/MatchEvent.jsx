@@ -258,6 +258,108 @@ const EVENT_DEFS = {
     timeoutText: (p) => `${p} didn't read the line — bowled through the gate. Just a dot on a free hit!`,
   },
 
+  'lbw': {
+    icon: '☝️', badge: 'LBW APPEAL!', accentColor: '#ef4444',
+    headline: (p) => `HUGE appeal! ${p} raps them on the pad!`,
+    subline:  (p, opp) => `vs ${opp} · Straight one, full length — finger going up?`,
+    choiceCount: 3,
+    choicePool: [
+      { label: 'Appeal hard!',      icon: '📢', desc: 'Go up with the whole team — loud and confident', successChance: 0.62 },
+      { label: 'Quiet appeal',      icon: '☝️', desc: 'Just the bowler — let the ball do the talking', successChance: 0.55 },
+      { label: 'Review instantly',  icon: '📺', desc: 'Burn a review — trust the radar',               successChance: 0.68 },
+      { label: 'Ask the keeper',    icon: '🤔', desc: 'Keeper had the best view — confirm before review', successChance: 0.58 },
+      { label: 'Let it go',         icon: '🤷', desc: 'Too tight — save the review for later',          successChance: 0.10 },
+    ],
+    successText: (p) => `OUT LBW! ${p} hits the stumps — umpire raises the finger! Big wicket! ☝️`,
+    failText:    (p, c) => `Not out! Ball was going down leg. The batter survives and the appeal is turned down.`,
+    timeoutText: (p) => `${p} forgot to appeal in time — ball hit the pads but nobody went up. Wicket lost!`,
+  },
+
+  'last-ball-six': {
+    icon: '🌟', badge: 'LAST BALL — 6 TO WIN', accentColor: '#a855f7',
+    headline: (p) => `Last ball — need 6! ${p}, do it!`,
+    subline:  (p, opp) => `vs ${opp} · One ball, six runs. The match ends here.`,
+    choiceCount: 3,
+    choicePool: [
+      { label: 'Slog hard!',       icon: '💥', desc: 'Close your eyes and swing for the boundary',    successChance: 0.38 },
+      { label: 'Charge down!',     icon: '🏃', desc: 'Come down the track — take it on full',         successChance: 0.42 },
+      { label: 'Step and heave',   icon: '⚡', desc: 'Create room over cow corner',                   successChance: 0.40 },
+      { label: 'Ramp it!',         icon: '🥄', desc: 'Over the keeper\'s head — unorthodox but alive', successChance: 0.35 },
+      { label: 'Pick the slot',    icon: '🎯', desc: 'Wait for a loose one and hit it clean',         successChance: 0.45 },
+    ],
+    successText: (p) => `SIX! ${p} has done the impossible — an extraordinary finish! 🌟`,
+    failText:    (p, c) => `Caught on the boundary! ${p} couldn't clear the rope. They fall one hit short.`,
+    timeoutText: (p) => `${p} played all round it — bowled! Match over. So close.`,
+  },
+
+  'maiden-over': {
+    icon: '🔒', badge: 'STRANGLEHOLD', accentColor: '#0ea5e9',
+    headline: (p) => `${p} is controlling this — maiden incoming?`,
+    subline:  (p, opp) => `vs ${opp} · Middle overs, dot ball pressure building — lock them down`,
+    choiceCount: 3,
+    choicePool: [
+      { label: 'Tighten the line',  icon: '🔒', desc: 'Dot balls, dot balls — drain the run rate',     successChance: 0.65 },
+      { label: 'Flight it up',      icon: '🌀', desc: 'Tempt the batter — invite the drive',           successChance: 0.58 },
+      { label: 'Vary the pace',     icon: '🎯', desc: 'Slower ball, arm ball — keep them guessing',    successChance: 0.62 },
+      { label: 'Attack the stumps', icon: '🎳', desc: 'Full and straight — force the lunge',           successChance: 0.55 },
+      { label: 'Cramp for room',    icon: '📐', desc: 'Target the body — no room to swing',            successChance: 0.60 },
+    ],
+    successText: (p) => `Maiden! ${p} bowls a perfect over — zero runs, total stranglehold! 🔒`,
+    failText:    (p, c) => `Expensive over. The batter found the gap off ${p}'s ${c.label.toLowerCase()}. Pressure released.`,
+    timeoutText: (p) => `${p} couldn't find the line — two wides in the over. Maiden chance gone.`,
+  },
+
+  'partnership-break': {
+    icon: '⚡', badge: 'BREAK THE STAND', accentColor: '#f97316',
+    headline: (p) => `${p} — break this partnership NOW`,
+    subline:  (p, opp) => `vs ${opp} · Big stand in progress — one wicket changes everything`,
+    choiceCount: 3,
+    choicePool: [
+      { label: 'Bowl the danger man',  icon: '🎯', desc: 'Target the set batter — go over the top',    successChance: 0.50 },
+      { label: 'Draw the false shot',  icon: '🌀', desc: 'Tease with flight — get the drive in the air', successChance: 0.58 },
+      { label: 'Field placement trap', icon: '🪤', desc: 'Bait a gap, set the fielder deep — wait',     successChance: 0.55 },
+      { label: 'Bouncer barrage',      icon: '💥', desc: 'Pepper them short — test the composure',      successChance: 0.45 },
+      { label: 'Change of angle',      icon: '📐', desc: 'Around the wicket — new ball angle',          successChance: 0.60 },
+      { label: 'Bring in a spinner',   icon: '🌀', desc: 'Change it up — spinner to create doubt',      successChance: 0.52 },
+    ],
+    successText: (p) => `WICKET! ${p} ends the partnership — massive moment! The crowd erupts! ⚡`,
+    failText:    (p, c) => `Partnership continues. The batter handled ${p}'s ${c.label.toLowerCase()} comfortably.`,
+    timeoutText: (p) => `${p} couldn't decide on a plan — full toss hit for four. Partnership goes on.`,
+  },
+
+  'review-batting': {
+    icon: '📺', badge: 'CAPTAIN\'S REVIEW', accentColor: '#94a3b8',
+    headline: (p) => `Out given! Captain — review it?`,
+    subline:  (p, opp) => `vs ${opp} · Looked like an inside edge — ball tracking might save ${p}`,
+    choiceCount: 2,
+    choicePool: [
+      { label: 'Review!',          icon: '📺', desc: 'Burn a review — edge on Hotspot could save it',   successChance: 0.60 },
+      { label: 'Walk off',         icon: '🚶', desc: 'Trust the umpire — save the review for later',     successChance: 0 },
+      { label: 'Watch the replay', icon: '👁️', desc: 'Check the screen before deciding',                successChance: 0.55 },
+      { label: 'Ask the batter',   icon: '🤔', desc: 'Did they feel a nick? Batter's sure it\'s an edge', successChance: 0.65 },
+    ],
+    successText: (p) => `REPRIEVED! ${p} survives — inside edge confirmed. Review well used! 📺`,
+    failText:    (p, c) => `Review failed — clean hit, ${p} is OUT. The review is lost.`,
+    timeoutText: (p) => `Time ran out on the review — decision stands. ${p} walks back.`,
+  },
+
+  'dropped-catch-op': {
+    icon: '🙌', badge: 'CRUCIAL CATCH', accentColor: '#22c55e',
+    headline: (p) => `Top edge! ${p} — under it!`,
+    subline:  (p, opp) => `vs ${opp} · Off a slog — high and far, can they get there?`,
+    choiceCount: 3,
+    choicePool: [
+      { label: 'Sprint to it',       icon: '🏃', desc: 'Full pace chase — get under it before it drops', successChance: 0.58 },
+      { label: 'Slide and catch',    icon: '🤿', desc: 'Dive on the boundary — last-ditch take',         successChance: 0.50 },
+      { label: 'Two hands high',     icon: '🙌', desc: 'Reach for it — both hands above head',           successChance: 0.65 },
+      { label: 'Call off teammate',  icon: '📢', desc: 'Take charge — own the catch, wave them off',     successChance: 0.70 },
+      { label: 'Watch the ball',     icon: '👁️', desc: 'Track it all the way — calm, cup it',            successChance: 0.72 },
+    ],
+    successText: (p) => `CAUGHT! ${p} takes a stunning running catch — that changes the match! 🙌`,
+    failText:    (p, c) => `Dropped on the boundary! ${p} couldn't hold on. That could cost the match.`,
+    timeoutText: (p) => `${p} was unsighted — ball fell between two fielders. Costly miss.`,
+  },
+
 }
 
 // ─── Outcome text ─────────────────────────────────────────────────────────────

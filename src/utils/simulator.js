@@ -380,9 +380,9 @@ export function generateMatchEvent(team, matchIndex, eventIndices) {
   // ─── Regular event types — all equally likely ─────────────────────────────
   // Each type maps to a pool (batters / bowlers / fielders).
   // We build a list of possible types based on who's in the squad, then pick one uniformly.
-  const BATTER_TYPES  = ['half-century', 'century', 'drs', 'powerplay', 'free-hit']
-  const BOWLER_TYPES  = ['hat-trick', 'no-ball', 'last-over']
-  const FIELDER_TYPES = ['catch', 'run-out', 'dropped-catch']
+  const BATTER_TYPES  = ['half-century', 'century', 'drs', 'powerplay', 'free-hit', 'lbw', 'last-ball-six', 'review-batting']
+  const BOWLER_TYPES  = ['hat-trick', 'no-ball', 'last-over', 'maiden-over', 'partnership-break']
+  const FIELDER_TYPES = ['catch', 'run-out', 'dropped-catch', 'dropped-catch-op']
   const wk            = team.find(p => p.role === 'wicket-keeper')
 
   const candidates = [

@@ -528,12 +528,12 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             if (inPlayer._isIcon) setIconSubPlayer(inPlayer)
             setImpactSubDone(true)
             setShowImpactSub(false)
-            startPlayoffs()
+            setTimeout(() => startPlayoffs(), 1000)
           }}
           onSkip={() => {
             setImpactSubDone(true)
             setShowImpactSub(false)
-            startPlayoffs()
+            setTimeout(() => startPlayoffs(), 1000)
           }}
         />
       )}
