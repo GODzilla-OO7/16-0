@@ -1774,7 +1774,7 @@ function SeasonHistoryCard({ seasonNumber, prevSeasons, currentWins, currentLoss
   return (
     <div style={{ marginBottom: '1.25rem' }}>
       <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.625rem', paddingLeft: '0.25rem' }}>
-        📅 Season History
+        Season History
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.625rem' }}>
         {slots.map(slot => {
@@ -1787,15 +1787,17 @@ function SeasonHistoryCard({ seasonNumber, prevSeasons, currentWins, currentLoss
           if (isFuture) {
             return (
               <div key={slot} style={{
-                background: 'transparent',
-                border: '1.5px dashed #334155',
+                background: 'rgba(15,20,35,0.6)',
+                border: '1px solid #1e293b',
                 borderRadius: '0.75rem',
                 padding: '0.875rem 0.5rem',
                 textAlign: 'center',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 minHeight: 80,
+                gap: '0.35rem',
               }}>
-                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Season {slot}</div>
+                <div style={{ fontSize: '0.58rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Season {slot}</div>
+                <div style={{ fontSize: '0.68rem', fontWeight: 600, color: '#334155', fontStyle: 'italic' }}>Not yet played</div>
               </div>
             )
           }
