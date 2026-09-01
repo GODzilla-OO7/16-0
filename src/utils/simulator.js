@@ -32,7 +32,12 @@ export function calcTeamStrength(team, manager, mode, ratingType = 'overall') {
   })
 
   const batting = batCount  > 0 ? batSum  / batCount  : 50
-  const bowling = bowlCount > 0 ? bowlSum / bowlCount : 50
+  // If no specialist bowlers/all-rounders, fall back to the raw bowling ratings
+  // of the whole team — pure batsmen have low bowling attrs (~20-40) so an
+  // all-bat XI will correctly show very weak bowling strength.
+  const bowling = bowlCount > 0
+    ? bowlSum / bowlCount
+    : team.reduce((s, p) => s + (p.bowling ?? 30), 0) / Math.max(1, team.length)
   const fielding = team.reduce((s, p) => s + (p.fielding ?? 70), 0) / team.length
 
   const base = Math.round(0.45 * batting + 0.45 * bowling + 0.10 * fielding)
