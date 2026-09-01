@@ -336,7 +336,7 @@ const EVENT_DEFS = {
       { label: 'Review!',          icon: '📺', desc: 'Burn a review — edge on Hotspot could save it',   successChance: 0.60 },
       { label: 'Walk off',         icon: '🚶', desc: 'Trust the umpire — save the review for later',     successChance: 0 },
       { label: 'Watch the replay', icon: '👁️', desc: 'Check the screen before deciding',                successChance: 0.55 },
-      { label: 'Ask the batter',   icon: '🤔', desc: 'Did they feel a nick? Batter's sure it\'s an edge', successChance: 0.65 },
+      { label: 'Ask the batter',   icon: '🤔', desc: "Did they feel a nick? Batter's sure it's an edge", successChance: 0.65 },
     ],
     successText: (p) => `REPRIEVED! ${p} survives — inside edge confirmed. Review well used! 📺`,
     failText:    (p, c) => `Review failed — clean hit, ${p} is OUT. The review is lost.`,
