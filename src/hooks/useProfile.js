@@ -733,7 +733,11 @@ export function updateEmail(email, displayName) {
  *   { mode, wins, losses, total, stageReached, iplOutcome, iplPosition,
  *     perfect, difficulty, predictedPos, manager }
  */
-export function recordSeason(data) {
+/**
+ * @param {object}  data       - season result data
+ * @param {boolean} isLoggedIn - awards computed but only persisted when true
+ */
+export function recordSeason(data, isLoggedIn = false) {
   const p = loadProfile()
 
   // Increment counters
@@ -747,7 +751,7 @@ export function recordSeason(data) {
   if (data.stageReached === 'Champion' && data.mode === 't20-wc') modesWonSet.add('t20-wc')
   p.modesWon = [...modesWonSet]
 
-  // Check awards
+  // Check awards — always compute newlyEarned, only persist if logged in
   const earnedSet = new Set(p.awards ?? [])
   const context = { ...data, modesWon: modesWonSet, totalSeasons: p.totalSeasons, iplWins: p.iplWins, history: p.history ?? [], runId: data.runId ?? null }
   const newlyEarned = []
@@ -756,12 +760,12 @@ export function recordSeason(data) {
     if (earnedSet.has(award.id)) continue
     try {
       if (award.check(context)) {
-        earnedSet.add(award.id)
         newlyEarned.push(award)
+        if (isLoggedIn) earnedSet.add(award.id)
       }
     } catch { /* */ }
   }
-  p.awards = [...earnedSet]
+  if (isLoggedIn) p.awards = [...earnedSet]
 
   // Add to history (keep last 50)
   p.history = [
@@ -782,6 +786,18 @@ export function recordSeason(data) {
 
   saveProfile(p)
   return { profile: p, newlyEarned }
+}
+
+/**
+ * Call once after sign-in to persist all medals earned this session.
+ */
+export function mergeSessionAwardsOnSignIn(awardIds) {
+  if (!awardIds?.length) return
+  const p = loadProfile()
+  const earnedSet = new Set(p.awards ?? [])
+  awardIds.forEach(id => earnedSet.add(id))
+  p.awards = [...earnedSet]
+  saveProfile(p)
 }
 
 export function clearProfile() {

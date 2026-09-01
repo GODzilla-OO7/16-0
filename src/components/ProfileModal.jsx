@@ -83,7 +83,7 @@ function StatCard({ value, label, sub, color = '#f59e0b' }) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function ProfileModal({ onClose, newlyEarned = [] }) {
+export default function ProfileModal({ onClose, newlyEarned = [], user = null, onSignIn }) {
   const [profile, setProfile] = useState(() => loadProfile())
   const [emailInput, setEmailInput] = useState(profile.email ?? '')
   const [nameInput,  setNameInput]  = useState(profile.displayName ?? '')
@@ -205,7 +205,7 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
           borderRadius: '0.75rem', padding: '0.4rem',
         }}>
           {[
-            { id: 'awards',  label: `🏅 Awards (${earnedCount}/${totalCount})` },
+            { id: 'awards',  label: user ? `🏅 Awards (${earnedCount}/${totalCount})` : `🏅 Awards` },
             { id: 'profile', label: '👤 Profile' },
             { id: 'history', label: '📋 History' },
           ].map(t => (
@@ -231,22 +231,85 @@ export default function ProfileModal({ onClose, newlyEarned = [] }) {
         }}>
 
           {/* Awards */}
-          {tab === 'awards' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ marginBottom: '0.875rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#64748b', marginBottom: '0.35rem' }}>
-                  <span>Collection progress</span>
-                  <span style={{ fontWeight: 700, color: '#C8102E' }}>{Math.round(earnedCount / totalCount * 100)}%</span>
+          {tab === 'awards' && (() => {
+            // Logged-out: show up to 2 session medals, lock the rest
+            if (!user) {
+              const sessionEarned = newlyEarned.slice(0, 2)
+              const hiddenCount = AWARDS.length - sessionEarned.length
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {sessionEarned.length === 0 && (
+                    <div style={{ textAlign: 'center', color: '#475569', fontSize: '0.82rem', padding: '1rem 0 0.5rem' }}>
+                      No medals yet this session.
+                    </div>
+                  )}
+                  {sessionEarned.map(award => (
+                    <AwardBadge key={award.id} award={award} earned={true} />
+                  ))}
+                  {/* Lock card */}
+                  <div style={{
+                    position: 'relative', marginTop: '0.5rem',
+                    borderRadius: '0.875rem', overflow: 'hidden',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}>
+                    {/* Blurred preview of locked badges */}
+                    <div style={{ filter: 'blur(4px)', pointerEvents: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.5rem' }}>
+                      {AWARDS.slice(0, 3).map(award => (
+                        <AwardBadge key={award.id} award={award} earned={false} />
+                      ))}
+                    </div>
+                    {/* Overlay */}
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      background: 'rgba(6,8,14,0.82)',
+                      backdropFilter: 'blur(2px)',
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center',
+                      padding: '1.5rem', textAlign: 'center', gap: '0.75rem',
+                    }}>
+                      <div style={{ fontSize: '2rem' }}>🔒</div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#f1f5f9' }}>
+                        {hiddenCount} medal{hiddenCount !== 1 ? 's' : ''} hidden
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8', lineHeight: 1.5, maxWidth: 260 }}>
+                        Sign in to unlock your full medal collection and save your progress across devices.
+                      </div>
+                      <button
+                        onClick={onSignIn}
+                        style={{
+                          padding: '0.65rem 1.5rem',
+                          background: 'linear-gradient(135deg,#C8102E,#a50d24)',
+                          color: '#fff', border: 'none', borderRadius: '0.625rem',
+                          fontSize: '0.875rem', fontWeight: 800, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: '0.4rem',
+                        }}
+                      >
+                        <span>G</span> Sign in with Google
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }}>
-                  <div style={{ width: `${earnedCount / totalCount * 100}%`, height: '100%', background: 'linear-gradient(90deg,#C8102E,#a50d24)', borderRadius: 3, transition: 'width 0.5s ease' }} />
+              )
+            }
+
+            // Logged in: show all medals as normal
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ marginBottom: '0.875rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#64748b', marginBottom: '0.35rem' }}>
+                    <span>Collection progress</span>
+                    <span style={{ fontWeight: 700, color: '#C8102E' }}>{Math.round(earnedCount / totalCount * 100)}%</span>
+                  </div>
+                  <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }}>
+                    <div style={{ width: `${earnedCount / totalCount * 100}%`, height: '100%', background: 'linear-gradient(90deg,#C8102E,#a50d24)', borderRadius: 3, transition: 'width 0.5s ease' }} />
+                  </div>
                 </div>
+                {AWARDS.map(award => (
+                  <AwardBadge key={award.id} award={award} earned={earnedSet.has(award.id)} />
+                ))}
               </div>
-              {AWARDS.map(award => (
-                <AwardBadge key={award.id} award={award} earned={earnedSet.has(award.id)} />
-              ))}
-            </div>
-          )}
+            )
+          })()}
 
           {/* Profile */}
           {tab === 'profile' && (

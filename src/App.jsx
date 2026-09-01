@@ -1,4 +1,4 @@
-import { useState, useEffect, Component } from 'react'
+import { useState, useEffect, useRef, Component } from 'react'
 import { MODE_CONFIG, POSITIONS } from './data/players.js'
 import ModeSelect from './components/ModeSelect.jsx'
 import DraftSettings from './components/DraftSettings.jsx'
@@ -20,7 +20,7 @@ import SharedLeague from './components/SharedLeague.jsx'
 import { STARTING_BUDGET } from './components/WheelSpin.jsx'
 import MusicPlayer from './components/MusicPlayer.jsx'
 import ConfirmLeaveModal from './components/ConfirmLeaveModal.jsx'
-import { recordSeason, loadProfile } from './hooks/useProfile.js'
+import { recordSeason, loadProfile, mergeSessionAwardsOnSignIn } from './hooks/useProfile.js'
 import { getStreakData, recordDailyLogin, recordPlayStreak, consumeStreakBonus } from './hooks/useStreak.js'
 import { useAuth, saveGameResult, incrementTotalPlays, signInWithGoogle } from './hooks/useAuth.js'
 import { generateTournament } from './utils/sharedTournament.js'
@@ -120,6 +120,14 @@ export default function App() {
   }, [])
   const { user, signOut } = useAuth()
 
+  // When user signs in, merge medals earned this session into their saved profile
+  useEffect(() => {
+    if (user && !prevUserRef.current) {
+      mergeSessionAwardsOnSignIn(sessionAwardIdsRef.current)
+    }
+    prevUserRef.current = user
+  }, [user])
+
   const [mode, setMode]             = useState(null)
   const [phase, setPhase]           = useState('menu')
   const [settings, setSettings]     = useState(null)
@@ -144,6 +152,9 @@ export default function App() {
   const [seasonNumber, setSeasonNumber]       = useState(1)          // current season (1, 2, 3…)
   // runId: unique per app session — used to identify medals earned within the same continuous run
   const [runId] = useState(() => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`)
+  // Session awards: medals earned this session (in memory, merged to profile on sign-in)
+  const sessionAwardIdsRef = useRef([])
+  const prevUserRef = useRef(null)
   const [releasedPlayerNames, setReleasedPlayerNames] = useState(new Set()) // blocked by name for immediate next auction only
   const [impactSubOutName, setImpactSubOutName]     = useState(null)       // impact sub outgoing player name (added to released next retention)
   const [biddingWarsUsed, setBiddingWarsUsed]   = useState(0)          // max 4 bidding wars per draft
@@ -223,7 +234,7 @@ export default function App() {
     setPhase('results')
     incrementTotalPlays()  // global counter — works for everyone, logged in or not
 
-    // Record season locally + check awards (use finalTeam so squad-based medals are correct)
+    // Record season + check awards. Awards only saved to localStorage if signed in.
     const { newlyEarned, profile } = recordSeason({
       mode,
       wins:         sum.wins,
@@ -245,8 +256,10 @@ export default function App() {
       biddingWars:    settings?.biddingWars     ?? true,
       hiddenRatings:  settings?.hardMode        ?? false,
       budget:         settings?.budget          ?? STARTING_BUDGET,
-    })
+    }, !!user)
     if (newlyEarned.length > 0) {
+      // Always accumulate in session ref (so they can be saved on sign-in)
+      sessionAwardIdsRef.current = [...new Set([...sessionAwardIdsRef.current, ...newlyEarned.map(a => a.id)])]
       setNewAwards(newlyEarned)
     }
     // Store prior seasons for the share card (history[0] = current season just recorded; history.slice(1) = prior)
@@ -418,6 +431,8 @@ export default function App() {
     <ProfileModal
       onClose={() => setShowProfile(false)}
       newlyEarned={newAwards}
+      user={user}
+      onSignIn={signInWithGoogle}
     />
   )
 
