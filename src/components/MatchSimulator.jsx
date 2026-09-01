@@ -62,6 +62,10 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   const [iconSubPlayer,   setIconSubPlayer]   = useState(null)  // set if impact sub brought in a legend
   const [showSimConfirm,  setShowSimConfirm]  = useState(false) // back-to-home confirmation
 
+  // Playoffs: queue of pending matches (shown one-by-one via "Play Match" button)
+  const [pendingPlayoffQueue, setPendingPlayoffQueue] = useState([])  // matches not yet revealed
+  const [playoffSimming,      setPlayoffSimming]      = useState(false) // H2H: auto-sim playoffs
+
   // Win streak tracker
   const [currentStreak,   setCurrentStreak]   = useState({ type: null, count: 0 })
   const [bestWinStreak,   setBestWinStreak]   = useState(0)
@@ -154,29 +158,25 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
     setLeagueSeason(season)
     if (isIPL) setLiveIPLTable(generateIPLTable(season.wins))
 
-    // ── Batch-reveal: process all matches synchronously, CSS animations handle the cascade ──
+    // ── Sequential reveal: one match at a time ──────────────────────────────
     const BATTING_MILESTONES = { 'half-century': 50, 'century': 100, '150': 150, '200': 200 }
     const WICKET_EVENTS      = new Set(['catch', 'run-out', 'stumping'])
     const RUN_BONUS_EVENTS   = { 'free-hit': 6, 'powerplay': 12 }
 
-    const processedResults = []
+    // H2H gets fast smooth reveal; regular IPL gets standard pacing
+    const MATCH_DELAY = h2hContext ? 120 : 700
+
     const runsAcc = {}, wktsAcc = {}
-    let hitFinal = false
 
-    for (let idx = 0; idx < season.results.length; idx++) {
-      const match = season.results[idx]
-
-      // Non-IPL Final → keep drama button, stop processing here
+    function processMatch(match) {
       if (!isIPL && match.stage === 'Final') {
         setPendingFinal(match)
         setFinalPhase('button')
-        hitFinal = true
-        break
+        return null // signal: stop here
       }
 
       let finalMatch = match
 
-      // Auto-resolve QTE events (show result inline on the match card)
       if (match.event) {
         const success = Math.random() < 0.6
         finalMatch = { ...match, eventResult: { success, choiceLabel: 'auto' } }
@@ -209,47 +209,55 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         }
       }
 
-      // Auto-resolve Super Over
       if (match.superOver) {
         finalMatch = { ...match, won: match.superOver.won }
       }
 
-      processedResults.push(finalMatch)
-      publishH2HResult(finalMatch, idx + 1)
-
-      // Accumulate stats
       const { topScorer, topScorer2, topBowler } = finalMatch.stats ?? {}
       if (topScorer)  runsAcc[topScorer.name]  = (runsAcc[topScorer.name]  || 0) + topScorer.runs
       if (topScorer2) runsAcc[topScorer2.name] = (runsAcc[topScorer2.name] || 0) + topScorer2.runs
       if (topBowler)  wktsAcc[topBowler.name]  = (wktsAcc[topBowler.name]  || 0) + topBowler.wickets
       updateStreak(finalMatch.won, streakRef, setCurrentStreak, setBestWinStreak)
+      return finalMatch
     }
 
-    // Reveal all at once — staggered CSS animation drives the visual cascade
-    setRevealed(processedResults)
-    setLiveRuns(runsAcc)
-    setLiveWkts(wktsAcc)
-
-    // After CSS cascade finishes, transition to table / playoffs / done
-    const cascadeDuration = processedResults.length * 60 + 600
-
-    if (!hitFinal) {
-      if (isIPL) {
-        tableTimRef.current = setTimeout(() => {
-          const td = generateIPLTable(season.wins)
-          setIplTable(td)
-          setIplPosition(td.position)
-          setIplPhase('table')
-        }, cascadeDuration)
-      } else {
-        const lastMatch = processedResults[processedResults.length - 1]
-        const isSemiLoss = lastMatch && !lastMatch.won && lastMatch.stage === 'Semi-Final'
-        setTimeout(() => {
-          if (isSemiLoss) setShowHeartbreak(true)
-          else setIplPhase('done')
-        }, cascadeDuration)
+    function scheduleNext(idx) {
+      if (idx >= season.results.length) {
+        // All league matches done
+        if (isIPL) {
+          tableTimRef.current = setTimeout(() => {
+            const td = generateIPLTable(season.wins)
+            setIplTable(td)
+            setIplPosition(td.position)
+            setIplPhase('table')
+          }, 400)
+        } else {
+          // WC non-final: check last match
+          setTimeout(() => {
+            setRevealed(prev => {
+              const last = prev[prev.length - 1]
+              if (last && !last.won && last.stage === 'Semi-Final') setShowHeartbreak(true)
+              else setIplPhase('done')
+              return prev
+            })
+          }, 400)
+        }
+        return
       }
+
+      leagueRef.current = setTimeout(() => {
+        const match = season.results[idx]
+        const finalMatch = processMatch(match)
+        if (finalMatch === null) return // Final gate shown — stop
+        setRevealed(prev => [...prev, finalMatch])
+        setLiveRuns({ ...runsAcc })
+        setLiveWkts({ ...wktsAcc })
+        publishH2HResult(finalMatch, idx + 1)
+        scheduleNext(idx + 1)
+      }, idx === 0 ? 300 : MATCH_DELAY)
     }
+
+    scheduleNext(0)
 
     return () => {
       clearTimeout(leagueRef.current)
@@ -276,29 +284,63 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
     setPlayoffData(pd)
     setIplPhase('playoffs')
 
-    // Batch-reveal playoff results — CSS cascade handles the animation
-    const playoffBatch = []
-    const poRunsAcc = {}, poWktsAcc = {}
-    let hitPlayoffFinal = false
-    for (const match of pd.results) {
-      if (match.stage === 'Final') {
-        setPendingFinal({ ...match, _fromPlayoff: true, _playoffData: pd })
-        setFinalPhase('button')
-        hitPlayoffFinal = true
-        break
+    // H2H: auto-reveal all playoff matches quickly (no button clicks needed)
+    if (h2hContext) {
+      setPlayoffSimming(true)
+      const poRunsAcc = {}, poWktsAcc = {}
+      pd.results.forEach(match => {
+        const { topScorer, topScorer2, topBowler } = match.stats ?? {}
+        if (topScorer)  poRunsAcc[topScorer.name]  = (poRunsAcc[topScorer.name]  || 0) + topScorer.runs
+        if (topScorer2) poRunsAcc[topScorer2.name] = (poRunsAcc[topScorer2.name] || 0) + topScorer2.runs
+        if (topBowler)  poWktsAcc[topBowler.name]  = (poWktsAcc[topBowler.name]  || 0) + topBowler.wickets
+      })
+      let idx = 0
+      function revealNext() {
+        if (idx >= pd.results.length) {
+          setPlayoffSimming(false)
+          setIplPhase('done')
+          return
+        }
+        const match = pd.results[idx++]
+        if (match.stage === 'Final') {
+          setPlayoffSimming(false)
+          setPendingFinal({ ...match, _fromPlayoff: true, _playoffData: pd })
+          setFinalPhase('button')
+          return
+        }
+        setPlayoffRevealed(prev => [...prev, match])
+        setLiveRuns(prev => { const n = {...prev}; const { topScorer, topScorer2, topBowler } = match.stats ?? {}; if (topScorer) n[topScorer.name] = (n[topScorer.name]||0)+topScorer.runs; if (topScorer2) n[topScorer2.name] = (n[topScorer2.name]||0)+topScorer2.runs; if (topBowler) n[topBowler.name] = (n[topBowler.name]||0)+topBowler.wickets; return n })
+        setTimeout(revealNext, 200)
       }
-      playoffBatch.push(match)
+      setTimeout(revealNext, 300)
+      return
+    }
+
+    // Regular IPL: show "Play Match" button queue — user reveals one at a time
+    // Pre-simulate all results; queue them up
+    setPendingPlayoffQueue(pd.results)
+  }
+
+  function revealNextPlayoffMatch() {
+    setPendingPlayoffQueue(prev => {
+      if (!prev.length) return prev
+      const [match, ...rest] = prev
+      if (match.stage === 'Final') {
+        setPendingFinal({ ...match, _fromPlayoff: true, _playoffData: playoffData })
+        setFinalPhase('button')
+        return []
+      }
+      setPlayoffRevealed(pv => [...pv, match])
       const { topScorer, topScorer2, topBowler } = match.stats ?? {}
-      if (topScorer)  poRunsAcc[topScorer.name]  = (poRunsAcc[topScorer.name]  || 0) + topScorer.runs
-      if (topScorer2) poRunsAcc[topScorer2.name] = (poRunsAcc[topScorer2.name] || 0) + topScorer2.runs
-      if (topBowler)  poWktsAcc[topBowler.name]  = (poWktsAcc[topBowler.name]  || 0) + topBowler.wickets
-    }
-    setPlayoffRevealed(playoffBatch)
-    setLiveRuns(prev => { const n = {...prev}; Object.entries(poRunsAcc).forEach(([k,v]) => n[k] = (n[k]||0)+v); return n })
-    setLiveWkts(prev => { const n = {...prev}; Object.entries(poWktsAcc).forEach(([k,v]) => n[k] = (n[k]||0)+v); return n })
-    if (!hitPlayoffFinal) {
-      playoffRef.current = setTimeout(() => setIplPhase('done'), playoffBatch.length * 60 + 600)
-    }
+      if (topScorer)  setLiveRuns(pv => ({ ...pv, [topScorer.name]:  (pv[topScorer.name]  || 0) + topScorer.runs  }))
+      if (topScorer2) setLiveRuns(pv => ({ ...pv, [topScorer2.name]: (pv[topScorer2.name] || 0) + topScorer2.runs }))
+      if (topBowler)  setLiveWkts(pv => ({ ...pv, [topBowler.name]:  (pv[topBowler.name]  || 0) + topBowler.wickets }))
+      // If this was the last match (no more in rest), go to done
+      if (!rest.length) {
+        setTimeout(() => setIplPhase('done'), 800)
+      }
+      return rest
+    })
   }
 
   // ── Dramatic final ───────────────────────────────────────────────────────
@@ -767,11 +809,29 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
               <SectionBadge color="#a78bfa" bg="var(--card2)" border="#6d28d944">⚡ Playoffs</SectionBadge>
             )}
 
+            {/* Play Match button — regular IPL, one per playoff match */}
+            {iplPhase === 'playoffs' && pendingPlayoffQueue.length > 0 && finalPhase === 'idle' && !h2hContext && (
+              <div style={{ textAlign: 'center', padding: '1.5rem 1rem', background: 'var(--card)', border: '1px solid #a78bfa44', borderRadius: '0.875rem', animation: 'fade-in 0.3s ease both' }}>
+                <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
+                  {pendingPlayoffQueue[0]?.stage ?? 'Next Match'}
+                </div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text)', marginBottom: '1rem' }}>
+                  Your XI vs {pendingPlayoffQueue[0]?.opponent ?? '—'}
+                </div>
+                <button
+                  onClick={revealNextPlayoffMatch}
+                  style={{ padding: '0.75rem 2rem', background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', color: '#fff', border: 'none', borderRadius: '0.75rem', fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.04em' }}
+                >
+                  ▶ Play Match
+                </button>
+              </div>
+            )}
+
             {/* Playoff match cards — newest first */}
             {[...playoffRevealed].reverse().map((r, ri) => {
               const origI = playoffRevealed.length - 1 - ri
               return (
-                <MatchCard key={`po-${origI}`} result={r} isLatest={false} animDelay={ri * 0.055} expanded={expandedMatch === `po-${origI}`} onToggle={() => setExpandedMatch(expandedMatch === `po-${origI}` ? null : `po-${origI}`)} />
+                <MatchCard key={`po-${origI}`} result={r} isLatest={ri === 0 && iplPhase === 'playoffs'} animDelay={0} expanded={expandedMatch === `po-${origI}`} onToggle={() => setExpandedMatch(expandedMatch === `po-${origI}` ? null : `po-${origI}`)} />
               )
             })}
 
