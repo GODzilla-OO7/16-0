@@ -168,49 +168,40 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
     const runsAcc = {}, wktsAcc = {}
 
-    function processMatch(match) {
-      if (!isIPL && match.stage === 'Final') {
-        setPendingFinal(match)
-        setFinalPhase('button')
-        return null // signal: stop here
-      }
-
-      let finalMatch = match
+    // Resolve stats/streaks for a fully-resolved match (event already decided)
+    function finaliseMatch(match, success, choiceLabel) {
+      let finalMatch = { ...match, eventResult: match.event ? { success, choiceLabel } : undefined }
 
       if (match.event) {
-        const success = Math.random() < 0.6
-        finalMatch = { ...match, eventResult: { success, choiceLabel: 'auto' } }
-        if (finalMatch.stats) {
-          const evt = match.event
-          const milestone = BATTING_MILESTONES[evt.type]
-          if (milestone !== undefined) {
-            const origScorer = finalMatch.stats.topScorer
-            const preservedScorer2 = origScorer?.name !== evt.playerName ? origScorer : finalMatch.stats.topScorer2
-            if (success) {
-              const bonus = Math.floor(Math.random() * 36)
-              const teamTotal = parseScoreStr(match.myScore ?? '').runs
-              const cappedRuns = teamTotal ? Math.min(milestone + bonus, teamTotal) : milestone + bonus
-              finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: cappedRuns }, topScorer2: preservedScorer2 } }
-            } else {
-              finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: milestone - 1 }, topScorer2: preservedScorer2 } }
-            }
-          } else if (evt.type === 'hat-trick') {
-            finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topBowler: { name: evt.playerName, wickets: success ? 3 : 2 } } }
-          } else if (success && RUN_BONUS_EVENTS[evt.type] !== undefined) {
-            const bonus = RUN_BONUS_EVENTS[evt.type]
-            const existing = finalMatch.stats.topScorer
+        const evt = match.event
+        const milestone = BATTING_MILESTONES[evt.type]
+        if (milestone !== undefined) {
+          const origScorer = finalMatch.stats?.topScorer
+          const preservedScorer2 = origScorer?.name !== evt.playerName ? origScorer : finalMatch.stats?.topScorer2
+          if (success) {
+            const bonus = Math.floor(Math.random() * 36)
             const teamTotal = parseScoreStr(match.myScore ?? '').runs
-            const rawRuns = (existing?.runs ?? 0) + bonus
-            finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: teamTotal ? Math.min(rawRuns, teamTotal) : rawRuns } } }
+            const cappedRuns = teamTotal ? Math.min(milestone + bonus, teamTotal) : milestone + bonus
+            finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: cappedRuns }, topScorer2: preservedScorer2 } }
+          } else {
+            finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: milestone - 1 }, topScorer2: preservedScorer2 } }
           }
-          if (success && WICKET_EVENTS.has(evt.type)) {
-            wktsAcc[evt.playerName] = (wktsAcc[evt.playerName] || 0) + 1
-          }
+        } else if (evt.type === 'hat-trick') {
+          finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topBowler: { name: evt.playerName, wickets: success ? 3 : 2 } } }
+        } else if (success && RUN_BONUS_EVENTS[evt.type] !== undefined) {
+          const bonus = RUN_BONUS_EVENTS[evt.type]
+          const existing = finalMatch.stats?.topScorer
+          const teamTotal = parseScoreStr(match.myScore ?? '').runs
+          const rawRuns = (existing?.runs ?? 0) + bonus
+          finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: teamTotal ? Math.min(rawRuns, teamTotal) : rawRuns } } }
+        }
+        if (success && WICKET_EVENTS.has(evt.type)) {
+          wktsAcc[evt.playerName] = (wktsAcc[evt.playerName] || 0) + 1
         }
       }
 
       if (match.superOver) {
-        finalMatch = { ...match, won: match.superOver.won }
+        finalMatch = { ...finalMatch, won: match.superOver.won }
       }
 
       const { topScorer, topScorer2, topBowler } = finalMatch.stats ?? {}
@@ -219,6 +210,33 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
       if (topBowler)  wktsAcc[topBowler.name]  = (wktsAcc[topBowler.name]  || 0) + topBowler.wickets
       updateStreak(finalMatch.won, streakRef, setCurrentStreak, setBestWinStreak)
       return finalMatch
+    }
+
+    // processMatch: returns null if we need to stop (Final gate or QTE shown)
+    // onDone(finalMatch) called when match is fully resolved
+    function processMatch(match, onDone) {
+      if (!isIPL && match.stage === 'Final') {
+        setPendingFinal(match)
+        setFinalPhase('button')
+        return null // signal: stop here
+      }
+
+      // If match has a QTE event, pause and show the overlay
+      if (match.event && !h2hContext) {
+        setPendingEvent({
+          event: match.event,
+          opponent: match.opponent,
+          resume: (success, choiceLabel) => {
+            setPendingEvent(null)
+            onDone(finaliseMatch(match, success, choiceLabel))
+          },
+        })
+        return null // paused for user input
+      }
+
+      // No event (or H2H auto-sim) — resolve immediately
+      const success = match.event ? Math.random() < 0.6 : false
+      return finaliseMatch(match, success, 'auto')
     }
 
     function scheduleNext(idx) {
@@ -247,13 +265,18 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
 
       leagueRef.current = setTimeout(() => {
         const match = season.results[idx]
-        const finalMatch = processMatch(match)
-        if (finalMatch === null) return // Final gate shown — stop
-        setRevealed(prev => [...prev, finalMatch])
-        setLiveRuns({ ...runsAcc })
-        setLiveWkts({ ...wktsAcc })
-        publishH2HResult(finalMatch, idx + 1)
-        scheduleNext(idx + 1)
+
+        function commitAndContinue(finalMatch) {
+          setRevealed(prev => [...prev, finalMatch])
+          setLiveRuns({ ...runsAcc })
+          setLiveWkts({ ...wktsAcc })
+          publishH2HResult(finalMatch, idx + 1)
+          scheduleNext(idx + 1)
+        }
+
+        const result = processMatch(match, commitAndContinue)
+        if (result === null) return // Final gate or QTE paused — stop timer loop
+        commitAndContinue(result)
       }, idx === 0 ? 300 : MATCH_DELAY)
     }
 
