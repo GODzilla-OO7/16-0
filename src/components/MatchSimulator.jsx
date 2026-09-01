@@ -154,154 +154,102 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
     setLeagueSeason(season)
     if (isIPL) setLiveIPLTable(generateIPLTable(season.wins))
 
-    let i = 0
-    // Consistent 1200ms for all matches — gives time to read each result
-    function getMatchDelay(match) {
-      if (!match) return 1200
-      if (match.stage === 'Final') return 700  // final still dramatic
-      return 1200
-    }
+    // ── Batch-reveal: process all matches synchronously, CSS animations handle the cascade ──
+    const BATTING_MILESTONES = { 'half-century': 50, 'century': 100, '150': 150, '200': 200 }
+    const WICKET_EVENTS      = new Set(['catch', 'run-out', 'stumping'])
+    const RUN_BONUS_EVENTS   = { 'free-hit': 6, 'powerplay': 12 }
 
-    function scheduleNext() {
-      if (i >= season.results.length) {
-        if (isIPL) {
-          tableTimRef.current = setTimeout(() => {
-            const td = generateIPLTable(season.wins)
-            setIplTable(td)
-            setIplPosition(td.position)
-            setIplPhase('table')
-          }, 900)
-        } else {
-          // Check if last match was a Semi-Final loss → show heartbreak
-          const lastMatch = season.results[season.results.length - 1]
-          const isSemiLoss = lastMatch && !lastMatch.won && lastMatch.stage === 'Semi-Final'
-          if (isSemiLoss) {
-            setTimeout(() => setShowHeartbreak(true), 800)
-          } else {
-            setTimeout(() => setIplPhase('done'), 600)
-          }
-        }
-        return
+    const processedResults = []
+    const runsAcc = {}, wktsAcc = {}
+    let hitFinal = false
+
+    for (let idx = 0; idx < season.results.length; idx++) {
+      const match = season.results[idx]
+
+      // Non-IPL Final → keep drama button, stop processing here
+      if (!isIPL && match.stage === 'Final') {
+        setPendingFinal(match)
+        setFinalPhase('button')
+        hitFinal = true
+        break
       }
-      const match = season.results[i]
-      leagueRef.current = setTimeout(() => {
-        // Intercept Final for non-IPL modes
-        if (!isIPL && match.stage === 'Final') {
-          setPendingFinal(match)
-          setFinalPhase('button')
-          return
-        }
-        // Intercept match event (century / hat-trick moments)
-        // In H2H auto-sim mode: auto-resolve after a short delay instead of waiting for user
-        if (match.event) {
-          const autoResolve = !!h2hContext
-          const doResume = (success, choiceLabel) => {
-            setPendingEvent(null)
-              const BATTING_MILESTONES = { 'half-century': 50, 'century': 100, '150': 150, '200': 200 }
-              // Types that grant a bonus wicket to the bowling tally on success
-              const WICKET_EVENTS = new Set(['catch', 'run-out', 'stumping'])
-              // Types that grant bonus runs on success
-              const RUN_BONUS_EVENTS = { 'free-hit': 6, 'powerplay': 12 }
 
-              let finalMatch = { ...match, eventResult: { success, choiceLabel } }
-              // Patch stats so the QTE player always appears in the scorecard (success or failure)
-              if (match.event && finalMatch.stats) {
-                const evt = match.event
-                const milestone = BATTING_MILESTONES[evt.type]
-                if (milestone !== undefined) {
-                  const origScorer = finalMatch.stats.topScorer
-                  const preservedScorer2 = origScorer?.name !== evt.playerName ? origScorer : finalMatch.stats.topScorer2
-                  if (success) {
-                    // Player scored milestone + bonus runs
-                    const bonus = Math.floor(Math.random() * 36)  // 0–35 extra runs
-                    const teamTotal = parseScoreStr(match.myScore ?? '').runs
-                    const cappedRuns = teamTotal ? Math.min(milestone + bonus, teamTotal) : milestone + bonus
-                    finalMatch = { ...finalMatch, stats: { ...finalMatch.stats,
-                      topScorer:  { name: evt.playerName, runs: cappedRuns },
-                      topScorer2: preservedScorer2,
-                    }}
-                  } else {
-                    // Player fell one short — show milestone−1 runs so they appear in the card
-                    finalMatch = { ...finalMatch, stats: { ...finalMatch.stats,
-                      topScorer:  { name: evt.playerName, runs: milestone - 1 },
-                      topScorer2: preservedScorer2,
-                    }}
-                  }
-                } else if (evt.type === 'hat-trick') {
-                  const origBowler = finalMatch.stats.topBowler
-                  const wickets = success ? 3 : 2   // 3 on success, 2 if catch dropped / missed
-                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topBowler: { name: evt.playerName, wickets } } }
-                  if (origBowler && origBowler.name !== evt.playerName) {
-                    setLiveWkts(prev => ({ ...prev, [origBowler.name]: (prev[origBowler.name] || 0) + origBowler.wickets }))
-                  }
-                } else if (success && RUN_BONUS_EVENTS[evt.type] !== undefined) {
-                  // Bonus runs on success only (free-hit / powerplay)
-                  const bonus = RUN_BONUS_EVENTS[evt.type]
-                  const existing = finalMatch.stats.topScorer
-                  const teamTotal = parseScoreStr(match.myScore ?? '').runs
-                  const rawRuns = (existing?.runs ?? 0) + bonus
-                  const cappedRuns = teamTotal ? Math.min(rawRuns, teamTotal) : rawRuns
-                  finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: cappedRuns } } }
-                }
-              }
-              setRevealed(prev => [...prev, finalMatch])
-              publishH2HResult(finalMatch, i + 1)
-              addStats(finalMatch, setLiveRuns, setLiveWkts)
-              updateStreak(match.won, streakRef, setCurrentStreak, setBestWinStreak)
-              // Fielding/stumping events add a wicket not tracked in base match stats
-              if (success && match.event) {
-                const evt = match.event
-                if (WICKET_EVENTS.has(evt.type)) {
-                  setLiveWkts(prev => ({ ...prev, [evt.playerName]: (prev[evt.playerName] || 0) + 1 }))
-                }
-              }
-              i++
-              scheduleNext()
-          }
-          if (autoResolve) {
-            // H2H auto-sim: resolve QTE randomly after a short pause (no user click needed)
-            setTimeout(() => doResume(Math.random() < 0.6, 'auto'), 600)
-          } else {
-            setPendingEvent({ event: match.event, opponent: match.opponent, resume: doResume })
-          }
-          return
-        }
-        // Intercept league Super Over
-        if (match.superOver) {
-          const soResume = (soWon) => {
-            setPendingLeagueSO(null)
-            const finalM = { ...match, won: soWon }
-            setRevealed(prev => [...prev, finalM])
-            publishH2HResult(finalM, i + 1)
-            addStats(finalM, setLiveRuns, setLiveWkts)
-            updateStreak(soWon, streakRef, setCurrentStreak, setBestWinStreak)
-            i++
-            scheduleNext()
-          }
-          if (h2hContext) {
-            // H2H auto-sim: use the already-simulated super over result
-            setTimeout(() => soResume(match.superOver.won), 800)
-          } else {
-            setPendingLeagueSO({ match, resume: soResume })
-          }
-          return
-        }
+      let finalMatch = match
 
-        setRevealed(prev => [...prev, match])
-        publishH2HResult(match, i + 1)
-        // H2H showdown: brief animation pause when the two H2H teams face each other
-        if (match.isH2HShowdown && h2hContext) {
-          setH2hShowdown({ match, opponentName: h2hContext.opponentName })
-          setTimeout(() => setH2hShowdown(null), 4000)
+      // Auto-resolve QTE events (show result inline on the match card)
+      if (match.event) {
+        const success = Math.random() < 0.6
+        finalMatch = { ...match, eventResult: { success, choiceLabel: 'auto' } }
+        if (finalMatch.stats) {
+          const evt = match.event
+          const milestone = BATTING_MILESTONES[evt.type]
+          if (milestone !== undefined) {
+            const origScorer = finalMatch.stats.topScorer
+            const preservedScorer2 = origScorer?.name !== evt.playerName ? origScorer : finalMatch.stats.topScorer2
+            if (success) {
+              const bonus = Math.floor(Math.random() * 36)
+              const teamTotal = parseScoreStr(match.myScore ?? '').runs
+              const cappedRuns = teamTotal ? Math.min(milestone + bonus, teamTotal) : milestone + bonus
+              finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: cappedRuns }, topScorer2: preservedScorer2 } }
+            } else {
+              finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: milestone - 1 }, topScorer2: preservedScorer2 } }
+            }
+          } else if (evt.type === 'hat-trick') {
+            finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topBowler: { name: evt.playerName, wickets: success ? 3 : 2 } } }
+          } else if (success && RUN_BONUS_EVENTS[evt.type] !== undefined) {
+            const bonus = RUN_BONUS_EVENTS[evt.type]
+            const existing = finalMatch.stats.topScorer
+            const teamTotal = parseScoreStr(match.myScore ?? '').runs
+            const rawRuns = (existing?.runs ?? 0) + bonus
+            finalMatch = { ...finalMatch, stats: { ...finalMatch.stats, topScorer: { name: evt.playerName, runs: teamTotal ? Math.min(rawRuns, teamTotal) : rawRuns } } }
+          }
+          if (success && WICKET_EVENTS.has(evt.type)) {
+            wktsAcc[evt.playerName] = (wktsAcc[evt.playerName] || 0) + 1
+          }
         }
-        addStats(match, setLiveRuns, setLiveWkts)
-        updateStreak(match.won, streakRef, setCurrentStreak, setBestWinStreak)
-        i++
-        scheduleNext()
-      }, getMatchDelay(match))
+      }
+
+      // Auto-resolve Super Over
+      if (match.superOver) {
+        finalMatch = { ...match, won: match.superOver.won }
+      }
+
+      processedResults.push(finalMatch)
+      publishH2HResult(finalMatch, idx + 1)
+
+      // Accumulate stats
+      const { topScorer, topScorer2, topBowler } = finalMatch.stats ?? {}
+      if (topScorer)  runsAcc[topScorer.name]  = (runsAcc[topScorer.name]  || 0) + topScorer.runs
+      if (topScorer2) runsAcc[topScorer2.name] = (runsAcc[topScorer2.name] || 0) + topScorer2.runs
+      if (topBowler)  wktsAcc[topBowler.name]  = (wktsAcc[topBowler.name]  || 0) + topBowler.wickets
+      updateStreak(finalMatch.won, streakRef, setCurrentStreak, setBestWinStreak)
     }
 
-    scheduleNext()
+    // Reveal all at once — staggered CSS animation drives the visual cascade
+    setRevealed(processedResults)
+    setLiveRuns(runsAcc)
+    setLiveWkts(wktsAcc)
+
+    // After CSS cascade finishes, transition to table / playoffs / done
+    const cascadeDuration = processedResults.length * 60 + 600
+
+    if (!hitFinal) {
+      if (isIPL) {
+        tableTimRef.current = setTimeout(() => {
+          const td = generateIPLTable(season.wins)
+          setIplTable(td)
+          setIplPosition(td.position)
+          setIplPhase('table')
+        }, cascadeDuration)
+      } else {
+        const lastMatch = processedResults[processedResults.length - 1]
+        const isSemiLoss = lastMatch && !lastMatch.won && lastMatch.stage === 'Semi-Final'
+        setTimeout(() => {
+          if (isSemiLoss) setShowHeartbreak(true)
+          else setIplPhase('done')
+        }, cascadeDuration)
+      }
+    }
 
     return () => {
       clearTimeout(leagueRef.current)
@@ -328,24 +276,29 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
     setPlayoffData(pd)
     setIplPhase('playoffs')
 
-    let j = 0
-    function nextPlayoff() {
-      if (j >= pd.results.length) { setIplPhase('done'); return }
-      const match = pd.results[j]
-
-      // Intercept the Final
+    // Batch-reveal playoff results — CSS cascade handles the animation
+    const playoffBatch = []
+    const poRunsAcc = {}, poWktsAcc = {}
+    let hitPlayoffFinal = false
+    for (const match of pd.results) {
       if (match.stage === 'Final') {
         setPendingFinal({ ...match, _fromPlayoff: true, _playoffData: pd })
         setFinalPhase('button')
-        return
+        hitPlayoffFinal = true
+        break
       }
-
-      setPlayoffRevealed(prev => [...prev, match])
-      addStats(match, setLiveRuns, setLiveWkts)
-      j++
-      playoffRef.current = setTimeout(nextPlayoff, 1200)
+      playoffBatch.push(match)
+      const { topScorer, topScorer2, topBowler } = match.stats ?? {}
+      if (topScorer)  poRunsAcc[topScorer.name]  = (poRunsAcc[topScorer.name]  || 0) + topScorer.runs
+      if (topScorer2) poRunsAcc[topScorer2.name] = (poRunsAcc[topScorer2.name] || 0) + topScorer2.runs
+      if (topBowler)  poWktsAcc[topBowler.name]  = (poWktsAcc[topBowler.name]  || 0) + topBowler.wickets
     }
-    playoffRef.current = setTimeout(nextPlayoff, 1200)
+    setPlayoffRevealed(playoffBatch)
+    setLiveRuns(prev => { const n = {...prev}; Object.entries(poRunsAcc).forEach(([k,v]) => n[k] = (n[k]||0)+v); return n })
+    setLiveWkts(prev => { const n = {...prev}; Object.entries(poWktsAcc).forEach(([k,v]) => n[k] = (n[k]||0)+v); return n })
+    if (!hitPlayoffFinal) {
+      playoffRef.current = setTimeout(() => setIplPhase('done'), playoffBatch.length * 60 + 600)
+    }
   }
 
   // ── Dramatic final ───────────────────────────────────────────────────────
@@ -818,7 +771,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             {[...playoffRevealed].reverse().map((r, ri) => {
               const origI = playoffRevealed.length - 1 - ri
               return (
-                <MatchCard key={`po-${origI}`} result={r} isLatest={iplPhase === 'playoffs' && origI === playoffRevealed.length - 1} expanded={expandedMatch === `po-${origI}`} onToggle={() => setExpandedMatch(expandedMatch === `po-${origI}` ? null : `po-${origI}`)} />
+                <MatchCard key={`po-${origI}`} result={r} isLatest={false} animDelay={ri * 0.055} expanded={expandedMatch === `po-${origI}`} onToggle={() => setExpandedMatch(expandedMatch === `po-${origI}` ? null : `po-${origI}`)} />
               )
             })}
 
@@ -831,7 +784,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             {[...revealed].reverse().map((r, ri) => {
               const origI = revealed.length - 1 - ri
               return (
-                <MatchCard key={origI} result={r} isLatest={iplPhase === 'league' && origI === revealed.length - 1} expanded={expandedMatch === origI} onToggle={() => setExpandedMatch(expandedMatch === origI ? null : origI)} />
+                <MatchCard key={origI} result={r} isLatest={false} animDelay={ri * 0.055} expanded={expandedMatch === origI} onToggle={() => setExpandedMatch(expandedMatch === origI ? null : origI)} />
               )
             })}
 
@@ -1620,7 +1573,7 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
 
 // ─── Match card ───────────────────────────────────────────────────────────────
 
-function MatchCard({ result, isLatest, expanded, onToggle }) {
+function MatchCard({ result, isLatest, expanded, onToggle, animDelay = 0 }) {
   const { won, matchNum, stage, opponent, summary, myScore, oppScore, stats, oppStats, event, eventResult, superOver } = result
   const stageClr = stage === 'Final' ? '#f59e0b' : (stage?.includes('Qualifier') || stage === 'Eliminator' || stage?.includes('Semi')) ? '#a78bfa' : '#64748b'
 
@@ -1651,7 +1604,7 @@ function MatchCard({ result, isLatest, expanded, onToggle }) {
   }
 
   return (
-    <div style={{ background: won ? 'var(--win-bg)' : 'var(--loss-bg)', border:`1px solid ${won ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius:'0.75rem', overflow:'hidden', animation: isLatest ? 'slide-in-right 0.3s ease both' : 'none' }}>
+    <div style={{ background: won ? 'var(--win-bg)' : 'var(--loss-bg)', border:`1px solid ${won ? 'var(--win-border)' : 'var(--loss-border)'}`, borderRadius:'0.75rem', overflow:'hidden', animation: 'slide-in-up 0.35s cubic-bezier(0.22,1,0.36,1) both', animationDelay: `${animDelay}s` }}>
 
       {/* Header row */}
       <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', padding:'0.65rem 1rem' }}>
