@@ -1062,8 +1062,8 @@ export default function Results({ team, mode, manager, summary, matchResults, on
           })()}
 
 
-          {/* ── Orange Cap / Purple Cap Season Winners ── */}
-          {(topScorers.length > 0 || topWicketTakers.length > 0) && (
+          {/* ── Orange Cap / Purple Cap / Best Player ── */}
+          {(topScorers.length > 0 || topWicketTakers.length > 0 || potm) && (
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>
                 Season Award Winners
@@ -1071,30 +1071,42 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                 {topScorers.length > 0 && (
                   <div style={{
-                    flex: 1, minWidth: 120,
+                    flex: 1, minWidth: 100,
                     background: 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(234,88,12,0.08))',
                     border: '1px solid rgba(249,115,22,0.4)',
-                    borderRadius: '0.875rem', padding: '0.875rem 1rem', textAlign: 'center',
+                    borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center',
                   }}>
                     <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.35rem' }}>🟠 Orange Cap</div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--text)' }}>{topScorers[0].name}</div>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#f97316', marginTop: '0.1rem' }}>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1.2 }}>{topScorers[0].name}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#f97316', marginTop: '0.15rem' }}>
                       {topScorers[0].runs} <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600 }}>runs</span>
                     </div>
                   </div>
                 )}
                 {topWicketTakers.length > 0 && (
                   <div style={{
-                    flex: 1, minWidth: 120,
+                    flex: 1, minWidth: 100,
                     background: 'linear-gradient(135deg, rgba(168,85,247,0.12), rgba(126,34,206,0.08))',
                     border: '1px solid rgba(168,85,247,0.4)',
-                    borderRadius: '0.875rem', padding: '0.875rem 1rem', textAlign: 'center',
+                    borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center',
                   }}>
                     <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.35rem' }}>🟣 Purple Cap</div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--text)' }}>{topWicketTakers[0].name}</div>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#a855f7', marginTop: '0.1rem' }}>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1.2 }}>{topWicketTakers[0].name}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#a855f7', marginTop: '0.15rem' }}>
                       {topWicketTakers[0].wickets} <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600 }}>wkts</span>
                     </div>
+                  </div>
+                )}
+                {potm && (
+                  <div style={{
+                    flex: 1, minWidth: 100,
+                    background: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(180,120,0,0.08))',
+                    border: '1px solid rgba(245,158,11,0.4)',
+                    borderRadius: '0.875rem', padding: '0.875rem 0.75rem', textAlign: 'center',
+                  }}>
+                    <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.35rem' }}>⭐ Best Player</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1.2 }}>{potm}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600, marginTop: '0.15rem' }}>Player of Season</div>
                   </div>
                 )}
               </div>
@@ -1430,6 +1442,16 @@ export default function Results({ team, mode, manager, summary, matchResults, on
           </div>
         </div>
 
+        {/* ── Season History ── */}
+        <SeasonHistoryCard
+          seasonNumber={seasonNumber}
+          prevSeasons={prevSeasons}
+          currentWins={dispWins}
+          currentLosses={dispLosses}
+          currentIplOutcome={iplOutcome}
+          currentStageReached={stageReached}
+        />
+
         {/* ── Play Again Hook — just below share buttons to hook player ── */}
         <BestFinishHook
           wins={wins}
@@ -1482,18 +1504,9 @@ export default function Results({ team, mode, manager, summary, matchResults, on
         {/* Tab content */}
         {tab === 'overview' && (
           <OverviewTab
-            potm={potm}
-            topScorers={topScorers}
-            topWicketTakers={topWicketTakers}
             tournamentBestXI={tournamentBestXI}
             bestXI={bestXI}
             team={team}
-            seasonNumber={seasonNumber}
-            prevSeasons={prevSeasons}
-            currentWins={dispWins}
-            currentLosses={dispLosses}
-            currentIplOutcome={iplOutcome}
-            currentStageReached={stageReached}
           />
         )}
         {tab === 'playerstats' && (
@@ -1833,98 +1846,12 @@ function SeasonHistoryCard({ seasonNumber, prevSeasons, currentWins, currentLoss
   )
 }
 
-function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, bestXI, team, seasonNumber, prevSeasons, currentWins, currentLosses, currentIplOutcome, currentStageReached }) {
-  const top3bat  = topScorers.slice(0, 3)
-  const top3bowl = topWicketTakers.slice(0, 3)
-  const medals   = ['🥇', '🥈', '🥉']
-
+function OverviewTab({ tournamentBestXI, bestXI, team }) {
   // Tournament XI entries — only user's players, capped by stage reached
   const xiEntries = tournamentBestXI
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fade-in 0.3s ease both' }}>
-
-      {/* Best Overall Player */}
-      {potm && (
-        <div style={{
-          background: 'var(--warn-bg)',
-          border: '2px solid #f59e0b44',
-          borderRadius: '1rem', padding: '1.25rem',
-          display: 'flex', alignItems: 'center', gap: '1rem',
-        }}>
-          <div style={{ fontSize: '2.5rem' }}>🏅</div>
-          <div>
-            <div style={{ fontSize: '0.65rem', color: '#f59e0b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>Player of the Tournament</div>
-            <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)' }}>{potm}</div>
-            <div style={{ fontSize: '0.7rem', color: '#f59e0b88', marginTop: '0.1rem' }}>From your XI · Top combined impact</div>
-          </div>
-        </div>
-      )}
-
-      {/* Top 3 Batsmen + Top 3 Wicket-Takers side-by-side */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
-        {/* Top 3 Batsmen */}
-        {top3bat.length > 0 && (
-          <div>
-            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#C8102E', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem', paddingLeft: '0.25rem' }}>
-              🏏 Top Batters
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {top3bat.map((p, i) => (
-                <div key={p.name} style={{
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.625rem 0.75rem',
-                  background: i === 0 ? '#C8102E12' : 'var(--card)',
-                  border: `1px solid ${i === 0 ? '#C8102E44' : 'var(--border)'}`,
-                  borderRadius: '0.625rem',
-                }}>
-                  <div style={{ fontSize: i === 0 ? '1rem' : '0.8rem', width: 20, textAlign: 'center', flexShrink: 0 }}>{medals[i]}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                    <div style={{ fontSize: i === 0 ? '1rem' : '0.85rem', fontWeight: 900, color: i === 0 ? '#C8102E' : '#94a3b8' }}>{p.runs} <span style={{ fontSize: '0.52rem', color: '#64748b', fontWeight: 600 }}>runs</span></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Top 3 Wicket-Takers */}
-        {top3bowl.length > 0 && (
-          <div>
-            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem', paddingLeft: '0.25rem' }}>
-              🎯 Top Bowlers
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {top3bowl.map((p, i) => (
-                <div key={p.name} style={{
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.625rem 0.75rem',
-                  background: i === 0 ? '#a855f712' : 'var(--card)',
-                  border: `1px solid ${i === 0 ? '#a855f744' : 'var(--border)'}`,
-                  borderRadius: '0.625rem',
-                }}>
-                  <div style={{ fontSize: i === 0 ? '1rem' : '0.8rem', width: 20, textAlign: 'center', flexShrink: 0 }}>{medals[i]}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                    <div style={{ fontSize: i === 0 ? '1rem' : '0.85rem', fontWeight: 900, color: i === 0 ? '#a855f7' : '#94a3b8' }}>{p.wickets} <span style={{ fontSize: '0.52rem', color: '#64748b', fontWeight: 600 }}>wkts</span></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Season History sliding window */}
-      <SeasonHistoryCard
-        seasonNumber={seasonNumber}
-        prevSeasons={prevSeasons}
-        currentWins={currentWins}
-        currentLosses={currentLosses}
-        currentIplOutcome={currentIplOutcome}
-        currentStageReached={currentStageReached}
-      />
 
       {/* Tournament Best XI — only user's players, capped by stage reached */}
       <div>
