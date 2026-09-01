@@ -1061,36 +1061,6 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             )
           })()}
 
-          {/* ── Previous seasons in this run ── */}
-          {prevSeasons.length > 0 && (
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.5rem' }}>
-                Season History
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', justifyContent: 'center' }}>
-                {prevSeasons.slice(0, 5).map((h, i) => {
-                  const sNum = seasonNumber - 1 - i
-                  const isChamp = h.iplOutcome === 'champion' || h.stageReached === 'Champion'
-                  const isRunnerUp = h.iplOutcome === 'runner-up' || h.stageReached === 'Runner-up'
-                  const icon = isChamp ? '🏆' : isRunnerUp ? '🥈' : ''
-                  return (
-                    <div key={i} style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                      padding: '0.3rem 0.65rem',
-                      background: isChamp ? 'linear-gradient(135deg,#78350f18,#92400e18)' : 'var(--card2)',
-                      border: `1px solid ${isChamp ? '#f59e0b55' : 'var(--border)'}`,
-                      borderRadius: '999px',
-                      fontSize: '0.72rem', fontWeight: 700,
-                      color: isChamp ? '#f59e0b' : '#94a3b8',
-                    }}>
-                      {icon && <span>{icon}</span>}
-                      <span>S{sNum}: {h.wins}W–{h.losses}L</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
 
           {/* ── Orange Cap / Purple Cap Season Winners ── */}
           {(topScorers.length > 0 || topWicketTakers.length > 0) && (
@@ -1518,6 +1488,12 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             tournamentBestXI={tournamentBestXI}
             bestXI={bestXI}
             team={team}
+            seasonNumber={seasonNumber}
+            prevSeasons={prevSeasons}
+            currentWins={dispWins}
+            currentLosses={dispLosses}
+            currentIplOutcome={iplOutcome}
+            currentStageReached={stageReached}
           />
         )}
         {tab === 'playerstats' && (
@@ -1773,7 +1749,89 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
 
 // ─── Awards tab ────────────────────────────────────────────────────────────
 
-function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, bestXI, team }) {
+function SeasonHistoryCard({ seasonNumber, prevSeasons, currentWins, currentLosses, currentIplOutcome, currentStageReached }) {
+  const windowStart = 2 * Math.floor((seasonNumber - 1) / 2) + 1
+  const slots = [windowStart, windowStart + 1, windowStart + 2]
+
+  function getSeasonData(slot) {
+    if (slot > seasonNumber) return null
+    if (slot === seasonNumber) {
+      return { wins: currentWins, losses: currentLosses, iplOutcome: currentIplOutcome, stageReached: currentStageReached }
+    }
+    const idx = seasonNumber - 1 - slot
+    return prevSeasons[idx] ?? null
+  }
+
+  function getOutcomeLabel(data) {
+    if (!data) return null
+    if (data.iplOutcome === 'champion' || data.stageReached === 'Champion') return 'Champions 🏆'
+    if (data.iplOutcome === 'runner-up' || data.stageReached === 'Runner-up') return 'Runners-Up 🥈'
+    if (data.stageReached) return data.stageReached
+    if (data.iplOutcome) return data.iplOutcome.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    return null
+  }
+
+  return (
+    <div style={{ marginBottom: '1.25rem' }}>
+      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.625rem', paddingLeft: '0.25rem' }}>
+        📅 Season History
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.625rem' }}>
+        {slots.map(slot => {
+          const data = getSeasonData(slot)
+          const isFuture = slot > seasonNumber
+          const isChamp = data && (data.iplOutcome === 'champion' || data.stageReached === 'Champion')
+          const outLabel = getOutcomeLabel(data)
+          const isCurrent = slot === seasonNumber
+
+          if (isFuture) {
+            return (
+              <div key={slot} style={{
+                background: 'transparent',
+                border: '1.5px dashed #334155',
+                borderRadius: '0.75rem',
+                padding: '0.875rem 0.5rem',
+                textAlign: 'center',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                minHeight: 80,
+              }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Season {slot}</div>
+              </div>
+            )
+          }
+
+          return (
+            <div key={slot} style={{
+              background: isChamp
+                ? 'linear-gradient(135deg, rgba(180,120,0,0.2), rgba(120,80,0,0.14))'
+                : 'var(--card)',
+              border: `1.5px solid ${isChamp ? '#f59e0baa' : isCurrent ? 'rgba(200,16,46,0.5)' : 'var(--border)'}`,
+              borderRadius: '0.75rem',
+              padding: '0.875rem 0.5rem',
+              textAlign: 'center',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              minHeight: 80,
+            }}>
+              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: isChamp ? '#f59e0b' : isCurrent ? '#C8102E' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.3rem' }}>
+                {isCurrent ? 'This Season' : `Season ${slot}`}
+              </div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: isChamp ? '#f59e0b' : 'var(--text)', lineHeight: 1, marginBottom: '0.2rem' }}>
+                {data.wins}W <span style={{ color: '#475569', fontWeight: 600, fontSize: '0.8rem' }}>{data.losses}L</span>
+              </div>
+              {outLabel && (
+                <div style={{ fontSize: '0.57rem', fontWeight: 700, color: isChamp ? '#fbbf24' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.1rem' }}>
+                  {outLabel}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, bestXI, team, seasonNumber, prevSeasons, currentWins, currentLosses, currentIplOutcome, currentStageReached }) {
   const top3bat  = topScorers.slice(0, 3)
   const top3bowl = topWicketTakers.slice(0, 3)
   const medals   = ['🥇', '🥈', '🥉']
@@ -1855,6 +1913,16 @@ function OverviewTab({ potm, topScorers, topWicketTakers, tournamentBestXI, best
           </div>
         )}
       </div>
+
+      {/* Season History sliding window */}
+      <SeasonHistoryCard
+        seasonNumber={seasonNumber}
+        prevSeasons={prevSeasons}
+        currentWins={currentWins}
+        currentLosses={currentLosses}
+        currentIplOutcome={currentIplOutcome}
+        currentStageReached={currentStageReached}
+      />
 
       {/* Tournament Best XI — only user's players, capped by stage reached */}
       <div>

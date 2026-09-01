@@ -27,6 +27,16 @@ import { generateTournament } from './utils/sharedTournament.js'
 import { getSupabase } from './lib/supabase.js'
 import { resolveShortUrl } from './lib/shortUrl.js'
 
+const ROLE_FULL_LABEL = {
+  'opener': 'Opener',
+  'top-order': 'Top Order',
+  'middle-order': 'Middle Order',
+  'wicket-keeper': 'Wicket-Keeper',
+  'all-rounder': 'All-Rounder',
+  'pace-bowler': 'Pace Bowler',
+  'spin-bowler': 'Spin Bowler',
+}
+
 // Error boundary — catches H2HDraft crashes and shows a recoverable error screen
 class H2HErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null } }
@@ -539,7 +549,7 @@ export default function App() {
             {(cd.sq || []).map((p, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0', borderBottom: i < cd.sq.length - 1 ? '1px solid var(--border)' : 'none', fontSize: '0.78rem' }}>
                 <span style={{ color: 'var(--text)', fontWeight: 700 }}>{p.n}</span>
-                <span style={{ color: '#64748b' }}>{p.r} · {p.o}</span>
+                <span style={{ color: '#64748b' }}>{ROLE_FULL_LABEL[p.r] ?? p.r} · {p.o}</span>
               </div>
             ))}
           </div>

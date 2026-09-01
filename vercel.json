@@ -10,6 +10,10 @@
     {
       "source": "/s/:code",
       "destination": "/index.html"
+    },
+    {
+      "source": "/:code([a-z0-9]{5,7})",
+      "destination": "/index.html"
     }
   ]
 }
