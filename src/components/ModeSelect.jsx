@@ -35,30 +35,31 @@ export default function ModeSelect({
       position: 'relative',
       display: 'flex',
       flexDirection: 'column',
-      overflow: 'hidden',
       fontFamily: 'inherit',
     }}>
 
       {/* ── Stadium background ───────────────────────────────────────────── */}
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 0,
+        position: 'fixed', inset: 0, zIndex: 0,
         backgroundImage: 'url(/stadium.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
+        pointerEvents: 'none',
       }} />
       {/* Dark overlay */}
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 1,
+        position: 'fixed', inset: 0, zIndex: 1,
         background: 'linear-gradient(160deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.80) 100%)',
+        pointerEvents: 'none',
       }} />
 
       {/* ── Navbar ──────────────────────────────────────────────────────── */}
       <nav style={{
-        position: 'relative', zIndex: 10,
+        position: 'sticky', top: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 2rem',
         height: 58,
-        background: 'rgba(0,0,0,0.35)',
+        background: 'rgba(0,0,0,0.6)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
