@@ -692,19 +692,21 @@ function defaultProfile() {
 
 // ─── Storage layer (swap for API calls when hosting) ───────────────────────
 
+// Use sessionStorage — data clears on tab close for logged-out users.
+// Signed-in users have their data persisted in Supabase.
 const storage = {
   load() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY)
+      const raw = sessionStorage.getItem(STORAGE_KEY)
       return raw ? JSON.parse(raw) : null
     } catch { return null }
   },
   save(profile) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)) }
+    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(profile)) }
     catch { /* quota exceeded / SSR */ }
   },
   clear() {
-    try { localStorage.removeItem(STORAGE_KEY) }
+    try { sessionStorage.removeItem(STORAGE_KEY) }
     catch { /* */ }
   },
 }
