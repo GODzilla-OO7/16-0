@@ -559,33 +559,75 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
       {showHeartbreak && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
-          background: 'radial-gradient(ellipse at 50% 40%, #1a0505 0%, var(--bg) 70%)',
+          background: playoffData?.outcome === 'runner-up'
+            ? 'radial-gradient(ellipse at 50% 30%, #1a0a00 0%, #0a0006 50%, var(--bg) 100%)'
+            : 'radial-gradient(ellipse at 50% 40%, #1a0505 0%, var(--bg) 70%)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           animation: 'fade-in 0.4s ease both',
+          padding: '1.5rem',
         }}>
-          <div style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
-            <div style={{ fontSize: '7rem', lineHeight: 1, animation: 'trophy-bounce 0.7s cubic-bezier(0.34,1.56,0.64,1) both' }}>💔</div>
-            <div style={{ fontSize: '2rem', fontWeight: 900, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.75rem', animation: 'fade-in-up 0.6s 0.4s ease both', animationFillMode: 'both' }}>
-              {leagueSeason?.stageReached === 'Semi-Final' ? 'Out in the Semis' : 'Heartbreak at the Final'}
-            </div>
-            <div style={{ fontSize: '1rem', color: '#94a3b8', marginTop: '0.5rem', animation: 'fade-in 0.5s 0.8s ease both', animationFillMode: 'both' }}>
-              {leagueSeason?.stageReached === 'Semi-Final'
-                ? 'So close to the final — but it wasn\'t to be.'
-                : 'You made it to the last match, but fell just short.'}
-            </div>
-            {leagueSeason?.actualWinner && (
-              <div style={{ marginTop: '0.75rem', padding: '0.5rem 1.25rem', background: 'rgba(255,255,255,0.07)', borderRadius: '0.5rem', display: 'inline-block', animation: 'fade-in 0.5s 1s ease both', animationFillMode: 'both' }}>
-                <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>🏆 Tournament Winner: </span>
-                <span style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 800 }}>{leagueSeason.actualWinner}</span>
+          {playoffData?.outcome === 'runner-up' ? (
+            // ── FINAL LOSS — special treatment ──────────────────────────────
+            <div style={{ textAlign: 'center', maxWidth: 440, position: 'relative', zIndex: 2 }}>
+              <div style={{ fontSize: '5rem', lineHeight: 1, animation: 'trophy-bounce 0.7s cubic-bezier(0.34,1.56,0.64,1) both', marginBottom: '0.5rem' }}>🥈</div>
+              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '0.5rem', animation: 'fade-in 0.4s 0.2s ease both', animationFillMode: 'both' }}>
+                IPL Final
               </div>
-            )}
-            <button
-              onClick={dismissHeartbreak}
-              style={{ marginTop: '2.5rem', padding: '0.875rem 2.5rem', background: 'linear-gradient(135deg,#ef4444,#b91c1c)', color: '#fff', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', animation: 'fade-in 0.5s 1.2s ease both', animationFillMode: 'both' }}
-            >
-              View Season Summary →
-            </button>
-          </div>
+              <div style={{ fontSize: '2rem', fontWeight: 900, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1.2, animation: 'fade-in-up 0.6s 0.4s ease both', animationFillMode: 'both' }}>
+                So close.
+              </div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#94a3b8', marginTop: '0.4rem', animation: 'fade-in 0.5s 0.6s ease both', animationFillMode: 'both' }}>
+                A full season, every match, every decision —<br />
+                it all came down to this. And you fell just short.
+              </div>
+              {pendingFinal && (
+                <div style={{ marginTop: '1rem', padding: '0.75rem 1.25rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.625rem', display: 'inline-block', animation: 'fade-in 0.5s 0.8s ease both', animationFillMode: 'both' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: '0.2rem' }}>Your XI {pendingFinal.myScore} · {pendingFinal.opponent} {pendingFinal.oppScore}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 700 }}>{pendingFinal.summary}</div>
+                </div>
+              )}
+              {leagueSeason?.actualWinner && (
+                <div style={{ marginTop: '0.75rem', padding: '0.5rem 1.25rem', background: 'rgba(255,255,255,0.04)', borderRadius: '0.5rem', display: 'inline-block', animation: 'fade-in 0.5s 1s ease both', animationFillMode: 'both' }}>
+                  <span style={{ fontSize: '0.78rem', color: '#64748b' }}>🏆 Champions: </span>
+                  <span style={{ fontSize: '0.88rem', color: 'var(--text)', fontWeight: 800 }}>{leagueSeason.actualWinner}</span>
+                </div>
+              )}
+              <div style={{ marginTop: '0.75rem', fontSize: '0.72rem', color: '#475569', fontStyle: 'italic', animation: 'fade-in 0.5s 1.2s ease both', animationFillMode: 'both' }}>
+                Your squad will remember this. Come back stronger.
+              </div>
+              <button
+                onClick={dismissHeartbreak}
+                style={{ marginTop: '2rem', padding: '0.875rem 2.5rem', background: 'linear-gradient(135deg,#374151,#1f2937)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', animation: 'fade-in 0.5s 1.4s ease both', animationFillMode: 'both' }}
+              >
+                View Season Summary →
+              </button>
+            </div>
+          ) : (
+            // ── SEMI / other loss ────────────────────────────────────────────
+            <div style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
+              <div style={{ fontSize: '7rem', lineHeight: 1, animation: 'trophy-bounce 0.7s cubic-bezier(0.34,1.56,0.64,1) both' }}>💔</div>
+              <div style={{ fontSize: '2rem', fontWeight: 900, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.75rem', animation: 'fade-in-up 0.6s 0.4s ease both', animationFillMode: 'both' }}>
+                {leagueSeason?.stageReached === 'Semi-Final' ? 'Out in the Semis' : 'Heartbreak at the Final'}
+              </div>
+              <div style={{ fontSize: '1rem', color: '#94a3b8', marginTop: '0.5rem', animation: 'fade-in 0.5s 0.8s ease both', animationFillMode: 'both' }}>
+                {leagueSeason?.stageReached === 'Semi-Final'
+                  ? 'So close to the final — but it wasn\'t to be.'
+                  : 'You made it to the last match, but fell just short.'}
+              </div>
+              {leagueSeason?.actualWinner && (
+                <div style={{ marginTop: '0.75rem', padding: '0.5rem 1.25rem', background: 'rgba(255,255,255,0.07)', borderRadius: '0.5rem', display: 'inline-block', animation: 'fade-in 0.5s 1s ease both', animationFillMode: 'both' }}>
+                  <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>🏆 Tournament Winner: </span>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 800 }}>{leagueSeason.actualWinner}</span>
+                </div>
+              )}
+              <button
+                onClick={dismissHeartbreak}
+                style={{ marginTop: '2.5rem', padding: '0.875rem 2.5rem', background: 'linear-gradient(135deg,#ef4444,#b91c1c)', color: '#fff', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', animation: 'fade-in 0.5s 1.2s ease both', animationFillMode: 'both' }}
+              >
+                View Season Summary →
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -651,6 +693,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             result={pendingFinal}
             format={format}
             myBatting={!!pendingFinal.myBatsFirst}
+            team={activeTeam}
             onComplete={() => setFinalPhase('chase')}
           />
         )}
@@ -1021,7 +1064,8 @@ function parseScoreStr(str) {
 
 function buildFirstInningsPoints(finalRuns, finalWickets, format) {
   const totalOvers = format === 'odi' ? 50 : 20
-  const marks      = format === 'odi' ? [10, 25, 40, 50] : [7, 15, 18, 20]
+  const marks      = format === 'odi' ? [10, 20, 30, 40, 45, 50] : [4, 7, 12, 15, 18, 20]
+
   return marks.map((over, i) => {
     const isLast = i === marks.length - 1
     let runs, wkts
@@ -1041,32 +1085,112 @@ function buildFirstInningsPoints(finalRuns, finalWickets, format) {
   })
 }
 
+function genInningsCommentary(over, runs, wkts, battingName, format) {
+  const crr = over > 0 ? (runs / over).toFixed(1) : '0.0'
+  const isT20 = format !== 'odi'
+  if (isT20) {
+    if (over === 4) {
+      if (wkts === 0) return `Over 4: Powerplay going well — ${runs}/${wkts}, CRR ${crr}. All wickets intact.`
+      if (wkts <= 2) return `Over 4: ${runs}/${wkts} in the powerplay — CRR ${crr}. ${battingName} pressing on.`
+      return `Over 4: Early wobble — ${runs}/${wkts}. ${wkts} wickets gone already.`
+    }
+    if (over === 7) {
+      if (wkts === 0) return `Over 7: Powerplay done, no wickets lost! CRR ${crr} — strong foundation set.`
+      return `Over 7: Powerplay ends — ${runs}/${wkts}, CRR ${crr}. ${battingName} must push on now.`
+    }
+    if (over === 12) {
+      if (parseFloat(crr) >= 10) return `Over 12: ${battingName} exploding in the middle overs — CRR ${crr}! Huge total building.`
+      if (wkts >= 5) return `Over 12: ${wkts} down in the middle overs. ${battingName} need wickets in hand for the death.`
+      return `Over 12: Middle overs — ${runs}/${wkts}, CRR ${crr}. ${battingName} keeping a steady pace.`
+    }
+    if (over === 15) {
+      const proj = Math.round(runs * (20 / 15))
+      return `Over 15: ${runs}/${wkts} — projecting around ${proj} from here. ${5 - wkts > 0 ? `${5 - wkts} wickets lost.` : 'Tail exposed.'}`
+    }
+    if (over === 18) {
+      return `Over 18: ${runs}/${wkts} — two overs to go! Everything is on the line now.`
+    }
+    if (over === 20) return `Final score: ${runs}/${wkts} off 20 overs.`
+  } else {
+    if (over === 10) return `Over 10: ${runs}/${wkts}, CRR ${crr}. ${battingName} ${wkts === 0 ? 'cruising along' : 'pushing through'} the first quarter.`
+    if (over === 20) return `Over 20: ${runs}/${wkts}, CRR ${crr}. ${battingName} halfway through — ${wkts <= 2 ? 'plenty in hand' : 'losing wickets'}.`
+    if (over === 30) return `Over 30: ${runs}/${wkts}, CRR ${crr}. Three-quarter mark — ${parseFloat(crr) > 6 ? 'on a good path' : 'need to accelerate'}.`
+    if (over === 40) return `Over 40: ${runs}/${wkts}. Death overs incoming — ${battingName} ${wkts <= 5 ? 'well placed' : 'running out of batting'}.`
+    if (over === 45) return `Over 45: ${runs}/${wkts} — five overs left! ${battingName} going for it.`
+    if (over === 50) return `Final score: ${runs}/${wkts} off 50 overs.`
+  }
+  return `${runs}/${wkts} after ${over} overs`
+}
+
 // ─── FinalBat — opponent's first innings animation ────────────────────────────
 
-function FinalBat({ result, format, myBatting, onComplete }) {
+function FinalBat({ result, format, myBatting, team, onComplete }) {
   const oppParsed  = parseScoreStr(result.oppScore)
   const myParsed   = parseScoreStr(result.myScore)
   const batParsed  = myBatting ? myParsed : oppParsed
-  const [points]   = useState(() => buildFirstInningsPoints(batParsed.runs, batParsed.wickets, format))
-  const [step,     setStep]     = useState(-1)
-  const [finished, setFinished] = useState(false)
+  const battingName = myBatting ? 'Your XI' : result.opponent
+
+  const [points]      = useState(() => buildFirstInningsPoints(batParsed.runs, batParsed.wickets, format))
+  const [step,        setStep]        = useState(-1)
+  const [finished,    setFinished]    = useState(false)
+  const [wicketFlash, setWicketFlash] = useState(null)  // { name, wkts } shown briefly
   const stepRef  = useRef(-1)
   const timerRef = useRef(null)
+
+  // Build batting order for wicket-flash names
+  const BATTING_ORDER_ROLES = ['opener','top-order','middle-order','wicket-keeper','all-rounder','pace-bowler','spin-bowler']
+  const battingOrder = useMemo(() => {
+    if (!myBatting || !team) return []
+    return [...team].sort((a, b) =>
+      BATTING_ORDER_ROLES.indexOf(a.role) - BATTING_ORDER_ROLES.indexOf(b.role)
+    )
+  }, [team, myBatting])
+
+  // Opp star names for wicket flash when opponent is batting
+  const oppStarNames = useMemo(() => {
+    if (myBatting) return []
+    const s = result.oppStats
+    return [s?.topScorer?.name, s?.topScorer2?.name, s?.topBowler?.name].filter(Boolean)
+  }, [myBatting, result])
+
+  function getWicketName(wktIndex) {
+    if (myBatting && battingOrder[wktIndex]) return battingOrder[wktIndex].name
+    if (!myBatting && oppStarNames[wktIndex % oppStarNames.length]) return oppStarNames[wktIndex % oppStarNames.length]
+    return null
+  }
 
   function advance() {
     const next = stepRef.current + 1
     if (next >= points.length) {
       setFinished(true)
-      timerRef.current = setTimeout(onComplete, 2200)
+      timerRef.current = setTimeout(onComplete, 2400)
       return
     }
+
+    // Detect wicket change vs prev step
+    const prevWkts = next > 0 ? points[next - 1].wkts : 0
+    const newWkts  = points[next].wkts
+    if (newWkts > prevWkts) {
+      // Show wicket flash for each new wicket
+      const latestWktIndex = newWkts - 1
+      const name = getWicketName(latestWktIndex)
+      setWicketFlash({ name, wkts: newWkts })
+      timerRef.current = setTimeout(() => {
+        setWicketFlash(null)
+        stepRef.current = next
+        setStep(next)
+        timerRef.current = setTimeout(advance, 2200)
+      }, 1600)
+      return
+    }
+
     stepRef.current = next
     setStep(next)
-    timerRef.current = setTimeout(advance, 2000)
+    timerRef.current = setTimeout(advance, 2200)
   }
 
   useEffect(() => {
-    timerRef.current = setTimeout(advance, 800)
+    timerRef.current = setTimeout(advance, 900)
     return () => clearTimeout(timerRef.current)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1076,6 +1200,7 @@ function FinalBat({ result, format, myBatting, onComplete }) {
   const crrNum = pt ? parseFloat(pt.crr) : 0
   const ref    = format === 'odi' ? 6.5 : 9.5
   const barColor = crrNum > ref + 1.5 ? '#ef4444' : crrNum > ref - 0.5 ? '#f59e0b' : '#C8102E'
+  const commentary = pt ? genInningsCommentary(pt.over, pt.runs, pt.wkts, battingName, format) : null
 
   return (
     <div style={{ marginBottom: '1.5rem', animation: 'final-entrance 0.5s ease both' }}>
@@ -1087,13 +1212,31 @@ function FinalBat({ result, format, myBatting, onComplete }) {
             🏆 THE FINAL · 1ST INNINGS
           </div>
           <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--text)', marginBottom: '0.2rem' }}>
-            {myBatting ? 'Your XI' : result.opponent}
+            {battingName}
           </div>
           <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Setting the target…</div>
         </div>
 
+        {/* Wicket flash */}
+        {wicketFlash && (
+          <div style={{
+            textAlign: 'center', padding: '0.6rem 1rem', marginBottom: '0.875rem',
+            background: '#ef444418', border: '1px solid #ef444455',
+            borderRadius: '0.625rem', animation: 'fade-in-up 0.25s ease both',
+          }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 900, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              🏏 WICKET! {wicketFlash.wkts} down
+            </span>
+            {wicketFlash.name && (
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', marginLeft: '0.4rem' }}>
+                — {wicketFlash.name} departs
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Live score */}
-        {pt && (
+        {pt && !wicketFlash && (
           <div style={{ textAlign: 'center', marginBottom: '1rem', animation: 'fade-in 0.3s ease both' }}>
             <div style={{ fontSize: '2.75rem', fontWeight: 900, color: finished ? '#ef4444' : 'var(--text)', lineHeight: 1, transition: 'color 0.5s' }}>
               {pt.runs}<span style={{ fontSize: '1.3rem', color: '#64748b', fontWeight: 600 }}>/{pt.wkts}</span>
@@ -1110,6 +1253,19 @@ function FinalBat({ result, format, myBatting, onComplete }) {
         )}
         {!pt && (
           <div style={{ textAlign: 'center', marginBottom: '1rem', opacity: 0.4, fontSize: '0.85rem', color: '#64748b' }}>Innings starting…</div>
+        )}
+
+        {/* Commentary line */}
+        {commentary && !wicketFlash && !finished && (
+          <div style={{
+            textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8',
+            fontStyle: 'italic', marginBottom: '0.875rem',
+            padding: '0.4rem 0.75rem', background: 'var(--border2)',
+            borderRadius: '0.4rem', lineHeight: 1.5,
+            animation: 'fade-in 0.4s ease both',
+          }}>
+            🎙 {commentary}
+          </div>
         )}
 
         {/* Single filling bar */}
@@ -1153,7 +1309,7 @@ function buildChasePoints(targetRuns, finalRuns, finalWickets, format) {
   // so the second innings bar mirrors the first innings bar.
   // The "stop at winner" happens naturally at the final checkpoint when needed===0.
   const totalOvers = format === 'odi' ? 50 : 20
-  const marks      = format === 'odi' ? [10, 25, 40, 50] : [7, 15, 18, 20]
+  const marks      = format === 'odi' ? [10, 20, 30, 40, 45, 50] : [4, 7, 12, 15, 18, 20]
 
   return marks.map((over, i) => {
     const isLast = i === marks.length - 1
@@ -1184,8 +1340,6 @@ function buildChasePoints(targetRuns, finalRuns, finalWickets, format) {
 function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete }) {
   const oppParsed = parseScoreStr(result.oppScore)
   const myParsed  = parseScoreStr(result.myScore)
-  // myChasing=true (default): opp set target, I chase
-  // myChasing=false: I set target, opp chases
   const firstInningsParsed = myChasing ? oppParsed : myParsed
   const chaserParsed       = myChasing ? myParsed  : oppParsed
   const target             = firstInningsParsed.runs + 1
@@ -1193,19 +1347,78 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
   const [points]       = useState(() => buildChasePoints(target, chaserParsed.runs, chaserParsed.wickets, format))
   const [step,         setStep]         = useState(-1)
   const [phase,        setPhase]        = useState('animating')  // animating | qte-paused | result
-  const [soData,       setSoData]       = useState(null)         // super over result if triggered
+  const [soData,       setSoData]       = useState(null)
+  const [wicketFlash,  setWicketFlash]  = useState(null)
+  const [commentary,   setCommentary]   = useState(null)
 
   const stepRef    = useRef(-1)
-  const qteUsed    = useRef(false)
+  const qtesFired  = useRef(new Set())   // indices where QTE has fired
   const timerRef   = useRef(null)
 
-  // QTE fires at index 2 (over 18 for T20, over 40 for ODI)
-  const QTE_IDX = Math.min(2, points.length - 1)
+  // Build batting order for dismissed-batter tracking (only relevant when myChasing)
+  const BATTING_ORDER_ROLES = ['opener','top-order','middle-order','wicket-keeper','all-rounder','pace-bowler','spin-bowler']
+  const battingOrder = useMemo(() => {
+    if (!myChasing || !team) return []
+    return [...team].sort((a, b) =>
+      BATTING_ORDER_ROLES.indexOf(a.role) - BATTING_ORDER_ROLES.indexOf(b.role)
+    )
+  }, [team, myChasing])
+
+  // QTE fires at index 1 (over 7 — powerplay end) AND index 4 (over 18 — death)
+  const QTE_INDICES = new Set([1, 4])
+
+  function tryQTE(next) {
+    if (!QTE_INDICES.has(next)) return false
+    if (qtesFired.current.has(next)) return false
+
+    const pt = points[next]
+    const dismissedCount = pt.wkts  // number of batters already out at this checkpoint
+    let type, player
+
+    if (myChasing) {
+      // Only pick from batters who are NOT yet dismissed
+      const availableBatters = battingOrder.filter((_, idx) => idx >= dismissedCount)
+        .filter(p => ['opener','top-order','middle-order','wicket-keeper','all-rounder'].includes(p.role))
+      if (availableBatters.length === 0) return false  // all batters gone, skip QTE
+
+      const isDeath = next === 4
+      if (isDeath) {
+        const r = Math.random()
+        type = r < 0.4 ? 'free-hit' : r < 0.7 ? 'drs' : 'last-over'
+      } else {
+        // Powerplay end
+        const r = Math.random()
+        type = r < 0.4 ? 'powerplay' : r < 0.7 ? 'half-century' : 'free-hit'
+      }
+      player = availableBatters[Math.floor(Math.random() * availableBatters.length)]
+    } else {
+      const bowlers = team.filter(p => ['pace-bowler','spin-bowler','all-rounder'].includes(p.role))
+      const wk = team.find(p => p.role === 'wicket-keeper')
+      const isDeath = next === 4
+      if (isDeath) {
+        const r = Math.random()
+        type = r < 0.35 ? 'hat-trick' : r < 0.65 ? 'last-over' : 'catch'
+      } else {
+        const pool = ['catch', 'hat-trick', 'run-out', ...(wk ? ['stumping'] : [])]
+        type = pool[Math.floor(Math.random() * pool.length)]
+      }
+      if (type === 'stumping') player = wk ?? team[0]
+      else if (type === 'catch' || type === 'run-out') player = team[Math.floor(Math.random() * team.length)]
+      else player = bowlers[Math.floor(Math.random() * bowlers.length)] ?? team[0]
+    }
+
+    qtesFired.current.add(next)
+    setPhase('qte-paused')
+    onQTE({ type, playerName: player.name }, result.opponent, () => {
+      setPhase('animating')
+      timerRef.current = setTimeout(advance, 1600)
+    })
+    return true
+  }
 
   function advance() {
     const next = stepRef.current + 1
     if (next >= points.length) {
-      // Chase done — Super Over ONLY on a genuine tie (equal scores)
       setPhase('result')
       if (myParsed.runs === oppParsed.runs && Math.random() < 0.5) {
         const so = simulateSuperOver(myStr, 70)
@@ -1216,75 +1429,45 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
       return
     }
 
+    // Wicket flash check
+    const prevWkts = stepRef.current >= 0 ? points[stepRef.current].wkts : 0
+    const newWkts  = points[next].wkts
     stepRef.current = next
-    setStep(next)
 
-    // Target already reached at this over — stop the bar here, don't advance further
-    if (points[next].needed === 0) {
-      // Show "Target reached!" card for 2.5s then finish
+    if (newWkts > prevWkts && phase !== 'qte-paused') {
+      const name = myChasing
+        ? (battingOrder[newWkts - 1]?.name ?? null)
+        : (result.oppStats?.topScorer?.name ?? null)
+      setWicketFlash({ name, wkts: newWkts })
+      timerRef.current = setTimeout(() => {
+        setWicketFlash(null)
+        setStep(next)
+        // Commentary for this checkpoint
+        const pt = points[next]
+        const chaseName = myChasing ? 'Your XI' : result.opponent
+        setCommentary(genInningsCommentary(pt.over, pt.runs, pt.wkts, chaseName, format))
+        if (!tryQTE(next)) timerRef.current = setTimeout(advance, 2000)
+      }, 1500)
+      return
+    }
+
+    setStep(next)
+    const pt = points[next]
+
+    // Target already reached
+    if (pt.needed === 0) {
       timerRef.current = setTimeout(() => {
         setPhase('result')
-        // If I'm chasing, reaching target means I won. If opp is chasing and reaches, I lost.
         timerRef.current = setTimeout(() => onComplete(myChasing ? true : false), 2000)
       }, 2500)
       return
     }
 
-    // Fire QTE at the critical over
-    if (next === QTE_IDX && !qteUsed.current) {
-      qteUsed.current = true
-      setPhase('qte-paused')
+    // Commentary
+    const chaseName = myChasing ? 'Your XI' : result.opponent
+    setCommentary(genInningsCommentary(pt.over, pt.runs, pt.wkts, chaseName, format))
 
-      const pt = points[next]
-      let type, player
-
-      if (myChasing) {
-        // I'm batting — batting QTE types
-        const batters = team.filter(p => ['opener','top-order','middle-order','wicket-keeper','all-rounder'].includes(p.role))
-        if (pt.needed <= 20 && pt.ballsLeft <= 18) {
-          // Death overs: free-hit, DRS, or powerplay
-          const r = Math.random()
-          type = r < 0.4 ? 'free-hit' : r < 0.7 ? 'drs' : 'powerplay'
-        } else if (pt.wkts >= 5) {
-          type = 'drs'
-        } else {
-          const r = Math.random()
-          type = r < 0.45 ? 'century' : r < 0.8 ? 'half-century' : 'free-hit'
-        }
-        player = batters[Math.floor(Math.random() * batters.length)] ?? team[0]
-      } else {
-        // Opp is batting, I'm bowling — wider variety of fielding/bowling events
-        const bowlers = team.filter(p => ['pace-bowler','spin-bowler','all-rounder'].includes(p.role))
-        const wk = team.find(p => p.role === 'wicket-keeper')
-        if (pt.needed <= 20 && pt.ballsLeft <= 18) {
-          // Death: DRS, hat-trick, or last-over
-          const r = Math.random()
-          type = r < 0.35 ? 'drs' : r < 0.65 ? 'hat-trick' : 'last-over'
-        } else if (pt.wkts >= 5) {
-          type = 'hat-trick'
-        } else {
-          // Normal: catch, hat-trick, run-out, stumping, last-over
-          const pool = ['catch', 'hat-trick', 'run-out', 'last-over', ...(wk ? ['stumping'] : [])]
-          type = pool[Math.floor(Math.random() * pool.length)]
-        }
-        // Assign player based on event type
-        if (type === 'stumping') {
-          player = wk ?? team[0]
-        } else if (type === 'catch' || type === 'run-out') {
-          player = team[Math.floor(Math.random() * team.length)]
-        } else {
-          player = bowlers[Math.floor(Math.random() * bowlers.length)] ?? team[0]
-        }
-      }
-
-      onQTE({ type, playerName: player.name }, result.opponent, () => {
-        setPhase('animating')
-        timerRef.current = setTimeout(advance, 1600)
-      })
-      return
-    }
-
-    timerRef.current = setTimeout(advance, 1900)
+    if (!tryQTE(next)) timerRef.current = setTimeout(advance, 1900)
   }
 
   useEffect(() => {
@@ -1294,7 +1477,6 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
 
   const pt            = step >= 0 ? points[Math.min(step, points.length - 1)] : null
   const barPct        = pt ? Math.round((pt.over / (pt.totalOvers ?? 20)) * 100) : 0
-  // When step===-1, show "Chase starting…" placeholder (mirrors FinalBat's "Innings starting…")
   const rrr           = pt ? parseFloat(pt.rrr) : 0
   const pressureColor = rrr > 15 ? '#ef4444' : rrr > 12 ? '#f97316' : rrr > 9 ? '#f59e0b' : '#22c55e'
   const pressureBg    = rrr > 15 ? '#ef444418' : rrr > 12 ? '#f9731618' : rrr > 9 ? '#f59e0b15' : '#22c55e18'
@@ -1330,8 +1512,26 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
           </div>
         </div>
 
+        {/* Wicket flash */}
+        {wicketFlash && (
+          <div style={{
+            textAlign: 'center', padding: '0.6rem 1rem', marginBottom: '0.875rem',
+            background: '#ef444418', border: '1px solid #ef444455',
+            borderRadius: '0.625rem', animation: 'fade-in-up 0.25s ease both',
+          }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 900, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              🏏 WICKET! {wicketFlash.wkts} down
+            </span>
+            {wicketFlash.name && (
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', marginLeft: '0.4rem' }}>
+                — {wicketFlash.name} departs
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Live score */}
-        {pt && phase !== 'result' && (
+        {pt && phase !== 'result' && !wicketFlash && (
           <div style={{ textAlign: 'center', marginBottom: '0.875rem', animation: 'fade-in 0.3s ease both' }}>
             <div style={{ fontSize: '2.75rem', fontWeight: 900, color: pt.needed === 0 ? '#22c55e' : 'var(--text)', lineHeight: 1, transition: 'color 0.5s' }}>
               {pt.runs}<span style={{ fontSize: '1.3rem', color: '#64748b', fontWeight: 600 }}>/{pt.wkts}</span>
@@ -1346,8 +1546,21 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
             </div>
           </div>
         )}
-        {!pt && phase !== 'result' && (
+        {!pt && phase !== 'result' && !wicketFlash && (
           <div style={{ textAlign: 'center', marginBottom: '0.875rem', opacity: 0.4, fontSize: '0.85rem', color: '#64748b' }}>Chase starting…</div>
+        )}
+
+        {/* Commentary */}
+        {commentary && phase === 'animating' && !wicketFlash && pt && pt.needed > 0 && (
+          <div style={{
+            textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8',
+            fontStyle: 'italic', marginBottom: '0.75rem',
+            padding: '0.4rem 0.75rem', background: 'var(--border2)',
+            borderRadius: '0.4rem', lineHeight: 1.5,
+            animation: 'fade-in 0.4s ease both',
+          }}>
+            🎙 {commentary}
+          </div>
         )}
 
         {/* Single filling bar */}
@@ -1369,8 +1582,8 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
           </div>
         )}
 
-        {/* Nail-biting pressure cards */}
-        {phase === 'animating' && pt && pt.needed > 0 && (
+        {/* Pressure cards */}
+        {phase === 'animating' && pt && pt.needed > 0 && !wicketFlash && (
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.875rem' }}>
             <div style={{ flex: 1, padding: '0.5rem 0.25rem', textAlign: 'center', background: pressureBg, border: `1px solid ${pressureColor}44`, borderRadius: '0.5rem', animation: isDeathCrunch ? 'pulse-glow 1.1s ease-in-out infinite' : 'none' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 900, color: pressureColor, lineHeight: 1 }}>{pt.needed}</div>
@@ -1403,6 +1616,7 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
             </div>
           </div>
         )}
+
         {phase === 'qte-paused' && (
           <div style={{ textAlign: 'center', padding: '0.625rem', background: '#f59e0b18', border: '1px solid #f59e0b44', borderRadius: '0.5rem', color: '#f59e0b', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.875rem' }}>
             ⚡ Critical moment! Quick Time Event incoming…
@@ -1428,59 +1642,107 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
   )
 }
 
-// ─── Mini Super Over (inside Final chase) ─────────────────────────────────────
+// ─── Mini Super Over (inside Final chase) — dramatic reveal ──────────────────
 
 function MiniSuperOver({ soData, opponent, onDone }) {
-  const [revealed, setRevealed] = useState(false)
+  const [phase, setPhase] = useState('intro')  // intro | my-score | opp-score | result
+  const [myR,   setMyR]   = useState(0)
+  const [oppR,  setOppR]  = useState(0)
+
   useEffect(() => {
-    const t = setTimeout(() => setRevealed(true), 2200)
-    return () => clearTimeout(t)
-  }, [])
+    const t1 = setTimeout(() => setPhase('my-score'), 2000)
+    const t2 = setTimeout(() => {
+      // Count up my score
+      let n = 0
+      const max = soData.myRuns
+      const iv = setInterval(() => {
+        n = Math.min(n + 1, max)
+        setMyR(n)
+        if (n >= max) clearInterval(iv)
+      }, 80)
+    }, 2200)
+    const t3 = setTimeout(() => setPhase('opp-score'), 4200)
+    const t4 = setTimeout(() => {
+      let n = 0
+      const max = soData.oppRuns
+      const iv = setInterval(() => {
+        n = Math.min(n + 1, max)
+        setOppR(n)
+        if (n >= max) clearInterval(iv)
+      }, 80)
+    }, 4400)
+    const t5 = setTimeout(() => setPhase('result'), 6500)
+    return () => [t1,t2,t3,t4,t5].forEach(clearTimeout)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{
-      marginTop: '1rem', padding: '1.25rem 1.5rem', textAlign: 'center',
-      background: '#1a0a2e', border: '2px solid #a855f755', borderRadius: '1rem',
+      marginTop: '1rem', padding: '1.75rem 1.5rem', textAlign: 'center',
+      background: 'linear-gradient(135deg,#0d0521,#1a0a2e)',
+      border: '2px solid #a855f766', borderRadius: '1rem',
+      boxShadow: '0 0 60px #a855f720',
       animation: 'result-reveal 0.5s ease both',
     }}>
-      <div style={{ fontSize: '1rem', fontWeight: 900, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.35rem' }}>
-        ⚡ SUPER OVER!
+      <div style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>⚡</div>
+      <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.3rem' }}>
+        SUPER OVER
       </div>
-      <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '1.25rem' }}>
-        It's all level! One over decides the IPL champions — 6 balls, 2 wickets.
+      <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '1.5rem' }}>
+        Scores level — 6 balls, 2 wickets. Everything decided right now.
       </div>
-      {!revealed
-        ? <div style={{ color: '#a855f7', fontWeight: 700, fontSize: '0.88rem' }}>Batters stride to the crease…</div>
-        : (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1.25rem' }}>
-              <div>
-                <div style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Your XI</div>
-                <div style={{ fontSize: '2.25rem', fontWeight: 900, color: soData.won ? '#22c55e' : '#ef4444' }}>{soData.myRuns}</div>
-              </div>
-              <div style={{ fontSize: '1.25rem', color: '#475569', alignSelf: 'center' }}>vs</div>
-              <div>
-                <div style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.2rem' }}>{opponent}</div>
-                <div style={{ fontSize: '2.25rem', fontWeight: 900, color: soData.won ? '#ef4444' : '#22c55e' }}>{soData.oppRuns}</div>
-              </div>
-            </div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 900, color: soData.won ? '#22c55e' : '#ef4444', marginBottom: '1.25rem' }}>
-              {soData.won ? '⚡ WON THE SUPER OVER — IPL CHAMPIONS!' : '💔 Super Over lost — heartbreak.'}
-            </div>
-            <button
-              onClick={onDone}
-              style={{
-                padding: '0.75rem 2.5rem',
-                background: soData.won ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#ef4444,#b91c1c)',
-                color: '#fff', border: 'none', borderRadius: '0.75rem',
-                fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer',
-              }}
-            >
-              {soData.won ? 'View Season Summary →' : 'See Results →'}
-            </button>
-          </>
-        )
-      }
+
+      {phase === 'intro' && (
+        <div style={{ color: '#a855f7', fontWeight: 800, fontSize: '0.9rem', animation: 'pulse-glow 1s ease infinite' }}>
+          Batters stride to the crease…
+        </div>
+      )}
+
+      {phase !== 'intro' && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1.25rem' }}>
+          <div style={{ opacity: phase === 'my-score' || phase === 'opp-score' || phase === 'result' ? 1 : 0, transition: 'opacity 0.4s' }}>
+            <div style={{ fontSize: '0.62rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.08em' }}>Your XI</div>
+            <div style={{
+              fontSize: '3rem', fontWeight: 900, lineHeight: 1,
+              color: phase === 'result' ? (soData.won ? '#22c55e' : '#ef4444') : '#f1f5f9',
+              transition: 'color 0.5s',
+            }}>{myR}</div>
+          </div>
+          <div style={{ fontSize: '1.5rem', color: '#475569', alignSelf: 'center' }}>vs</div>
+          <div style={{ opacity: phase === 'opp-score' || phase === 'result' ? 1 : 0.2, transition: 'opacity 0.4s 0.2s' }}>
+            <div style={{ fontSize: '0.62rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.08em' }}>{opponent}</div>
+            <div style={{
+              fontSize: '3rem', fontWeight: 900, lineHeight: 1,
+              color: phase === 'result' ? (soData.won ? '#ef4444' : '#22c55e') : '#f1f5f9',
+              transition: 'color 0.5s',
+            }}>{oppR}</div>
+          </div>
+        </div>
+      )}
+
+      {phase === 'result' && (
+        <>
+          <div style={{
+            fontSize: '1.25rem', fontWeight: 900,
+            color: soData.won ? '#22c55e' : '#ef4444',
+            marginBottom: '1.25rem',
+            animation: 'fade-in-up 0.5s ease both',
+          }}>
+            {soData.won ? '⚡ WON THE SUPER OVER — IPL CHAMPIONS!' : '💔 Super Over lost. Season ends here.'}
+          </div>
+          <button
+            onClick={onDone}
+            style={{
+              padding: '0.75rem 2.5rem',
+              background: soData.won ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#ef4444,#b91c1c)',
+              color: '#fff', border: 'none', borderRadius: '0.75rem',
+              fontSize: '0.95rem', fontWeight: 800, cursor: 'pointer',
+              animation: 'fade-in 0.4s 0.3s ease both', animationFillMode: 'both',
+            }}
+          >
+            {soData.won ? 'View Season Summary →' : 'See Results →'}
+          </button>
+        </>
+      )}
     </div>
   )
 }

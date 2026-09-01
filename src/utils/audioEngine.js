@@ -114,3 +114,14 @@ export function setMusicVolume(v) {
 }
 
 export function isMusicPlaying() { return isPlaying }
+
+// ── Button click — bat-on-ball sound ──────────────────────────────────────────
+let btnAudio = null
+export function playBtnClick() {
+  try {
+    if (!btnAudio) { btnAudio = new Audio('/btn-click.mp3') }
+    btnAudio.currentTime = 0
+    btnAudio.volume = 0.55
+    btnAudio.play().catch(() => {})
+  } catch (_) {}
+}
