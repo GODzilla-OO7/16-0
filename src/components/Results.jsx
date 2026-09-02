@@ -654,8 +654,8 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const topWicketTakers   = ts.topWicketTakers  || []
   const potm              = ts.potm             || null
   const bestXI            = ts.bestXI           || []
-  const tournamentBestXI  = ts.tournamentBestXI || []
-  const playerStats       = ts.playerStats      || []
+  const tournamentBestXIRaw = ts.tournamentBestXI || []
+  const playerStats         = ts.playerStats      || []
 
   const iplOutcome   = summary?.iplOutcome   ?? null
   const iplPosition  = summary?.iplPosition  ?? null
@@ -668,6 +668,21 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   // league always = 14 matches; playoffs add 1-3 more; cap final display at 16
   const isIPLMode      = mode === 'ipl'
   const didntQualify   = isIPLMode && iplOutcome === 'not_qualified'
+
+  // IPL: cap user players in Tournament Best XI based on how far they went
+  // not_qualified → 2, eliminated → 3, runner-up/champion → 4
+  const tournamentBestXI = (() => {
+    if (!isIPLMode) return tournamentBestXIRaw
+    const cap = iplOutcome === 'champion' || iplOutcome === 'runner-up' ? 4
+              : iplOutcome === 'eliminated' ? 3
+              : 2  // not_qualified or anything else
+    let userCount = 0
+    return tournamentBestXIRaw.filter(p => {
+      if (!p.isUser) return true
+      if (userCount < cap) { userCount++; return true }
+      return false
+    })
+  })()
   const playoffMatches = (matchResults ?? []).filter(r => r.stage != null)
   const madePlayoffs   = isIPLMode && !didntQualify && playoffMatches.length > 0
   let dispWins, dispLosses, dispTotal
