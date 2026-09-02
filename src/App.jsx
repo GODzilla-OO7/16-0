@@ -748,44 +748,6 @@ export default function App() {
             height: activeChallenge ? 'calc(100vh - 5.5rem - 36px)' : 'calc(100vh - 5.5rem)',
             display: 'flex', flexDirection: 'column', gap: '0.625rem',
           }}>
-            {/* Overseas tracker — IPL only, only when overseas limit is ON */}
-            {mode === 'ipl' && settings?.overseasLimit !== false && (() => {
-              const overseasCount = team.filter(p => p.nationality !== 'India').length
-              const limitReached  = overseasCount >= 4
-              return (
-                <div style={{
-                  flexShrink: 0,
-                  display: 'flex', alignItems: 'center', gap: '0.6rem',
-                  padding: '0.5rem 0.875rem',
-                  background: limitReached ? '#ef444410' : 'var(--card)',
-                  border: `1.5px solid ${limitReached ? '#ef444455' : 'var(--card-border)'}`,
-                  borderRadius: '0.625rem',
-                }}>
-                  <span style={{ fontSize: '0.75rem' }}>✈️</span>
-                  <div>
-                    <div style={{ fontSize: '0.55rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>
-                      Overseas slots
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.3rem' }}>
-                      {[0,1,2,3].map(i => (
-                        <div key={i} style={{
-                          width: 16, height: 16, borderRadius: '50%',
-                          background: i < overseasCount ? '#C8102E' : 'transparent',
-                          border: `2px solid ${i < overseasCount ? '#C8102E' : 'var(--border)'}`,
-                          transition: 'background 0.2s, border-color 0.2s',
-                        }} />
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: limitReached ? '#ef4444' : 'var(--muted)', marginLeft: 'auto' }}>
-                    {overseasCount}/4
-                  </div>
-                  {limitReached && (
-                    <div style={{ fontSize: '0.6rem', color: '#ef4444', fontWeight: 700 }}>FULL</div>
-                  )}
-                </div>
-              )
-            })()}
 
             {/* TeamSheet takes all remaining space and scrolls internally if needed */}
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
