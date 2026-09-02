@@ -70,20 +70,26 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   }
   function scaleDisp(v) { return Math.max(1, Math.min(99, Math.round(v * 0.88 + 8))) }
 
+  // ── Theme: golden when champion, dark otherwise ───────────────────────────
+  const isChampionTheme = iplOutcome === 'champion' || stageReached === 'Champions'
+  const ACCENT   = isChampionTheme ? '#b45309' : '#C8102E'
+  const ACCENT2  = isChampionTheme ? '#f59e0b' : '#60a5fa'
+  const BG_BASE  = isChampionTheme ? '#1a1000' : '#060d1a'
+  const GLOW_CLR = isChampionTheme ? 'rgba(245,158,11,0.22)' : 'rgba(200,16,46,0.18)'
+  const GLOW2    = isChampionTheme ? 'rgba(245,158,11,0.10)' : 'rgba(200,16,46,0.08)'
+
   // ── Background ────────────────────────────────────────────────────────────
-  ctx.fillStyle = '#060d1a'
+  ctx.fillStyle = BG_BASE
   ctx.fillRect(0, 0, W, H)
 
-  // Blue glow top-center
   const glow = ctx.createRadialGradient(W / 2, 0, 0, W / 2, 0, 380)
-  glow.addColorStop(0, 'rgba(200,16,46,0.18)')
+  glow.addColorStop(0, GLOW_CLR)
   glow.addColorStop(1, 'transparent')
   ctx.fillStyle = glow
   ctx.fillRect(0, 0, W, H)
 
-  // Bottom glow
   const glow2 = ctx.createRadialGradient(W / 2, H, 0, W / 2, H, 300)
-  glow2.addColorStop(0, 'rgba(200,16,46,0.08)')
+  glow2.addColorStop(0, GLOW2)
   glow2.addColorStop(1, 'transparent')
   ctx.fillStyle = glow2
   ctx.fillRect(0, 0, W, H)
@@ -95,39 +101,34 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   ctx.textAlign = 'left'
   ctx.fillText('Cricket 16-0', 28, 52)
 
-  // Badges — right side
-  const badgeH = 26, badgeY = 24, badgeR = 13
-  let nextRight = W - 28
-
-  // OVR badge (blue)
-  if (myStr) {
-    ctx.font = '700 12px system-ui, sans-serif'
-    const ovrLabel = `OVR ${myStr}`
-    const ovrW = ctx.measureText(ovrLabel).width + 18
-    ctx.fillStyle = '#C8102E'
-    roundRect(ctx, nextRight - ovrW, badgeY, ovrW, badgeH, badgeR)
-    ctx.fill()
-    ctx.fillStyle = '#ffffff'
-    ctx.textAlign = 'right'
-    ctx.fillText(ovrLabel, nextRight - 9, 41)
-    nextRight -= ovrW + 7
-  }
-
-  // Mode badge (dark)
-  {
-    ctx.font = '700 11px system-ui, sans-serif'
-    const modeLabel2 = (modeLabel || 'SEASON').toUpperCase()
-    const modeW = ctx.measureText(modeLabel2).width + 18
-    ctx.fillStyle = 'rgba(255,255,255,0.1)'
-    roundRect(ctx, nextRight - modeW, badgeY, modeW, badgeH, badgeR)
-    ctx.fill()
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)'
-    ctx.lineWidth = 1
-    ctx.stroke()
-    ctx.fillStyle = '#93c5fd'
-    ctx.textAlign = 'right'
-    ctx.fillText(modeLabel2, nextRight - 9, 41)
-  }
+  // Badges — right side: single pill showing "IPL · OVR 88"
+  const badgeH = 28, badgeY = 23, badgeR = 14
+  const isIPL  = (modeLabel || '').toLowerCase().includes('ipl')
+  const modeShort = isIPL ? 'IPL' : (modeLabel || 'SEASON').toUpperCase().slice(0, 6)
+  ctx.font = '700 12px system-ui, sans-serif'
+  const ovrLabel  = myStr ? `OVR  ${myStr}` : 'OVR –'
+  const combined  = `${modeShort}   ${ovrLabel}`
+  const pillW     = ctx.measureText(combined).width + 26
+  const pillX     = W - 28 - pillW
+  ctx.fillStyle = isChampionTheme ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.08)'
+  roundRect(ctx, pillX, badgeY, pillW, badgeH, badgeR)
+  ctx.fill()
+  ctx.strokeStyle = isChampionTheme ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.15)'
+  ctx.lineWidth = 1
+  ctx.stroke()
+  // mode part
+  ctx.fillStyle = isChampionTheme ? '#f59e0b' : '#93c5fd'
+  ctx.textAlign = 'left'
+  ctx.fillText(modeShort, pillX + 13, badgeY + 19)
+  // divider dot
+  const modeW2 = ctx.measureText(modeShort).width
+  ctx.fillStyle = 'rgba(255,255,255,0.25)'
+  ctx.fillText('·', pillX + 13 + modeW2 + 6, badgeY + 19)
+  const dotW = ctx.measureText('·').width
+  // ovr part
+  ctx.font = '700 12px system-ui, sans-serif'
+  ctx.fillStyle = '#ffffff'
+  ctx.fillText(ovrLabel, pillX + 13 + modeW2 + 6 + dotW + 6, badgeY + 19)
   ctx.textAlign = 'left'
 
   // Separator
@@ -149,7 +150,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
 
   // Big W-L (app blue glow)
   ctx.save()
-  ctx.shadowColor = '#C8102E'
+  ctx.shadowColor = isChampionTheme ? '#f59e0b' : '#C8102E'
   ctx.shadowBlur = 32
   ctx.font = '900 92px system-ui, sans-serif'
   ctx.fillStyle = '#ffffff'
@@ -164,7 +165,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   ctx.letterSpacing = '0px'
 
   // Matches + stage
-  const isChampion = stageReached === 'Champions' || iplOutcome === 'champions'
+  const isChampion = stageReached === 'Champions' || iplOutcome === 'champion'
   const isRunnerUp = stageReached === 'Runner-up' || iplOutcome === 'runner-up'
   const stageStr = isChampion ? `${total} matches · 1st place`
     : isRunnerUp ? `${total} matches · 2nd place`
@@ -180,13 +181,13 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     ctx.font = '800 12px system-ui, sans-serif'
     const bw = ctx.measureText(badgeTxt).width + 26
     const bx = W / 2 - bw / 2
-    ctx.fillStyle = isChampion ? 'rgba(200,16,46,0.2)' : 'rgba(148,163,184,0.1)'
+    ctx.fillStyle = isChampionTheme ? 'rgba(245,158,11,0.2)' : isChampion ? 'rgba(200,16,46,0.2)' : 'rgba(148,163,184,0.1)'
     roundRect(ctx, bx, 268, bw, 28, 14)
     ctx.fill()
-    ctx.strokeStyle = isChampion ? 'rgba(200,16,46,0.5)' : 'rgba(148,163,184,0.25)'
+    ctx.strokeStyle = isChampionTheme ? 'rgba(245,158,11,0.5)' : isChampion ? 'rgba(200,16,46,0.5)' : 'rgba(148,163,184,0.25)'
     ctx.lineWidth = 1
     ctx.stroke()
-    ctx.fillStyle = isChampion ? '#60a5fa' : '#94a3b8'
+    ctx.fillStyle = isChampionTheme ? '#f59e0b' : isChampion ? '#60a5fa' : '#94a3b8'
     ctx.fillText(badgeTxt, W / 2, 288)
   }
 
@@ -275,56 +276,81 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   leftCol.forEach((p, i)  => drawPlayer(p, 0, i))
   rightCol.forEach((p, i) => drawPlayer(p, 1, i))
 
-  // ── BOTTOM STATS ──────────────────────────────────────────────────────────
-  const STATS_Y = GRID_Y + 5 + players.length * ROW_H + 22
+  // ── SEASON AWARDS: Orange Cap + Purple Cap rows ───────────────────────────
+  const STATS_Y = GRID_Y + 5 + players.length * ROW_H + 18
 
-  ctx.strokeStyle = 'rgba(200,16,46,0.2)'
+  ctx.strokeStyle = isChampionTheme ? 'rgba(245,158,11,0.2)' : 'rgba(200,16,46,0.2)'
   ctx.lineWidth = 1
   ctx.beginPath(); ctx.moveTo(PAD_X, STATS_Y); ctx.lineTo(W - PAD_X, STATS_Y); ctx.stroke()
 
-  // Left — top scorer + wicket taker
-  let lineY = STATS_Y + 24
-  if (topScorer) {
-    ctx.font = '600 10px system-ui, sans-serif'
-    ctx.fillStyle = 'rgba(147,197,253,0.55)'
+  // Section label
+  ctx.font = '700 9px system-ui, sans-serif'
+  ctx.fillStyle = isChampionTheme ? 'rgba(245,158,11,0.5)' : 'rgba(147,197,253,0.5)'
+  ctx.textAlign = 'left'
+  ctx.letterSpacing = '1.5px'
+  ctx.fillText('SEASON AWARDS', PAD_X, STATS_Y + 14)
+  ctx.letterSpacing = '0px'
+
+  function drawCapRow(y, name, stat, capLabel, capBg, capBorder, capTxt, initials) {
+    const ROW_H2 = 46, RX = PAD_X, RW = W - PAD_X * 2
+    // Row background
+    ctx.fillStyle = capBg + '18'
+    roundRect(ctx, RX, y, RW, ROW_H2, 10)
+    ctx.fill()
+    ctx.strokeStyle = capBorder
+    ctx.lineWidth = 1
+    roundRect(ctx, RX, y, RW, ROW_H2, 10)
+    ctx.stroke()
+    // Avatar circle
+    ctx.fillStyle = capBg
+    ctx.beginPath(); ctx.arc(RX + 24, y + ROW_H2 / 2, 16, 0, Math.PI * 2); ctx.fill()
+    ctx.font = '700 11px system-ui, sans-serif'
+    ctx.fillStyle = '#000'
+    ctx.textAlign = 'center'
+    ctx.fillText(initials, RX + 24, y + ROW_H2 / 2 + 4)
+    // Name + stat
     ctx.textAlign = 'left'
-    ctx.letterSpacing = '1.5px'
-    ctx.fillText('🏏 TOP SCORER', PAD_X, lineY)
-    ctx.letterSpacing = '0px'
     ctx.font = '700 14px system-ui, sans-serif'
     ctx.fillStyle = '#ffffff'
-    const scorerLine = topScorerRuns ? `${topScorer} · ${topScorerRuns} runs` : topScorer
-    ctx.fillText(scorerLine, PAD_X, lineY + 17)
-    lineY += 42
-  }
-  if (topWicketTaker) {
-    ctx.font = '600 10px system-ui, sans-serif'
-    ctx.fillStyle = 'rgba(147,197,253,0.55)'
-    ctx.letterSpacing = '1.5px'
-    ctx.fillText('🎯 TOP WICKET TAKER', PAD_X, lineY)
+    ctx.fillText(name || '–', RX + 48, y + 18)
+    ctx.font = '600 12px system-ui, sans-serif'
+    ctx.fillStyle = capBg
+    ctx.fillText(stat || '', RX + 48, y + 34)
+    // Cap label on right
+    ctx.textAlign = 'right'
+    ctx.font = '700 10px system-ui, sans-serif'
+    ctx.fillStyle = capBg
+    ctx.letterSpacing = '0.5px'
+    ctx.fillText(capLabel, W - PAD_X - 10, y + ROW_H2 / 2 + 4)
     ctx.letterSpacing = '0px'
-    ctx.font = '700 14px system-ui, sans-serif'
-    ctx.fillStyle = '#ffffff'
-    const wktrLine = topWicketTakerWkts ? `${topWicketTaker} · ${topWicketTakerWkts} wkts` : topWicketTaker
-    ctx.fillText(wktrLine, PAD_X, lineY + 17)
+    ctx.textAlign = 'left'
   }
 
-  // Right — POTM
-  if (potm) {
+  function initials(name) {
+    if (!name) return '?'
+    const p = name.trim().split(/\s+/)
+    return p.length === 1 ? p[0].slice(0, 2).toUpperCase() : (p[0][0] + p[p.length-1][0]).toUpperCase()
+  }
+
+  let capY = STATS_Y + 22
+  if (topScorer) {
+    const scorerStat = topScorerRuns ? `${topScorerRuns} runs · Orange Cap 🧢` : 'Orange Cap 🧢'
+    drawCapRow(capY, topScorer, scorerStat, 'ORANGE CAP', '#f97316', 'rgba(249,115,22,0.3)', '#fff', initials(topScorer))
+    capY += 54
+  }
+  if (topWicketTaker) {
+    const wktStat = topWicketTakerWkts ? `${topWicketTakerWkts} wickets · Purple Cap` : 'Purple Cap'
+    drawCapRow(capY, topWicketTaker, wktStat, 'PURPLE CAP', '#a855f7', 'rgba(168,85,247,0.3)', '#fff', initials(topWicketTaker))
+    capY += 54
+  }
+
+  // Win streak line
+  if (bestWinStreak >= 3) {
     ctx.textAlign = 'right'
-    ctx.font = '600 10px system-ui, sans-serif'
-    ctx.fillStyle = 'rgba(147,197,253,0.55)'
-    ctx.letterSpacing = '1.5px'
-    ctx.fillText('PLAYER OF TOURNAMENT', W - PAD_X, STATS_Y + 24)
-    ctx.letterSpacing = '0px'
-    ctx.font = '800 14px system-ui, sans-serif'
-    ctx.fillStyle = '#60a5fa'
-    ctx.fillText(potm, W - PAD_X, STATS_Y + 41)
-    if (bestWinStreak >= 3) {
-      ctx.font = '600 11px system-ui, sans-serif'
-      ctx.fillStyle = 'rgba(147,197,253,0.6)'
-      ctx.fillText(`🔥 ${bestWinStreak}-win streak`, W - PAD_X, STATS_Y + 58)
-    }
+    ctx.font = '600 11px system-ui, sans-serif'
+    ctx.fillStyle = isChampionTheme ? 'rgba(245,158,11,0.7)' : 'rgba(147,197,253,0.6)'
+    ctx.fillText(`🔥 ${bestWinStreak}-match win streak`, W - PAD_X, capY + 4)
+    ctx.textAlign = 'left'
   }
 
   // ── MEDALS SECTION (extra height added above footer) ─────────────────────
@@ -402,16 +428,16 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   // ── FOOTER ────────────────────────────────────────────────────────────────
   const FOOT_Y = H - 74
 
-  ctx.fillStyle = 'rgba(200,16,46,0.08)'
+  ctx.fillStyle = isChampionTheme ? 'rgba(245,158,11,0.06)' : 'rgba(200,16,46,0.08)'
   ctx.fillRect(0, FOOT_Y, W, H - FOOT_Y)
-  ctx.strokeStyle = 'rgba(200,16,46,0.18)'
+  ctx.strokeStyle = isChampionTheme ? 'rgba(245,158,11,0.2)' : 'rgba(200,16,46,0.18)'
   ctx.lineWidth = 1
   ctx.beginPath(); ctx.moveTo(0, FOOT_Y); ctx.lineTo(W, FOOT_Y); ctx.stroke()
 
   // Verified
   ctx.textAlign = 'left'
   ctx.font = '600 11px system-ui, sans-serif'
-  ctx.fillStyle = 'rgba(147,197,253,0.5)'
+  ctx.fillStyle = isChampionTheme ? 'rgba(245,158,11,0.5)' : 'rgba(147,197,253,0.5)'
   ctx.fillText('✓ Verified result', PAD_X, FOOT_Y + 26)
 
   // CTA
@@ -419,13 +445,13 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   ctx.fillStyle = 'rgba(241,245,249,0.5)'
   ctx.fillText('Think you can beat this?', PAD_X, FOOT_Y + 50)
   ctx.font = '800 12px system-ui, sans-serif'
-  ctx.fillStyle = '#60a5fa'
+  ctx.fillStyle = isChampionTheme ? '#f59e0b' : '#60a5fa'
   ctx.fillText(' 16zero.in', PAD_X + ctx.measureText('Think you can beat this?').width, FOOT_Y + 50)
 
   // Win-loss tally right
   ctx.textAlign = 'right'
   ctx.font = '700 12px system-ui, sans-serif'
-  ctx.fillStyle = 'rgba(147,197,253,0.55)'
+  ctx.fillStyle = isChampionTheme ? 'rgba(245,158,11,0.55)' : 'rgba(147,197,253,0.55)'
   ctx.fillText(`${wins}W · ${losses}L · ${total} matches`, W - PAD_X, FOOT_Y + 50)
 
   // ── Return as a Promise<Blob> so callers can download or copy ────────────
@@ -804,7 +830,8 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   }
 
   const buildShareText = (url) => {
-    const potmLine = potm ? ` · ${potm} starred` : ''
+    const scorerLine = topScorers[0] ? ` · 🧢 ${topScorers[0].name} ${topScorers[0].runs} runs` : ''
+    const wktrLine   = topWicketTakers[0] ? ` · 🎯 ${topWicketTakers[0].name} ${topWicketTakers[0].wickets} wkts` : ''
     const seasonLine = seasonNumber > 1 ? ` · Season ${seasonNumber}` : ''
     let prevLine = ''
     if (prevSeasons.length > 0) {
@@ -815,7 +842,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
       })
       prevLine = `\nPrev: ${summaries.join(' · ')}`
     }
-    return `Cricket 16-0\n\n${dispWins}W–${dispLosses}L · ${rating.label}${potmLine}${seasonLine}${prevLine}\n\nCan you go unbeaten? Check my squad & beat me:\n${url}`
+    return `Cricket 16-0\n\n${rating.emoji} ${rating.label} · ${dispWins}W–${dispLosses}L${scorerLine}${wktrLine}${seasonLine}${prevLine}\n\nCan you build a better XI?\n${url}`
   }
 
   const buildChallengeUrl = async () => {
@@ -904,6 +931,16 @@ export default function Results({ team, mode, manager, summary, matchResults, on
       const long = buildShareUrl()
       const url  = await createShortUrl(long)
       const text = buildShareText(url)
+      // On mobile: Web Share API sends image + text together to WhatsApp
+      if (navigator.canShare) {
+        const blob = await generateShareCard(cardParams())
+        const file = new File([blob], 'cricket16-0.png', { type: 'image/png' })
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text })
+          return
+        }
+      }
+      // Desktop fallback: open WhatsApp web with text
       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
     } finally {
       setWaSharing(false)
