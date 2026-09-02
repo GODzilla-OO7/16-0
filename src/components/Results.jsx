@@ -670,18 +670,73 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const didntQualify   = isIPLMode && iplOutcome === 'not_qualified'
 
   // IPL: cap user players in Tournament Best XI based on how far they went
-  // not_qualified → 2, eliminated → 3, runner-up/champion → 4
+  // bottom 3 in league → 1, not_qualified (top 4-8) → 2, eliminated → 3, runner-up/champion → 4
   const tournamentBestXI = (() => {
     if (!isIPLMode) return tournamentBestXIRaw
-    const cap = iplOutcome === 'champion' || iplOutcome === 'runner-up' ? 4
+
+    const tablePos = summary?.iplPosition ?? null
+    const tableSize = summary?.iplTable?.table?.length ?? 10
+
+    const cap = (iplOutcome === 'champion' || iplOutcome === 'runner-up') ? 4
               : iplOutcome === 'eliminated' ? 3
-              : 2  // not_qualified or anything else
-    let userCount = 0
-    return tournamentBestXIRaw.filter(p => {
-      if (!p.isUser) return true
-      if (userCount < cap) { userCount++; return true }
-      return false
-    })
+              : (tablePos != null && tablePos > tableSize - 3) ? 1  // bottom 3
+              : 2  // not_qualified (finished 5th-7th)
+
+    // Identify the user's top scorer and top wicket-taker across all matches
+    const userNames = new Set((team ?? []).map(p => p.name))
+
+    // Accumulate from matchResults (includes playoffs)
+    const myRunsMap = {}, myWktsMap = {}
+    for (const r of matchResults ?? []) {
+      const ts2 = r.stats
+      if (!ts2) continue
+      if (ts2.topScorer?.name  && userNames.has(ts2.topScorer.name))  myRunsMap[ts2.topScorer.name]  = (myRunsMap[ts2.topScorer.name]  || 0) + (ts2.topScorer.runs  || 0)
+      if (ts2.topScorer2?.name && userNames.has(ts2.topScorer2.name)) myRunsMap[ts2.topScorer2.name] = (myRunsMap[ts2.topScorer2.name] || 0) + (ts2.topScorer2.runs || 0)
+      if (ts2.topBowler?.name  && userNames.has(ts2.topBowler.name))  myWktsMap[ts2.topBowler.name]  = (myWktsMap[ts2.topBowler.name]  || 0) + (ts2.topBowler.wickets || 0)
+    }
+    const myTopScorer  = Object.entries(myRunsMap).sort((a,b) => b[1]-a[1])[0]?.[0] ?? null
+    const myTopWickets = Object.entries(myWktsMap).sort((a,b) => b[1]-a[1])[0]?.[0] ?? null
+
+    // Priority names to always include (within cap)
+    const priority = new Set([myTopScorer, myTopWickets].filter(Boolean))
+
+    if (cap === 1) {
+      // Bottom 3: pick one randomly between orange/purple cap holder (or whichever exists)
+      const candidates = [...priority]
+      const chosen = candidates.length > 0
+        ? candidates[Math.floor(Math.random() * candidates.length)]
+        : null
+      const filtered = chosen
+        ? tournamentBestXIRaw.filter(p => !p.isUser || p.name === chosen)
+        : (() => { let hit = false; return tournamentBestXIRaw.filter(p => { if (!p.isUser) return true; if (!hit) { hit = true; return true } return false }) })()
+      return filtered
+    }
+
+    // For cap >= 2: always include priority names first, then fill remaining slots by impact
+    const result = []
+    const usedNames = new Set()
+    // First pass: priority user players
+    for (const p of tournamentBestXIRaw) {
+      if (p.isUser && priority.has(p.name) && !usedNames.has(p.name)) {
+        result.push(p)
+        usedNames.add(p.name)
+      }
+    }
+    // Second pass: remaining user players up to cap
+    for (const p of tournamentBestXIRaw) {
+      if (p.isUser && !usedNames.has(p.name) && result.filter(x => x.isUser).length < cap) {
+        result.push(p)
+        usedNames.add(p.name)
+      }
+    }
+    // Third pass: opposition players to fill to 11
+    for (const p of tournamentBestXIRaw) {
+      if (!p.isUser && !usedNames.has(p.name)) {
+        result.push(p)
+        usedNames.add(p.name)
+      }
+    }
+    return result.sort((a, b) => b.impact - a.impact)
   })()
   const playoffMatches = (matchResults ?? []).filter(r => r.stage != null)
   const madePlayoffs   = isIPLMode && !didntQualify && playoffMatches.length > 0
