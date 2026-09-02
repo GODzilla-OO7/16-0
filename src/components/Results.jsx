@@ -907,9 +907,49 @@ export default function Results({ team, mode, manager, summary, matchResults, on
           <div style={{ fontSize: '0.95rem', color: '#64748b', marginTop: '0.35rem', marginBottom: '0.75rem' }}>
             {cfg.label} · {dispTotal} match{dispTotal !== 1 ? 'es' : ''}{madePlayoffs ? ' incl. playoffs' : ''}{didntQualify ? ' · Didn\'t make playoffs' : ''}
           </div>
-          <div style={{ fontSize: '1rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+          <div style={{ fontSize: '1rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: iplOutcome === 'eliminated' ? '0.5rem' : '1.5rem' }}>
             {rating.desc}
           </div>
+          {iplOutcome === 'eliminated' && (() => {
+            const topBat  = topScorers[0]
+            const topBowl = topWicketTakers[0]
+            const playoffWins   = playoffMatches.filter(r => r.won).length
+            const playoffLosses = playoffMatches.filter(r => !r.won).length
+            const winPct = total > 0 ? wins / total : 0
+
+            // Positive line — pick the best thing that happened
+            let greenLine = null
+            if (topBat?.runs >= 400)
+              greenLine = `${topBat.name} was exceptional — ${topBat.runs} runs across the season.`
+            else if (topBowl?.wickets >= 15)
+              greenLine = `${topBowl.name} was devastating with the ball — ${topBowl.wickets} wickets.`
+            else if (winPct >= 0.6)
+              greenLine = `The league stage was strong — ${wins} wins from ${total} games.`
+            else if (playoffWins > 0)
+              greenLine = `You won ${playoffWins} playoff match${playoffWins > 1 ? 'es' : ''} — the team showed up when it mattered.`
+            else if (topBat)
+              greenLine = `${topBat.name} carried the batting — ${topBat.runs} runs all season.`
+
+            // Negative line — pick the biggest weakness
+            let redLine = null
+            if (playoffLosses >= 2)
+              redLine = `But the playoffs exposed the squad — ${playoffLosses} losses on the big stage.`
+            else if (winPct < 0.5)
+              redLine = `The league record told the story — never fully consistent enough.`
+            else if (topBowl?.wickets < 10)
+              redLine = `The bowling attack lacked a real match-winner when it counted.`
+            else if (!topBat || topBat.runs < 250)
+              redLine = `The batting never found a reliable anchor to build around.`
+            else
+              redLine = `One more win in the knockouts would have changed everything.`
+
+            return (
+              <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {greenLine && <div style={{ fontSize: '0.82rem', color: '#4ade80', fontWeight: 600 }}>✦ {greenLine}</div>}
+                {redLine   && <div style={{ fontSize: '0.82rem', color: '#f87171', fontWeight: 600 }}>✦ {redLine}</div>}
+              </div>
+            )
+          })()}
 
           {/* Match blocks — click to expand */}
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, marginBottom: '0.5rem' }}>
@@ -1187,11 +1227,32 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                 <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
                   {iconPlayer.nationality} · {iconPlayer.role} · Legend signing via Impact Sub
                 </div>
-                {impactSubPerf && (
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: impactSubPerf === 'good' ? '#4ade80' : '#f87171', marginTop: '0.25rem' }}>
-                    {impactSubPerf === 'good' ? '✅ Delivered in the playoffs' : '❌ Didn\'t quite deliver'}
-                  </div>
-                )}
+                {impactSubPerf && (() => {
+                  const inP  = impactSubLog.in
+                  const outP = impactSubLog.out
+                  const inRuns  = topScorers.find(s => s.name === inP?.name)?.runs ?? null
+                  const inWkts  = topWicketTakers.find(w => w.name === inP?.name)?.wickets ?? null
+                  const inOvr   = inP?.overall ?? 0
+                  const outOvr  = outP?.overall ?? 0
+                  const upgrade = inOvr >= outOvr
+                  let sentence
+                  if (impactSubPerf === 'good') {
+                    if (inRuns && inRuns >= 150) sentence = `${inP.name} justified the move — ${inRuns} runs in the playoffs.`
+                    else if (inWkts && inWkts >= 5) sentence = `${inP.name} was worth every bit — ${inWkts} wickets in the playoffs.`
+                    else if (upgrade) sentence = `A ${inOvr - outOvr > 0 ? Math.round((inOvr - outOvr) * 0.88) + '-point' : 'smart'} upgrade on ${outP?.name ?? 'the outgoing player'} — paid off.`
+                    else sentence = `${inP?.name ?? 'The sub'} came in and kept the team competitive through the playoffs.`
+                  } else {
+                    if (inRuns !== null && inRuns < 80) sentence = `${inP.name} managed just ${inRuns} runs — the gamble didn't pay off.`
+                    else if (inWkts !== null && inWkts < 3) sentence = `${inP.name} picked up only ${inWkts} wicket${inWkts !== 1 ? 's' : ''} — couldn't make the impact expected.`
+                    else if (!upgrade) sentence = `Replacing ${outP?.name ?? 'a key player'} backfired — the team missed their experience.`
+                    else sentence = `${inP?.name ?? 'The sub'} had the rating but couldn't replicate it when it mattered most.`
+                  }
+                  return (
+                    <div style={{ fontSize: '0.68rem', fontWeight: 700, color: impactSubPerf === 'good' ? '#4ade80' : '#f87171', marginTop: '0.25rem' }}>
+                      {impactSubPerf === 'good' ? '✅' : '❌'} {sentence}
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           )}
@@ -1220,9 +1281,26 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                   {impactSubLog.in?.name} <span style={{ color: '#64748b', fontWeight: 500, fontSize: '0.75rem' }}>in for</span> {impactSubLog.out?.name}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: impactSubPerf === 'good' ? '#4ade80' : '#f87171', marginTop: '0.1rem' }}>
-                  {impactSubPerf === 'good'
-                    ? 'Delivered in the playoffs'
-                    : 'Didn\'t quite deliver in the playoffs'}
+                  {(() => {
+                    const inP  = impactSubLog.in
+                    const outP = impactSubLog.out
+                    const inRuns  = topScorers.find(s => s.name === inP?.name)?.runs ?? null
+                    const inWkts  = topWicketTakers.find(w => w.name === inP?.name)?.wickets ?? null
+                    const inOvr   = inP?.overall ?? 0
+                    const outOvr  = outP?.overall ?? 0
+                    const upgrade = inOvr >= outOvr
+                    if (impactSubPerf === 'good') {
+                      if (inRuns && inRuns >= 150) return `${inP.name} justified the move — ${inRuns} runs in the playoffs.`
+                      if (inWkts && inWkts >= 5)  return `${inP.name} was worth every bit — ${inWkts} wickets in the playoffs.`
+                      if (upgrade) return `A smart upgrade on ${outP?.name ?? 'the outgoing player'} — paid off when it mattered.`
+                      return `${inP?.name ?? 'The sub'} kept the team competitive through the playoffs.`
+                    } else {
+                      if (inRuns !== null && inRuns < 80) return `${inP.name} managed just ${inRuns} runs — the gamble didn't pay off.`
+                      if (inWkts !== null && inWkts < 3)  return `${inP.name} picked up only ${inWkts} wicket${inWkts !== 1 ? 's' : ''} — couldn't make the impact expected.`
+                      if (!upgrade) return `Replacing ${outP?.name ?? 'a key player'} backfired — the team missed their experience.`
+                      return `${inP?.name ?? 'The sub'} had the rating but couldn't replicate it when it mattered most.`
+                    }
+                  })()}
                 </div>
               </div>
             </div>
