@@ -10,34 +10,37 @@ function primeOvr(p, mode) {
 export function calcTeamStrength(team, manager, mode, ratingType = 'overall') {
   if (!team || team.length === 0) return 50
 
-  // Batting: avg overall of batsmen + half of all-rounders
-  // Bowling: avg overall of bowlers + half of all-rounders
-  // Overall: avg of batting and bowling
-  const BAT_ROLES  = new Set(['opener','top-order','middle-order','wicket-keeper'])
-  const BOWL_ROLES = new Set(['pace-bowler','spin-bowler'])
+  // Batting strength: weighted avg of each player's batting attribute.
+  // Role weights reflect how much each player contributes to batting:
+  //   specialist batters  → 1.0  (they bat high and long)
+  //   all-rounders        → 0.7  (meaningful contributor)
+  //   pace/spin bowlers   → 0.15 (tail-enders — low bat attr ~8-20)
+  //   wicket-keeper       → 0.9  (usually bats in middle order)
+  // This means a team of 5 bowlers correctly shows weak batting.
+  //
+  // Bowling strength: same principle in reverse.
+  //
+  // Both use actual bat/bowl attributes (not 'overall') so the numbers
+  // reflect genuine skill in that department.
 
-  let batSum = 0, batCount = 0
-  let bowlSum = 0, bowlCount = 0
+  const BAT_WEIGHT  = { opener: 1.0, 'top-order': 1.0, 'middle-order': 1.0, 'wicket-keeper': 0.9, 'all-rounder': 0.7, 'pace-bowler': 0.15, 'spin-bowler': 0.15 }
+  const BOWL_WEIGHT = { opener: 0.1, 'top-order': 0.1, 'middle-order': 0.1, 'wicket-keeper': 0.1, 'all-rounder': 0.7, 'pace-bowler': 1.0,  'spin-bowler': 1.0  }
+
+  let batWtdSum = 0, batWtTotal = 0
+  let bowlWtdSum = 0, bowlWtTotal = 0
 
   team.forEach(p => {
-    const ovr = ratingType === 'prime' ? primeOvr(p, mode) : p.overall
-    if (p.role === 'all-rounder') {
-      batSum  += ovr / 2;  batCount  += 0.5
-      bowlSum += ovr / 2;  bowlCount += 0.5
-    } else if (BAT_ROLES.has(p.role)) {
-      batSum  += ovr;  batCount++
-    } else if (BOWL_ROLES.has(p.role)) {
-      bowlSum += ovr;  bowlCount++
-    }
+    const bw  = BAT_WEIGHT[p.role]  ?? 0.5
+    const blw = BOWL_WEIGHT[p.role] ?? 0.5
+    // For prime mode use prime attributes if available, else fall back
+    const batAttr  = ratingType === 'prime' ? (p.primeBatting  ?? p.batting  ?? 50) : (p.batting  ?? 50)
+    const bowlAttr = ratingType === 'prime' ? (p.primeBowling  ?? p.bowling  ?? 30) : (p.bowling  ?? 30)
+    batWtdSum   += batAttr  * bw;   batWtTotal  += bw
+    bowlWtdSum  += bowlAttr * blw;  bowlWtTotal += blw
   })
 
-  const batting = batCount  > 0 ? batSum  / batCount  : 50
-  // If no specialist bowlers/all-rounders, fall back to the raw bowling ratings
-  // of the whole team — pure batsmen have low bowling attrs (~20-40) so an
-  // all-bat XI will correctly show very weak bowling strength.
-  const bowling = bowlCount > 0
-    ? bowlSum / bowlCount
-    : team.reduce((s, p) => s + (p.bowling ?? 30), 0) / Math.max(1, team.length)
+  const batting  = batWtTotal  > 0 ? batWtdSum  / batWtTotal  : 50
+  const bowling  = bowlWtTotal > 0 ? bowlWtdSum / bowlWtTotal : 50
   const fielding = team.reduce((s, p) => s + (p.fielding ?? 70), 0) / team.length
 
   const base = Math.round(0.45 * batting + 0.45 * bowling + 0.10 * fielding)

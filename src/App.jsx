@@ -120,18 +120,13 @@ export default function App() {
   }, [])
   const { user, signOut } = useAuth()
 
-  // When user signs in: pull their awards from Supabase and merge into local profile,
-  // then push any medals earned this session up to Supabase.
+  // When user signs in: pull their awards from Supabase and merge into local profile.
   useEffect(() => {
     if (user && !prevUserRef.current) {
       fetchProfile(user.id).then(({ profile: sbProfile }) => {
         const supabaseAwards = sbProfile?.awards ?? []
-        // Merge Supabase awards + session awards into local sessionStorage
-        mergeSessionAwardsOnSignIn([...supabaseAwards, ...sessionAwardIdsRef.current])
-        // Push session awards earned before sign-in up to Supabase
-        if (sessionAwardIdsRef.current.length > 0) {
-          saveAwards(user.id, sessionAwardIdsRef.current)
-        }
+        // Merge Supabase awards into local sessionStorage so the cabinet shows correctly
+        if (supabaseAwards.length > 0) mergeSessionAwardsOnSignIn(supabaseAwards)
       })
     }
     prevUserRef.current = user

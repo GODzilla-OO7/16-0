@@ -114,30 +114,25 @@ export default function TeamStrengthPanel({ team, manager, mode, ratingType = 's
 
   const rawStr = calcTeamStrength(team, manager, mode, ratingType === 'prime' ? 'prime' : 'overall')
 
-  // ── New formula: batsmen avg | bowlers avg | all-rounders split 50/50 ──
-  // Batting side: openers, top-order, middle-order, wk + half of AR
-  // Bowling side: pace-bowler, spin-bowler + half of AR
-  const BAT_ROLES  = new Set(['opener','top-order','middle-order','wicket-keeper'])
-  const BOWL_ROLES = new Set(['pace-bowler','spin-bowler'])
+  // ── Weighted attribute formula — works correctly for free-positions teams ──
+  // Uses each player's actual batting/bowling attribute weighted by role contribution.
+  // A team of 5 bowlers correctly shows low batting (their bat attrs are ~8-20).
+  const BAT_WEIGHT  = { opener: 1.0, 'top-order': 1.0, 'middle-order': 1.0, 'wicket-keeper': 0.9, 'all-rounder': 0.7, 'pace-bowler': 0.15, 'spin-bowler': 0.15 }
+  const BOWL_WEIGHT = { opener: 0.1, 'top-order': 0.1, 'middle-order': 0.1, 'wicket-keeper': 0.1, 'all-rounder': 0.7, 'pace-bowler': 1.0,  'spin-bowler': 1.0  }
 
-  let batSum = 0, batCount = 0
-  let bowlSum = 0, bowlCount = 0
+  let batWtdSum = 0, batWtTotal = 0
+  let bowlWtdSum = 0, bowlWtTotal = 0
 
   team.forEach(p => {
-    const r = getRating(p, ratingType, mode)
-    if (p.role === 'all-rounder') {
-      const mid = (r.batting + r.bowling) / 2
-      batSum  += mid / 2;  batCount  += 0.5
-      bowlSum += mid / 2;  bowlCount += 0.5
-    } else if (BAT_ROLES.has(p.role)) {
-      batSum  += r.batting;  batCount++
-    } else if (BOWL_ROLES.has(p.role)) {
-      bowlSum += r.bowling;  bowlCount++
-    }
+    const r   = getRating(p, ratingType, mode)
+    const bw  = BAT_WEIGHT[p.role]  ?? 0.5
+    const blw = BOWL_WEIGHT[p.role] ?? 0.5
+    batWtdSum  += r.batting * bw;   batWtTotal  += bw
+    bowlWtdSum += r.bowling * blw;  bowlWtTotal += blw
   })
 
-  const avgBat  = batCount  > 0 ? Math.round(batSum  / batCount)  : 50
-  const avgBowl = bowlCount > 0 ? Math.round(bowlSum / bowlCount) : 50
+  const avgBat  = batWtTotal  > 0 ? Math.round(batWtdSum  / batWtTotal)  : 50
+  const avgBowl = bowlWtTotal > 0 ? Math.round(bowlWtdSum / bowlWtTotal) : 50
 
   // ── Positioning penalty: only applied (and displayed) when showPenalty=true ──
   // Rule 1: any opener not in positions 1-3 → flat -3
