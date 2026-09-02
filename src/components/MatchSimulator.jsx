@@ -332,29 +332,42 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
       return
     }
 
-    // Regular IPL: batch-reveal all playoff results at once (original behaviour)
-    const playoffBatch = []
-    const poRunsAcc = {}, poWktsAcc = {}
-    let hitPlayoffFinal = false
-    for (const match of pd.results) {
+    // Regular IPL: sequential reveal with same 1200ms pacing as league matches
+    let pidx = 0
+    function revealNextPlayoff() {
+      if (pidx >= pd.results.length) {
+        playoffRef.current = setTimeout(() => setIplPhase('done'), 600)
+        return
+      }
+      const match = pd.results[pidx++]
       if (match.stage === 'Final') {
         setPendingFinal({ ...match, _fromPlayoff: true, _playoffData: pd })
         setFinalPhase('button')
-        hitPlayoffFinal = true
-        break
+        return
       }
-      playoffBatch.push(match)
-      const { topScorer, topScorer2, topBowler } = match.stats ?? {}
-      if (topScorer)  poRunsAcc[topScorer.name]  = (poRunsAcc[topScorer.name]  || 0) + topScorer.runs
-      if (topScorer2) poRunsAcc[topScorer2.name] = (poRunsAcc[topScorer2.name] || 0) + topScorer2.runs
-      if (topBowler)  poWktsAcc[topBowler.name]  = (poWktsAcc[topBowler.name]  || 0) + topBowler.wickets
+
+      // QTE pause — same logic as league scheduleNext
+      function commitAndContinue(finalMatch) {
+        setPlayoffRevealed(prev => [...prev, finalMatch])
+        const { topScorer, topScorer2, topBowler } = finalMatch.stats ?? {}
+        setLiveRuns(prev => {
+          const n = { ...prev }
+          if (topScorer)  n[topScorer.name]  = (n[topScorer.name]  || 0) + topScorer.runs
+          if (topScorer2) n[topScorer2.name] = (n[topScorer2.name] || 0) + topScorer2.runs
+          return n
+        })
+        setLiveWkts(prev => {
+          const n = { ...prev }
+          if (topBowler) n[topBowler.name] = (n[topBowler.name] || 0) + topBowler.wickets
+          return n
+        })
+        playoffRef.current = setTimeout(revealNextPlayoff, 1200)
+      }
+
+      const resolved = processMatch(match, commitAndContinue)
+      if (resolved !== null) commitAndContinue(resolved)
     }
-    setPlayoffRevealed(playoffBatch)
-    setLiveRuns(prev => { const n = {...prev}; Object.entries(poRunsAcc).forEach(([k,v]) => n[k] = (n[k]||0)+v); return n })
-    setLiveWkts(prev => { const n = {...prev}; Object.entries(poWktsAcc).forEach(([k,v]) => n[k] = (n[k]||0)+v); return n })
-    if (!hitPlayoffFinal) {
-      playoffRef.current = setTimeout(() => setIplPhase('done'), playoffBatch.length * 60 + 600)
-    }
+    playoffRef.current = setTimeout(revealNextPlayoff, 400)
   }
 
   // ── Dramatic final ───────────────────────────────────────────────────────
