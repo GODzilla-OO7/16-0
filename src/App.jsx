@@ -22,7 +22,7 @@ import MusicPlayer from './components/MusicPlayer.jsx'
 import ConfirmLeaveModal from './components/ConfirmLeaveModal.jsx'
 import { recordSeason, loadProfile, mergeSessionAwardsOnSignIn } from './hooks/useProfile.js'
 import { getStreakData, recordDailyLogin, recordPlayStreak, consumeStreakBonus } from './hooks/useStreak.js'
-import { useAuth, saveGameResult, incrementTotalPlays, signInWithGoogle } from './hooks/useAuth.js'
+import { useAuth, saveGameResult, saveAwards, fetchProfile, incrementTotalPlays, signInWithGoogle } from './hooks/useAuth.js'
 import { generateTournament } from './utils/sharedTournament.js'
 import { getSupabase } from './lib/supabase.js'
 import { resolveShortUrl } from './lib/shortUrl.js'
@@ -120,10 +120,19 @@ export default function App() {
   }, [])
   const { user, signOut } = useAuth()
 
-  // When user signs in, merge medals earned this session into their saved profile
+  // When user signs in: pull their awards from Supabase and merge into local profile,
+  // then push any medals earned this session up to Supabase.
   useEffect(() => {
     if (user && !prevUserRef.current) {
-      mergeSessionAwardsOnSignIn(sessionAwardIdsRef.current)
+      fetchProfile(user.id).then(({ profile: sbProfile }) => {
+        const supabaseAwards = sbProfile?.awards ?? []
+        // Merge Supabase awards + session awards into local sessionStorage
+        mergeSessionAwardsOnSignIn([...supabaseAwards, ...sessionAwardIdsRef.current])
+        // Push session awards earned before sign-in up to Supabase
+        if (sessionAwardIdsRef.current.length > 0) {
+          saveAwards(user.id, sessionAwardIdsRef.current)
+        }
+      })
     }
     prevUserRef.current = user
   }, [user])
@@ -258,9 +267,12 @@ export default function App() {
       budget:         settings?.budget          ?? STARTING_BUDGET,
     }, !!user)
     if (newlyEarned.length > 0) {
+      const newIds = newlyEarned.map(a => a.id)
       // Always accumulate in session ref (so they can be saved on sign-in)
-      sessionAwardIdsRef.current = [...new Set([...sessionAwardIdsRef.current, ...newlyEarned.map(a => a.id)])]
+      sessionAwardIdsRef.current = [...new Set([...sessionAwardIdsRef.current, ...newIds])]
       setNewAwards(newlyEarned)
+      // If already signed in, push straight to Supabase immediately
+      if (user) saveAwards(user.id, newIds)
     }
     // Store prior seasons for the share card (history[0] = current season just recorded; history.slice(1) = prior)
     setPrevSeasons((profile.history ?? []).slice(1).filter(h => h.runId === runId))

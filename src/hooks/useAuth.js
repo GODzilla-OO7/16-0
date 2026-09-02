@@ -126,3 +126,20 @@ export async function fetchProfile(userId) {
   ])
   return { profile, results: results ?? [] }
 }
+
+/**
+ * Persist earned award IDs to the Supabase profiles.awards column.
+ * Merges with whatever is already there (array_cat / dedup server-side).
+ */
+export async function saveAwards(userId, newAwardIds) {
+  if (!userId || !newAwardIds?.length) return
+  const sb = await getSupabase()
+  if (!sb) return
+  try {
+    // Fetch current awards, merge, dedup, then update
+    const { data: profile } = await sb.from('profiles').select('awards').eq('id', userId).single()
+    const existing = profile?.awards ?? []
+    const merged   = [...new Set([...existing, ...newAwardIds])]
+    await sb.from('profiles').update({ awards: merged }).eq('id', userId)
+  } catch { /* best-effort */ }
+}
