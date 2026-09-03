@@ -52,7 +52,17 @@ function getHookLine(currentLabel, bestLabel, isNewBest) {
 function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, modeLabel, matchResults, potm, topScorer, topScorerRuns, topWicketTaker, topWicketTakerWkts, bestWinStreak, stageReached, iplOutcome, team, myStr, iconPlayer, awards = [] }) {
   const MEDAL_ROWS = awards.length > 0 ? Math.ceil(awards.length / 3) : 0
   const MEDALS_H   = awards.length > 0 ? (MEDAL_ROWS * 28 + 30) : 0
-  const W = 630, H = 920 + MEDALS_H
+  const W = 630
+  // Pre-compute layout to set canvas height dynamically (no fixed empty space)
+  const _players  = (team || []).slice(0, 11)
+  const _maxRows  = Math.max(Math.min(_players.length, 6), _players.length - 6, 0) || _players.length
+  const _STATS_Y  = 340 + 5 + _maxRows * 34 + 18
+  let   _capY     = _STATS_Y + 22
+  if (topScorer)      _capY += 54
+  if (topWicketTaker) _capY += 54
+  const _MY       = awards.length > 0 ? _capY + 16 : _capY
+  const _footY    = (awards.length > 0 ? _MY + MEDALS_H : _capY) + 28
+  const H         = Math.max(_footY + 74, 700)
   const DPR = window.devicePixelRatio || 2
   const canvas = document.createElement('canvas')
   canvas.width  = W * DPR
@@ -216,16 +226,17 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   const players  = (team || []).slice(0, 11)
   const leftCol  = players.slice(0, 6)
   const rightCol = players.slice(6, 11)
+  const maxRows  = Math.max(leftCol.length, rightCol.length)
 
-  // Grid background
+  // Grid background — sized to visible content rows only (no empty space)
   ctx.fillStyle = 'rgba(255,255,255,0.025)'
-  roundRect(ctx, PAD_X, GRID_Y, W - PAD_X * 2, players.length * ROW_H + 10, 10)
+  roundRect(ctx, PAD_X, GRID_Y, W - PAD_X * 2, maxRows * ROW_H + 10, 10)
   ctx.fill()
 
   // Vertical divider
   ctx.strokeStyle = 'rgba(200,16,46,0.15)'
   ctx.lineWidth = 1
-  ctx.beginPath(); ctx.moveTo(DIV_X, GRID_Y + 8); ctx.lineTo(DIV_X, GRID_Y + players.length * ROW_H + 2); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(DIV_X, GRID_Y + 8); ctx.lineTo(DIV_X, GRID_Y + maxRows * ROW_H + 2); ctx.stroke()
 
   function drawPlayer(p, col, row) {
     const x = col === 0 ? PAD_X + 6 : DIV_X + 6
@@ -279,7 +290,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   rightCol.forEach((p, i) => drawPlayer(p, 1, i))
 
   // ── SEASON AWARDS: Orange Cap + Purple Cap rows ───────────────────────────
-  const STATS_Y = GRID_Y + 5 + players.length * ROW_H + 18
+  const STATS_Y = GRID_Y + 5 + maxRows * ROW_H + 18
 
   ctx.strokeStyle = isChampionTheme ? 'rgba(245,158,11,0.2)' : 'rgba(200,16,46,0.2)'
   ctx.lineWidth = 1
@@ -357,7 +368,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
 
   // ── MEDALS SECTION (extra height added above footer) ─────────────────────
   if (awards.length > 0) {
-    const MY = 846  // = original FOOT_Y (920 - 74), medals slot in the expanded space
+    const MY = capY + 16  // dynamic: starts right after last cap row / streak
 
     ctx.strokeStyle = 'rgba(245,158,11,0.15)'
     ctx.lineWidth = 1
@@ -401,7 +412,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
 
   // ── ICON IN TEAM badge (only if a legend appeared via Impact Sub) ─────────
   if (iconPlayer) {
-    const ICON_Y = 810  // hardcoded — was H-110, which breaks when H grows for medals
+    const ICON_Y = H - 110  // just above the footer
     // Gold pill background
     ctx.fillStyle = 'rgba(245,158,11,0.12)'
     const rx = PAD_X, ry = ICON_Y, rw = W - PAD_X * 2, rh = 28
