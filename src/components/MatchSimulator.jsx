@@ -234,6 +234,18 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         return null // paused for user input
       }
 
+      // Super Over — pause to show the SO card, then continue
+      if (match.superOver && !h2hContext) {
+        setPendingLeagueSO({
+          match,
+          resume: () => {
+            setPendingLeagueSO(null)
+            onDone(finaliseMatch(match, false, 'auto'))
+          },
+        })
+        return null
+      }
+
       // No event (or H2H auto-sim) — resolve immediately
       const success = match.event ? Math.random() < 0.6 : false
       return finaliseMatch(match, success, 'auto')
