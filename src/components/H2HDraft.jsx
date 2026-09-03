@@ -427,6 +427,10 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
   // countdown's 500ms retry creates too many concurrent resolution attempts and can
   // cause double-resolution on slow networks.
   const lastPollResolveRef = useRef(0)
+  // lastPollPostRef: rate-limits the backup postNextPlayer watchdog to once per 3s.
+  // Covers the case where the auto-post useEffect timer is cancelled by a re-render
+  // between resolveAuction clearing current_pick and the 400ms timer firing.
+  const lastPollPostRef = useRef(0)
   useEffect(() => {
     if (room.status === 'done') return
     const interval = setInterval(async () => {
@@ -451,6 +455,21 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
           if (now - lastPollResolveRef.current > 4000) {
             lastPollResolveRef.current = now
             resolveAuctionRef.current?.()
+          }
+        }
+      }
+
+      // Watchdog: if host sees DB stuck with no current_pick in drafting state,
+      // re-trigger postNextPlayer. This catches the edge case where the auto-post
+      // useEffect timer was cancelled by a re-render and never reset.
+      if (!isSnake && isHost && data.status === 'drafting' && !data.current_pick) {
+        const hLen = (data.host_team  ?? []).length
+        const gLen = (data.guest_team ?? []).length
+        if (hLen < TOTAL_SLOTS || gLen < TOTAL_SLOTS) {
+          const now = Date.now()
+          if (now - lastPollPostRef.current > 3000) {
+            lastPollPostRef.current = now
+            postNextPlayerRef.current?.()
           }
         }
       }
@@ -1006,7 +1025,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
     if (isSnake || !isHost) return
     if (room.status !== 'drafting' || room.current_pick) return
     if ((room.host_team?.length ?? 0) >= TOTAL_SLOTS && (room.guest_team?.length ?? 0) >= TOTAL_SLOTS) return
-    const t = setTimeout(() => postNextPlayerRef.current?.(), 800)
+    const t = setTimeout(() => postNextPlayerRef.current?.(), 400)
     return () => clearTimeout(t)
   }, [room.pick_number, room.current_pick, room.status])
 
