@@ -104,7 +104,6 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   const tableTimRef      = useRef(null)
   const finalTimRef      = useRef(null)
   const startPlayoffsRef = useRef(null)  // always latest startPlayoffs — avoids stale closure in ImpactSub
-  const startPlayoffsRef = useRef(null)  // always latest startPlayoffs — avoids stale closure in ImpactSub
 
   // ── H2H live results polling ────────────────────────────────────────────────
   useEffect(() => {
