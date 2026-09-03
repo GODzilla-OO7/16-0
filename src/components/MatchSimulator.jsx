@@ -1270,7 +1270,7 @@ function FinalBat({ result, format, myBatting, team, onComplete }) {
         )}
 
         {/* Live score */}
-        {pt && !wicketFlash && (
+        {pt && (
           <div style={{ textAlign: 'center', marginBottom: '1rem', animation: 'fade-in 0.3s ease both' }}>
             <div style={{ fontSize: '2.75rem', fontWeight: 900, color: finished ? '#ef4444' : 'var(--text)', lineHeight: 1, transition: 'color 0.5s' }}>
               {pt.runs}<span style={{ fontSize: '1.3rem', color: '#64748b', fontWeight: 600 }}>/{pt.wkts}</span>
@@ -1290,7 +1290,7 @@ function FinalBat({ result, format, myBatting, team, onComplete }) {
         )}
 
         {/* Commentary line */}
-        {commentary && !wicketFlash && !finished && (
+        {commentary && !finished && (
           <div style={{
             textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8',
             fontStyle: 'italic', marginBottom: '0.875rem',
