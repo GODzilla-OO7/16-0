@@ -25,7 +25,7 @@ const COMMENTARY_ODI = [
   'The last ball of the Final is delivered…',
 ]
 
-export default function MatchSimulator({ team, mode, manager, ratingType, onDone, h2hContext = null, onHome }) {
+export default function MatchSimulator({ team, mode, manager, ratingType, freePositions = false, onDone, h2hContext = null, onHome }) {
   const [leagueSeason,    setLeagueSeason]    = useState(null)
   const [revealed,        setRevealed]        = useState([])
   const [liveRuns,        setLiveRuns]        = useState({})
@@ -155,7 +155,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
     const h2hOpp = oppTeamForSim
       ? { name: h2hContext.opponentName, strength: calcTeamStrength(oppTeamForSim, null, mode) }
       : null
-    const season = simulateFullSeason(ratingType === 'prime' ? applyPrimeRatings(team, mode) : team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp })
+    const season = simulateFullSeason(ratingType === 'prime' ? applyPrimeRatings(team, mode) : team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp, freePositions })
     setLeagueSeason(season)
     if (isIPL) setLiveIPLTable(generateIPLTable(season.wins))
 

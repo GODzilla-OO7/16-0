@@ -424,6 +424,7 @@ export function simulateSuperOver(myStr, oppStr) {
 }
 
 export function simulateFullSeason(team, mode, manager, options = {}) {
+  const freePositions = options.freePositions ?? false
   const config      = MODE_CONFIG[mode]
   const myStr       = calcTeamStrength(team, manager, mode)
   const format      = config.format
@@ -598,7 +599,8 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
 
   team.forEach(p => {
     const isBatter = BAT_ROLES_SET.has(p.role)
-    const isBowler = BOWL_ROLES_SET.has(p.role)
+    // In free positions mode, any player with a non-zero bowling rating can bowl
+    const isBowler = BOWL_ROLES_SET.has(p.role) || (freePositions && (p.bowling ?? 0) >= 40)
 
     if (isBatter && !runTotals[p.name]) {
       // Background batting contribution — scales with batting rating and matches played
@@ -695,7 +697,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
         isUser:  false,
       }
     })
-    .filter(p => p.runs >= 25 || p.wickets >= 2)
+    .filter(p => freePositions ? (p.runs >= 10 || p.wickets >= 1) : (p.runs >= 25 || p.wickets >= 2))
     .sort((a, b) => b.impact - a.impact)
 
   // Tournament Best XI — up to maxUserSlots (max 8) from user, rest from opposition

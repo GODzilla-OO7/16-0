@@ -2184,7 +2184,7 @@ function TournamentXITab({ tournamentBestXI }) {
                   borderLeft: `3px solid ${isUser ? '#C8102E44' : '#C8102E44'}`,
                 }}>
                   {/* Number */}
-                  <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--border)', width: 18, textAlign: 'center', flexShrink: 0 }}>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', width: 18, textAlign: 'center', flexShrink: 0 }}>
                     {i + 1}
                   </div>
                   {/* Role badge */}
