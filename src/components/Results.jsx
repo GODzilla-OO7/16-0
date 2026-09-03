@@ -44,7 +44,7 @@ function getHookLine(currentLabel, bestLabel, isNewBest) {
   if (isNewBest) {
     return `New personal best! Can you do it again?`
   }
-  return `Your best is ${bestLabel}. You've done it before — do it again.`
+  return `You can do better. Your best is ${bestLabel} — go get it.`
 }
 
 // ─── Share card generator (Canvas) — 38-0.app style ──────────────────────────
@@ -938,15 +938,16 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const shareWhatsApp = async () => {
     setWaSharing(true)
     // Open a blank window immediately (inside user gesture) so popup blocker doesn't fire
-    // on mobile with Web Share API we don't need this
-    const isMobileShare = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !!navigator.canShare
-    const win = isMobileShare ? null : window.open('', '_blank')
+    // Pre-open window synchronously (inside user gesture) only when Web Share API unavailable
+    // Web Share API works on mobile AND Mac desktop (shows system share sheet with WhatsApp)
+    const hasWebShare = !!navigator.canShare
+    const win = hasWebShare ? null : window.open('', '_blank')
     try {
       const long = buildShareUrl()
       const url  = await createShortUrl(long)
       const text = buildShareText(url)
-      // On mobile: Web Share API sends image + text together to WhatsApp
-      if (isMobileShare) {
+      // Use Web Share API when available — shows image + text on mobile, system share sheet on Mac
+      if (hasWebShare) {
         const blob = await generateShareCard(cardParams())
         const file = new File([blob], 'cricket16-0.png', { type: 'image/png' })
         if (navigator.canShare({ files: [file] })) {
@@ -954,13 +955,10 @@ export default function Results({ team, mode, manager, summary, matchResults, on
           return
         }
       }
-      // Desktop fallback: navigate the pre-opened window to WhatsApp web
+      // Fallback: open WhatsApp web with text
       const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`
-      if (win) {
-        win.location.href = waUrl
-      } else {
-        window.open(waUrl, '_blank')
-      }
+      if (win) win.location.href = waUrl
+      else window.open(waUrl, '_blank')
     } catch {
       if (win) win.close()
     } finally {
@@ -1740,10 +1738,14 @@ function BestFinishHook({ wins, losses, iplOutcome, stageReached, onPlayAgain, o
 
   // Build current finish label
   const curLabel  = current ? finishLabel(current) : `${wins}W–${losses}L`
-  const isNewBest = bestPrev == null || rankFinish(current ?? {}) <= rankFinish(bestPrev)
+  const curRank  = rankFinish(current ?? {})
+  const prevRank = rankFinish(bestPrev ?? {})
+  const isNewBest = bestPrev == null ||
+    curRank < prevRank ||
+    (curRank === prevRank && (current?.wins ?? 0) >= (bestPrev?.wins ?? 0))
   const hookLine  = bestPrev
     ? getHookLine(curLabel, finishLabel(bestPrev), isNewBest)
-    : 'First season in the books. The real run starts now.'
+    : `First season done. Now build on it.`
 
   const bestLabel  = bestPrev ? finishLabel(bestPrev) : curLabel
   const bestWins   = bestPrev?.wins ?? wins
