@@ -378,8 +378,8 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
         playoffRef.current = setTimeout(revealNextPlayoff, 1200)
       }
 
-      const resolved = processMatch(match, commitAndContinue)
-      if (resolved !== null) commitAndContinue(resolved)
+      // Playoff matches have no QTEs or Super Overs — already resolved by simulateIPLPlayoffs
+      commitAndContinue(match)
     }
     playoffRef.current = setTimeout(revealNextPlayoff, 400)
   }
