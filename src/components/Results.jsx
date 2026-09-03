@@ -783,12 +783,9 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   if (madePlayoffs) {
     const pw = playoffMatches.filter(r => r.won).length
     const pl = playoffMatches.filter(r => !r.won).length
-    let w = wins + pw
-    let l = losses + pl
-    if (w + l > 16) w -= (w + l - 16)   // drop qualifying win(s) to cap at 16
-    dispWins   = w
-    dispLosses = l
-    dispTotal  = w + l
+    dispWins   = wins + pw
+    dispLosses = losses + pl
+    dispTotal  = total + playoffMatches.length
   } else {
     dispWins   = wins
     dispLosses = losses
@@ -942,7 +939,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     setWaSharing(true)
     // Open a blank window immediately (inside user gesture) so popup blocker doesn't fire
     // on mobile with Web Share API we don't need this
-    const isMobileShare = !!navigator.canShare
+    const isMobileShare = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !!navigator.canShare
     const win = isMobileShare ? null : window.open('', '_blank')
     try {
       const long = buildShareUrl()
