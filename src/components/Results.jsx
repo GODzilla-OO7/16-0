@@ -53,10 +53,12 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   const MEDAL_ROWS = awards.length > 0 ? Math.ceil(awards.length / 3) : 0
   const MEDALS_H   = awards.length > 0 ? (MEDAL_ROWS * 28 + 30) : 0
   const W = 630, H = 920 + MEDALS_H
+  const DPR = window.devicePixelRatio || 2
   const canvas = document.createElement('canvas')
-  canvas.width  = W
-  canvas.height = H
+  canvas.width  = W * DPR
+  canvas.height = H * DPR
   const ctx = canvas.getContext('2d')
+  ctx.scale(DPR, DPR)
 
   // ── Role definitions ──────────────────────────────────────────────────────
   const ROLE_TAGS = {
