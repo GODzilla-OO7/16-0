@@ -2037,7 +2037,7 @@ function MatchCard({ result, isLatest, expanded, onToggle, animDelay = 0 }) {
           onClick={onToggle}
           style={{ borderTop: divBorder, padding:'0.3rem 0.75rem', display:'flex', justifyContent:'center', alignItems:'center', gap:'0.3rem', cursor:'pointer', background: expanded ? 'transparent' : 'transparent' }}
         >
-          <span style={{ fontSize:'0.52rem', color:'var(--border)', fontWeight:700 }}>
+          <span style={{ fontSize:'0.62rem', color:'#64748b', fontWeight:700 }}>
             {expanded ? '▲ Hide 2nd scorer / bowler' : '▼ Tap for 2nd scorer & more'}
           </span>
         </div>

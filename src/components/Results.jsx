@@ -937,30 +937,40 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const [expandedMatch, setExpandedMatch] = useState(null)
   const shareWhatsApp = async () => {
     setWaSharing(true)
-    // Open a blank window immediately (inside user gesture) so popup blocker doesn't fire
-    // Pre-open window synchronously (inside user gesture) only when Web Share API unavailable
-    // Web Share API works on mobile AND Mac desktop (shows system share sheet with WhatsApp)
-    const hasWebShare = !!navigator.canShare
-    const win = hasWebShare ? null : window.open('', '_blank')
+    // Always pre-open a blank window inside the user gesture so popup blocker never fires.
+    // We close it if the Web Share API handles things, or redirect it to wa.me as fallback.
+    const win = window.open('', '_blank')
     try {
       const long = buildShareUrl()
       const url  = await createShortUrl(long)
       const text = buildShareText(url)
-      // Use Web Share API when available — shows image + text on mobile, system share sheet on Mac
-      if (hasWebShare) {
-        const blob = await generateShareCard(cardParams())
-        const file = new File([blob], 'cricket16-0.png', { type: 'image/png' })
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], text })
+
+      if (navigator.canShare) {
+        // Try with image first
+        try {
+          const blob = await generateShareCard(cardParams())
+          const file = new File([blob], 'cricket16-0.png', { type: 'image/png' })
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], text })
+            win?.close()
+            return
+          }
+        } catch { /* image share failed or cancelled — try text-only */ }
+
+        // Try text-only via Web Share API (works on Mac share sheet)
+        try {
+          await navigator.share({ text })
+          win?.close()
           return
-        }
+        } catch { /* cancelled or unsupported — fall through to wa.me */ }
       }
-      // Fallback: open WhatsApp web with text
+
+      // Final fallback: redirect pre-opened window to WhatsApp web
       const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`
       if (win) win.location.href = waUrl
       else window.open(waUrl, '_blank')
     } catch {
-      if (win) win.close()
+      win?.close()
     } finally {
       setWaSharing(false)
     }
@@ -2293,7 +2303,7 @@ function MatchesTab({ matchResults }) {
           display: 'flex', alignItems: 'center', gap: '0.75rem',
           padding: '0.75rem 1rem',
           background: r.won ? 'var(--win-bg)' : 'var(--loss-bg)',
-          border: `1px solid ${r.won ? 'var(--win-border)' : 'var(--loss-border)'}`,
+          border: `1px solid ${r.won ? '#22c55e44' : 'var(--loss-border)'}`,
           borderRadius: '0.625rem',
         }}>
           <div style={{
@@ -2307,15 +2317,15 @@ function MatchesTab({ matchResults }) {
             <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text)' }}>vs {r.opponent}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.7rem', color: r.won ? '#a50d24' : '#dc2626', fontWeight: 700 }}>{r.summary}</div>
+            <div style={{ fontSize: '0.7rem', color: r.won ? '#22c55e' : '#dc2626', fontWeight: 700 }}>{r.summary}</div>
             <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{r.myScore} · {r.oppScore}</div>
           </div>
           <div style={{
             width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-            background: r.won ? '#C8102E22' : '#ef444422',
-            border: `1px solid ${r.won ? '#C8102E66' : '#ef444466'}`,
+            background: r.won ? '#22c55e22' : '#ef444422',
+            border: `1px solid ${r.won ? '#22c55e66' : '#ef444466'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.65rem', fontWeight: 900, color: r.won ? '#C8102E' : '#ef4444',
+            fontSize: '0.65rem', fontWeight: 900, color: r.won ? '#22c55e' : '#ef4444',
           }}>
             {r.won ? 'W' : 'L'}
           </div>
