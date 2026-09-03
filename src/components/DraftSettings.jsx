@@ -279,10 +279,10 @@ export default function DraftSettings({ mode, onStart, onBack }) {
     page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem 3rem', position: 'relative', zIndex: 1 },
     card: { width: '100%', maxWidth: 720, background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '1.25rem', overflow: 'hidden', backdropFilter: 'blur(8px)' },
     cardHeader: { padding: '1.25rem 1.75rem', borderBottom: '1px solid var(--border)' },
-    modeTag: { fontSize: '0.72rem', color: '#C8102E', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
-    title: { fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)' },
+    modeTag: { fontSize: '0.8rem', color: '#C8102E', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' },
+    title: { fontSize: '1.5rem', fontWeight: 900, color: 'var(--text)' },
     section: { padding: '1rem 1.75rem', borderBottom: '1px solid var(--border)' },
-    label: { fontSize: '0.68rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.625rem' },
+    label: { fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.625rem' },
     row: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap' },
     pill: (active) => ({
       padding: '0.45rem 1.1rem',
@@ -331,7 +331,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
               </button>
             ))}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.5rem' }}>
+          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem' }}>
             {DIFFICULTY.find(d => d.key === difficulty)?.desc} available · coach always gets 1 spin
           </div>
         </div>
@@ -343,7 +343,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
             <button style={S.pill(ratingType === 'season')} onClick={() => setRatingType('season')}>📅 Season</button>
             <button style={S.pill(ratingType === 'prime')}  onClick={() => setRatingType('prime')}>⚡ Prime</button>
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.5rem' }}>
+          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem' }}>
             {ratingType === 'prime' ? 'Career-best potential — slightly higher than season form' : 'Reflects actual form during that specific season'}
           </div>
         </div>
@@ -372,7 +372,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
                       key={label}
                       onClick={() => setIplRange(range)}
                       style={{
-                        fontSize: '0.72rem',
+                        fontSize: '0.8rem',
                         color: isActive ? '#C8102E' : '#64748b',
                         background: isActive ? 'rgba(200,16,46,0.15)' : 'var(--border2)',
                         border: `1px solid ${isActive ? 'rgba(200,16,46,0.45)' : 'var(--border)'}`,
@@ -416,13 +416,13 @@ export default function DraftSettings({ mode, onStart, onBack }) {
             onChange={setDraftBudget}
             formatLabel={v => `₹${v}cr`}
           />
-          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.5rem' }}>
+          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem' }}>
             Starting auction purse · default ₹110cr
           </div>
         </div>
 
         {/* Team count */}
-        <div style={{ fontSize: '0.72rem', color: '#64748b', textAlign: 'center', padding: '0.625rem 1.75rem', borderTop: '1px solid var(--border)' }}>
+        <div style={{ fontSize: '0.8rem', color: '#64748b', textAlign: 'center', padding: '0.625rem 1.75rem', borderTop: '1px solid var(--border)' }}>
           {filteredCount} team{filteredCount !== 1 ? 's' : ''} on the wheel
         </div>
       </div>
@@ -430,7 +430,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
       {/* ── Card 2: Toggles ──────────────────────────────────────────── */}
       <div style={{ ...S.card, marginBottom: '1rem' }}>
         <div style={{ padding: '0.875rem 1.75rem', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Mode Options</div>
+          <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Mode Options</div>
         </div>
 
         <ToggleRow

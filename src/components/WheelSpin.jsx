@@ -741,7 +741,7 @@ function SelectPhase({ entry, players, allDrafted, compositionUnlocked, budgetEx
           }
         </span>
         {canReroll ? (
-          <button onClick={onSpinAgain} style={{ background: 'none', border: 'none', color: '#C8102E', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={onSpinAgain} style={{ background: 'none', border: 'none', color: '#C8102E', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
             ↺ Different team ({rerollsLeft} left)
           </button>
         ) : (
