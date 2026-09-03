@@ -103,6 +103,8 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   const playoffRef       = useRef(null)
   const tableTimRef      = useRef(null)
   const finalTimRef      = useRef(null)
+  const startPlayoffsRef = useRef(null)  // always latest startPlayoffs — avoids stale closure in ImpactSub
+  const startPlayoffsRef = useRef(null)  // always latest startPlayoffs — avoids stale closure in ImpactSub
 
   // ── H2H live results polling ────────────────────────────────────────────────
   useEffect(() => {
@@ -383,6 +385,9 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
     playoffRef.current = setTimeout(revealNextPlayoff, 400)
   }
 
+  // Keep ref current so ImpactSub onComplete always calls latest version
+  startPlayoffsRef.current = startPlayoffs
+
   // ── Dramatic final ───────────────────────────────────────────────────────
 
   function startFinalDrama() {
@@ -554,12 +559,12 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             if (inPlayer._isIcon) setIconSubPlayer(inPlayer)
             setImpactSubDone(true)
             setShowImpactSub(false)
-            setTimeout(() => startPlayoffs(newTeam), 1000)
+            setTimeout(() => startPlayoffsRef.current(newTeam), 1000)
           }}
           onSkip={() => {
             setImpactSubDone(true)
             setShowImpactSub(false)
-            setTimeout(() => startPlayoffs(), 1000)
+            setTimeout(() => startPlayoffsRef.current(), 1000)
           }}
         />
       )}
