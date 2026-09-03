@@ -99,10 +99,10 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
   // IPL starts immediately; WC modes wait for user to click "Start Tournament"
   const [tournamentStarted, setTournamentStarted] = useState(isIPL)
 
-  const leagueRef   = useRef(null)
-  const playoffRef  = useRef(null)
-  const tableTimRef = useRef(null)
-  const finalTimRef = useRef(null)
+  const leagueRef        = useRef(null)
+  const playoffRef       = useRef(null)
+  const tableTimRef      = useRef(null)
+  const finalTimRef      = useRef(null)
 
   // ── H2H live results polling ────────────────────────────────────────────────
   useEffect(() => {
@@ -301,8 +301,9 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
     return () => clearTimeout(t)
   }, [iplPhase, h2hContext])
 
-  function startPlayoffs() {
-    const pd = simulateIPLPlayoffs(ratingType === 'prime' ? applyPrimeRatings(activeTeam, mode) : activeTeam, manager, iplPosition, iplTable?.table ?? [])
+  function startPlayoffs(overrideTeam) {
+    const teamToUse = overrideTeam ?? activeTeam
+    const pd = simulateIPLPlayoffs(ratingType === 'prime' ? applyPrimeRatings(teamToUse, mode) : teamToUse, manager, iplPosition, iplTable?.table ?? [])
     if (!pd?.results?.length) { setIplPhase('done'); return }
     setPlayoffData(pd)
     setIplPhase('playoffs')
@@ -541,7 +542,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, onDone
             if (inPlayer._isIcon) setIconSubPlayer(inPlayer)
             setImpactSubDone(true)
             setShowImpactSub(false)
-            setTimeout(() => startPlayoffs(), 1000)
+            setTimeout(() => startPlayoffs(newTeam), 1000)
           }}
           onSkip={() => {
             setImpactSubDone(true)
