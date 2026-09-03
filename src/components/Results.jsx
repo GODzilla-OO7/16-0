@@ -840,19 +840,19 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   }
 
   const buildShareText = (url) => {
-    const scorerLine = topScorers[0] ? ` · 🧢 ${topScorers[0].name} ${topScorers[0].runs} runs` : ''
-    const wktrLine   = topWicketTakers[0] ? ` · 🎯 ${topWicketTakers[0].name} ${topWicketTakers[0].wickets} wkts` : ''
-    const seasonLine = seasonNumber > 1 ? ` · Season ${seasonNumber}` : ''
+    const seasonLabel = seasonNumber > 1 ? ` — Season ${seasonNumber}` : ''
+    const scorerLine  = topScorers[0]      ? `\n\u{1F3C5} Top bat: ${topScorers[0].name} — ${topScorers[0].runs} runs`           : ''
+    const wktrLine    = topWicketTakers[0] ? `\n⚡ Top bowl: ${topWicketTakers[0].name} — ${topWicketTakers[0].wickets} wkts` : ''
     let prevLine = ''
     if (prevSeasons.length > 0) {
       const summaries = prevSeasons.slice(0, 3).map((h, i) => {
-        const sNum = seasonNumber - 1 - i
-        const outcome = h.iplOutcome === 'champion' ? '🏆' : h.iplOutcome === 'runner-up' ? '🥈' : h.stageReached === 'Champion' ? '🏆' : ''
+        const sNum    = seasonNumber - 1 - i
+        const outcome = h.iplOutcome === 'champion' ? '\u{1F3C6}' : h.iplOutcome === 'runner-up' ? '\u{1F948}' : h.stageReached === 'Champion' ? '\u{1F3C6}' : ''
         return `S${sNum}: ${h.wins}W–${h.losses}L ${outcome}`.trim()
       })
       prevLine = `\nPrev: ${summaries.join(' · ')}`
     }
-    return `Cricket 16-0\n\n${rating.emoji} ${rating.label} · ${dispWins}W–${dispLosses}L${scorerLine}${wktrLine}${seasonLine}${prevLine}\n\nCan you build a better XI?\n${url}`
+    return `\u{1F3CF} Cricket 16-0${seasonLabel}\n\n${rating.emoji} ${rating.label} | ${dispWins}W – ${dispLosses}L${scorerLine}${wktrLine}${prevLine}\n\nBeat my XI \u{1F447}\n${url}`
   }
 
   const buildChallengeUrl = async () => {

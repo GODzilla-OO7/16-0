@@ -762,9 +762,9 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.625rem', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '0.875rem', justifyContent: 'center' }}>
               {[
-                { label: 'Wins',   value: leagueWins,    color: '#22c55e' },
-                { label: 'Losses', value: leagueLosses,  color: '#ef4444' },
-                { label: 'Played', value: revealed.length, color: '#94a3b8' },
+                { label: 'Wins',   value: totalWins,                              color: '#22c55e' },
+                { label: 'Losses', value: totalLosses,                            color: '#ef4444' },
+                { label: 'Played', value: revealed.length + playoffRevealed.length, color: '#94a3b8' },
               ].map(s => (
                 <div key={s.label} className="score-box" style={{ width: 86, textAlign: 'center', padding: '0.75rem 0.5rem', background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '0.75rem' }}>
                   <div style={{ fontSize: '1.75rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
@@ -1350,7 +1350,8 @@ function buildChasePoints(targetRuns, finalRuns, finalWickets, format) {
     let runs, wkts
 
     if (isLast) {
-      runs = finalRuns
+      // If chasing team won (reached target), show exactly the target — not the full runs scored
+      runs = finalRuns >= targetRuns ? targetRuns : finalRuns
       wkts = finalWickets
     } else {
       const frac = over / totalOvers
@@ -1480,6 +1481,14 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
         const pt = points[next]
         const chaseName = myChasing ? 'Your XI' : result.opponent
         setCommentary(genInningsCommentary(pt.over, pt.runs, pt.wkts, chaseName, format))
+        // Target already reached — stop here even after a wicket flash
+        if (pt.needed === 0) {
+          timerRef.current = setTimeout(() => {
+            setPhase('result')
+            timerRef.current = setTimeout(() => onComplete(myChasing ? true : false), 2000)
+          }, 2500)
+          return
+        }
         if (!tryQTE(next)) timerRef.current = setTimeout(advance, 2000)
       }, 1500)
       return
