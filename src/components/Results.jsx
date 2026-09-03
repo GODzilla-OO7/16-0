@@ -766,7 +766,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     }
     return result.sort((a, b) => b.impact - a.impact)
   })()
-  const playoffMatches = (matchResults ?? []).filter(r => r.stage != null)
+  const playoffMatches = (matchResults ?? []).filter(r => r.stage != null && r.stage !== 'League' && r.stage !== 'Group Stage')
   const madePlayoffs   = isIPLMode && !didntQualify && playoffMatches.length > 0
   let dispWins, dispLosses, dispTotal
   if (madePlayoffs) {
