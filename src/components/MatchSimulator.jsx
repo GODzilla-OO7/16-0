@@ -2068,12 +2068,7 @@ function MatchCard({ result, isLatest, expanded, onToggle, animDelay = 0 }) {
               </div>
             </div>
           )}
-          {/* Top scorer detail */}
-          {myScorer && (
-            <div style={{ fontSize:'0.62rem', color:'#64748b' }}>
-              Your best: <span style={{ color:'var(--text)', fontWeight:700 }}>{myScorer.name}</span> — {myScorer.runs} runs off {myScorer.balls}b (SR {myScorer.sr}) · <span style={{ color:'#a855f7' }}>{myBowler?.name} {myBowler?.wickets}/{myBowler?.runsConceded}</span>
-            </div>
-          )}
+
         </div>
       )}
     </div>
