@@ -929,12 +929,16 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const [expandedMatch, setExpandedMatch] = useState(null)
   const shareWhatsApp = async () => {
     setWaSharing(true)
+    // Open a blank window immediately (inside user gesture) so popup blocker doesn't fire
+    // on mobile with Web Share API we don't need this
+    const isMobileShare = !!navigator.canShare
+    const win = isMobileShare ? null : window.open('', '_blank')
     try {
       const long = buildShareUrl()
       const url  = await createShortUrl(long)
       const text = buildShareText(url)
       // On mobile: Web Share API sends image + text together to WhatsApp
-      if (navigator.canShare) {
+      if (isMobileShare) {
         const blob = await generateShareCard(cardParams())
         const file = new File([blob], 'cricket16-0.png', { type: 'image/png' })
         if (navigator.canShare({ files: [file] })) {
@@ -942,8 +946,15 @@ export default function Results({ team, mode, manager, summary, matchResults, on
           return
         }
       }
-      // Desktop fallback: open WhatsApp web with text
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+      // Desktop fallback: navigate the pre-opened window to WhatsApp web
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`
+      if (win) {
+        win.location.href = waUrl
+      } else {
+        window.open(waUrl, '_blank')
+      }
+    } catch {
+      if (win) win.close()
     } finally {
       setWaSharing(false)
     }
