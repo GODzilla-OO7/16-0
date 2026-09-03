@@ -465,6 +465,10 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
 
   const leagueWins   = revealed.filter(r => r.won).length
   const leagueLosses = revealed.filter(r => !r.won).length
+  const playoffWins   = playoffRevealed.filter(r => r.won).length
+  const playoffLosses = playoffRevealed.filter(r => !r.won).length
+  const totalWins     = leagueWins   + playoffWins
+  const totalLosses   = leagueLosses + playoffLosses
 
   const topRunScorers   = Object.entries(liveRuns).map(([name, runs]) => ({ name, runs })).sort((a,b) => b.runs - a.runs).slice(0,5)
   const topWicketTakers = Object.entries(liveWkts).map(([name, w]) => ({ name, wickets: w })).sort((a,b) => b.wickets - a.wickets).slice(0,5)
@@ -695,7 +699,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
           </div>
           {tournamentStarted && (
             <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-              {leagueWins}W – {leagueLosses}L · {revealed.length}/{cfg.totalMatches} league matches
+              {totalWins}W – {totalLosses}L · {revealed.length + playoffRevealed.length}/{cfg.totalMatches + playoffRevealed.length} matches
             </div>
           )}
         </div>
@@ -1542,18 +1546,18 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
           </div>
         </div>
 
-        {/* Wicket flash */}
+        {/* Wicket flash — small overlay banner, doesn't hide live score */}
         {wicketFlash && (
           <div style={{
-            textAlign: 'center', padding: '0.6rem 1rem', marginBottom: '0.875rem',
+            textAlign: 'center', padding: '0.35rem 1rem', marginBottom: '0.5rem',
             background: '#ef444418', border: '1px solid #ef444455',
-            borderRadius: '0.625rem', animation: 'fade-in-up 0.25s ease both',
+            borderRadius: '0.5rem', animation: 'fade-in-up 0.25s ease both',
           }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 900, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 900, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               🏏 WICKET! {wicketFlash.wkts} down
             </span>
             {wicketFlash.name && (
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8', marginLeft: '0.4rem' }}>
+              <span style={{ fontSize: '0.68rem', color: '#94a3b8', marginLeft: '0.4rem' }}>
                 — {wicketFlash.name} departs
               </span>
             )}
@@ -1561,7 +1565,7 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
         )}
 
         {/* Live score */}
-        {pt && phase !== 'result' && !wicketFlash && (
+        {pt && phase !== 'result' && (
           <div style={{ textAlign: 'center', marginBottom: '0.875rem', animation: 'fade-in 0.3s ease both' }}>
             <div style={{ fontSize: '2.75rem', fontWeight: 900, color: pt.needed === 0 ? '#22c55e' : 'var(--text)', lineHeight: 1, transition: 'color 0.5s' }}>
               {pt.runs}<span style={{ fontSize: '1.3rem', color: '#64748b', fontWeight: 600 }}>/{pt.wkts}</span>
@@ -1576,12 +1580,12 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
             </div>
           </div>
         )}
-        {!pt && phase !== 'result' && !wicketFlash && (
+        {!pt && phase !== 'result' && (
           <div style={{ textAlign: 'center', marginBottom: '0.875rem', opacity: 0.4, fontSize: '0.85rem', color: '#64748b' }}>Chase starting…</div>
         )}
 
         {/* Commentary */}
-        {commentary && phase === 'animating' && !wicketFlash && pt && pt.needed > 0 && (
+        {commentary && phase === 'animating' && pt && pt.needed > 0 && (
           <div style={{
             textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8',
             fontStyle: 'italic', marginBottom: '0.75rem',
