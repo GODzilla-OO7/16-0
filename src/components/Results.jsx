@@ -1133,7 +1133,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                   <div>
-                    <div style={{ fontSize: '0.58rem', fontWeight: 800, color: r.won ? '#C8102E' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>
+                    <div style={{ fontSize: '0.58rem', fontWeight: 800, color: r.won ? '#22c55e' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.2rem' }}>
                       Match {expandedMatch + 1}{r.stage ? ` · ${r.stage}` : ''}
                     </div>
                     <div style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--text)' }}>
@@ -1142,10 +1142,10 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                   </div>
                   <div style={{
                     padding: '0.3rem 0.75rem', borderRadius: '999px',
-                    background: r.won ? '#C8102E22' : 'var(--border2)',
-                    border: `1px solid ${r.won ? '#C8102E55' : 'var(--border)'}`,
+                    background: r.won ? '#22c55e22' : 'var(--border2)',
+                    border: `1px solid ${r.won ? '#22c55e55' : 'var(--border)'}`,
                     fontSize: '0.75rem', fontWeight: 800,
-                    color: r.won ? '#C8102E' : '#64748b',
+                    color: r.won ? '#22c55e' : '#64748b',
                   }}>
                     {r.won ? 'WIN' : 'LOSS'}
                   </div>
@@ -2097,7 +2097,7 @@ function OverviewTab({ tournamentBestXI, bestXI, team }) {
                   background: isUser ? '#C8102E0d' : '#C8102E0d',
                   borderLeft: `3px solid ${isUser ? '#C8102E44' : '#C8102E44'}`,
                 }}>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--border)', width: 16, textAlign: 'center', flexShrink: 0 }}>{i+1}</div>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#64748b', width: 16, textAlign: 'center', flexShrink: 0 }}>{i+1}</div>
                   <div style={{ padding: '0.1rem 0.3rem', borderRadius: '0.2rem', flexShrink: 0, background: roleClr + '22', border: `1px solid ${roleClr}44`, fontSize: '0.45rem', fontWeight: 900, color: roleClr, minWidth: 30, textAlign: 'center' }}>
                     {roleTag}
                   </div>
@@ -2138,7 +2138,7 @@ function StatTable({ title, rows, col1, col1Key, col2, col2Key, color }) {
           borderBottom: i < rows.length - 1 ? '1px solid var(--border2)' : 'none',
           background: i === 0 ? color + '08' : 'transparent',
         }}>
-          <div style={{ fontSize: '0.7rem', fontWeight: 900, color: i === 0 ? color : 'var(--border)', width: 20 }}>
+          <div style={{ fontSize: '0.7rem', fontWeight: 900, color: i === 0 ? color : '#64748b', width: 20 }}>
             {i === 0 ? '👑' : `${i + 1}`}
           </div>
           <div style={{ flex: 1, fontSize: '0.875rem', fontWeight: 700, color: 'var(--text)' }}>{r[col1Key]}</div>
@@ -2242,7 +2242,7 @@ function PlayerStatsTab({ playerStats, team }) {
       <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
         <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border2)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>🏏 Player Stats</span>
-          <span style={{ fontSize: '0.6rem', color: 'var(--border)', fontWeight: 600, marginLeft: 'auto' }}>Full season totals</span>
+          <span style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 600, marginLeft: 'auto' }}>Full season totals</span>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 340 }}>

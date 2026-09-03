@@ -704,7 +704,21 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   const userXI = myPlayerPool.slice(0, maxUserSlots)
   const remainingSlots = 11 - userXI.length
   const usedNames = new Set(userXI.map(p => p.name))
-  const oppFill = oppPlayers.filter(p => !usedNames.has(p.name)).slice(0, remainingSlots)
+  let oppFill = oppPlayers.filter(p => !usedNames.has(p.name)).slice(0, remainingSlots)
+  // Fallback: if quality filter leaves us short, pull any remaining opp player with any impact
+  if (oppFill.length < remainingSlots) {
+    const usedHere = new Set([...usedNames, ...oppFill.map(p => p.name)])
+    const allOppFallback = [...allOppNames]
+      .map(name => ({
+        name, role: oppRoleMap[name] || 'top-order', team: oppTeamMap[name] || 'Opposition',
+        runs: oppRunTotals[name] || 0, wickets: oppWicketTotals[name] || 0,
+        impact: (oppRunTotals[name] || 0) + (oppWicketTotals[name] || 0) * 25, isUser: false,
+      }))
+      .filter(p => !usedHere.has(p.name) && p.impact > 0)
+      .sort((a, b) => b.impact - a.impact)
+      .slice(0, remainingSlots - oppFill.length)
+    oppFill = [...oppFill, ...allOppFallback]
+  }
   const tournamentBestXI = [...userXI, ...oppFill].sort((a, b) => b.impact - a.impact)
 
   return {
