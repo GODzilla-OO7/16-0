@@ -760,7 +760,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
         {/* Scoreboard */}
         {revealed.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.625rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '0.875rem', justifyContent: 'center' }}>
+            <div className="scoreboard-row" style={{ display: 'flex', gap: '0.875rem', justifyContent: 'center' }}>
               {[
                 { label: 'Wins',   value: totalWins,                              color: '#22c55e' },
                 { label: 'Losses', value: totalLosses,                            color: '#ef4444' },
@@ -773,14 +773,14 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
               ))}
               {/* Orange Cap & Purple Cap quick boxes */}
               {topRunScorers.length > 0 && (
-                <div className="score-box" style={{ minWidth: 100, textAlign: 'center', padding: '0.75rem 0.75rem', background: 'linear-gradient(135deg,#7c2d12,#1c1002)', border: '1px solid #f9731644', borderRadius: '0.75rem' }}>
+                <div className="score-box cap-box" style={{ minWidth: 100, textAlign: 'center', padding: '0.75rem 0.75rem', background: 'linear-gradient(135deg,#7c2d12,#1c1002)', border: '1px solid #f9731644', borderRadius: '0.75rem' }}>
                   <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.15rem' }}>🧡 Orange Cap</div>
                   <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>{topRunScorers[0].name.split(' ').slice(-1)[0]}</div>
                   <div style={{ fontSize: '1rem', fontWeight: 900, color: '#f97316', marginTop: '0.1rem' }}>{topRunScorers[0].runs} <span style={{ fontSize: '0.55rem', color: '#94a3b8' }}>runs</span></div>
                 </div>
               )}
               {topWicketTakers.length > 0 && (
-                <div className="score-box" style={{ minWidth: 100, textAlign: 'center', padding: '0.75rem 0.75rem', background: 'linear-gradient(135deg,#2e1065,#0f0520)', border: '1px solid #a855f744', borderRadius: '0.75rem' }}>
+                <div className="score-box cap-box" style={{ minWidth: 100, textAlign: 'center', padding: '0.75rem 0.75rem', background: 'linear-gradient(135deg,#2e1065,#0f0520)', border: '1px solid #a855f744', borderRadius: '0.75rem' }}>
                   <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#a855f7', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.15rem' }}>💜 Purple Cap</div>
                   <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>{topWicketTakers[0].name.split(' ').slice(-1)[0]}</div>
                   <div style={{ fontSize: '1rem', fontWeight: 900, color: '#a855f7', marginTop: '0.1rem' }}>{topWicketTakers[0].wickets} <span style={{ fontSize: '0.55rem', color: '#94a3b8' }}>wkts</span></div>
@@ -1741,7 +1741,7 @@ function MiniSuperOver({ soData, opponent, onDone }) {
       )}
 
       {phase !== 'intro' && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1.25rem' }}>
+        <div className="super-over-scores" style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1.25rem' }}>
           <div style={{ opacity: phase === 'my-score' || phase === 'opp-score' || phase === 'result' ? 1 : 0, transition: 'opacity 0.4s' }}>
             <div style={{ fontSize: '0.62rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.08em' }}>Your XI</div>
             <div style={{
@@ -1826,7 +1826,7 @@ function LeagueSuperOverModal({ match, onDone }) {
           ? <div style={{ color: '#a855f7', fontWeight: 700, fontSize: '0.875rem' }}>6 balls. 2 wickets. Everything on the line…</div>
           : (
             <>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1.25rem' }}>
+              <div className="super-over-scores" style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1.25rem' }}>
                 <div>
                   <div style={{ fontSize: '0.62rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Your XI</div>
                   <div style={{ fontSize: '2.5rem', fontWeight: 900, color: so.won ? '#22c55e' : '#ef4444' }}>{so.myRuns}</div>
@@ -1902,13 +1902,13 @@ function IPLTableView({ table, position, qualified, leagueWins, onProceed, onSum
         </div>
       </div>
 
-      <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'1rem', overflow:'hidden', marginBottom:'1.25rem' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', background:'var(--border2)', borderBottom:'1px solid var(--border)', fontSize:'0.58rem', fontWeight:800, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+      <div className="ipl-table-container" style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:'1rem', overflow:'hidden', marginBottom:'1.25rem' }}>
+        <div className="ipl-table-row" style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', background:'var(--border2)', borderBottom:'1px solid var(--border)', fontSize:'0.58rem', fontWeight:800, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.08em' }}>
           <div>#</div><div>Team</div><div style={{ textAlign:'center' }}>W</div><div style={{ textAlign:'center' }}>L</div><div style={{ textAlign:'center' }}>Pts</div><div style={{ textAlign:'right' }}>NRR</div>
         </div>
         {table.map((row, i) => (
-          <div key={row.team} style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', borderBottom: i < table.length-1 ? '1px solid var(--border2)' : 'none', background: row.isUser ? '#C8102E0d' : 'transparent', borderLeft: row.isUser ? '3px solid #C8102E' : i < 4 ? '3px solid #C8102E22' : '3px solid transparent' }}>
-            <div style={{ fontSize:'0.72rem', fontWeight:800, color: i < 4 ? '#C8102E' : 'var(--border)', alignSelf:'center' }}>{i+1}</div>
+          <div key={row.team} className="ipl-table-row" style={{ display:'grid', gridTemplateColumns:'1.5rem 1fr 3rem 3rem 4rem 4.5rem', gap:'0.5rem', padding:'0.6rem 1rem', borderBottom: i < table.length-1 ? '1px solid var(--border2)' : 'none', background: row.isUser ? '#C8102E0d' : 'transparent', borderLeft: row.isUser ? '3px solid #C8102E' : i < 4 ? '3px solid #C8102E22' : '3px solid transparent' }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:800, color: i < 4 ? '#C8102E' : '#64748b', alignSelf:'center' }}>{i+1}</div>
             <div style={{ fontSize:'0.82rem', fontWeight: row.isUser ? 900 : 600, color: row.isUser ? 'var(--text)' : '#94a3b8', alignSelf:'center' }}>{row.team}{row.isUser && ' ⭐'}</div>
             <div style={{ fontSize:'0.82rem', fontWeight:700, color:'#C8102E', textAlign:'center', alignSelf:'center' }}>{row.wins}</div>
             <div style={{ fontSize:'0.82rem', fontWeight:700, color:'#ef4444', textAlign:'center', alignSelf:'center' }}>{row.losses}</div>

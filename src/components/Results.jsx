@@ -210,7 +210,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     let bx = W / 2 - totalBW / 2
     const by = 310
     matchResults.forEach(r => {
-      ctx.fillStyle = r.won ? '#C8102E' : '#ef4444'
+      ctx.fillStyle = r.won ? '#22c55e' : '#ef4444'
       roundRect(ctx, bx, by, BLOCK, BLOCK, BRAD)
       ctx.fill()
       bx += BLOCK + GAP

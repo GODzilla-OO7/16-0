@@ -276,6 +276,42 @@ button {
     padding-left: 0.75rem !important;
     padding-right: 0.75rem !important;
   }
+
+  /* ── iOS input auto-zoom prevention (font < 16px triggers zoom) ── */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* ── Scoreboard row — wrap cap boxes to second line ── */
+  .scoreboard-row {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    justify-content: center !important;
+  }
+  .scoreboard-row .score-box {
+    flex: 1 1 calc(30% - 0.5rem) !important;
+    min-width: 0 !important;
+    width: auto !important;
+  }
+  .scoreboard-row .cap-box {
+    flex: 1 1 calc(45% - 0.5rem) !important;
+    min-width: 0 !important;
+  }
+
+  /* ── IPL points table — hide NRR column, tighten grid ── */
+  .ipl-table-row {
+    grid-template-columns: 1.2rem 1fr 2.5rem 2.5rem 3.5rem !important;
+    gap: 0.3rem !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+  .ipl-table-row > div:last-child {
+    display: none !important;
+  }
+
+  /* ── Super Over scores — tighter gap on narrow screens ── */
+  .super-over-scores {
+    gap: 1rem !important;
+  }
 }
 
 /* ── Landscape phones — keep 2-column but compact header/padding ── */
