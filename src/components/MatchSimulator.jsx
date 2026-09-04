@@ -103,7 +103,8 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
   const playoffRef       = useRef(null)
   const tableTimRef      = useRef(null)
   const finalTimRef      = useRef(null)
-  const startPlayoffsRef = useRef(null)  // always latest startPlayoffs — avoids stale closure in ImpactSub
+  const startPlayoffsRef  = useRef(null)  // always latest startPlayoffs — avoids stale closure in ImpactSub
+  const playoffStartedRef = useRef(false) // guards against double-call (Impact Sub skip + button race)
 
   // ── H2H live results polling ────────────────────────────────────────────────
   useEffect(() => {
@@ -315,6 +316,8 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
   }, [iplPhase, h2hContext])
 
   function startPlayoffs(overrideTeam) {
+    if (playoffStartedRef.current) return  // already started — ignore duplicate call
+    playoffStartedRef.current = true
     const teamToUse = overrideTeam ?? activeTeam
     const pd = simulateIPLPlayoffs(ratingType === 'prime' ? applyPrimeRatings(teamToUse, mode) : teamToUse, manager, iplPosition, iplTable?.table ?? [])
     if (!pd?.results?.length) { setIplPhase('done'); return }

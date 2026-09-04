@@ -822,12 +822,18 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
       // Just set the pass flag — bid stays exactly as-is. No retraction.
       // If this player held the current bid, that bid stands and they're locked.
       // Opponent must counter at current_bid+0.25 or also pass; timer resolves.
+      // IMPORTANT: spread from fresh DB data (not roomRef) so we never overwrite
+      // the opponent's fold flag that may have arrived concurrently.
       const updatedBid = { ...data.auction_bid, [myFoldField]: true }
 
-      const { error } = await sb.from('h2h_rooms').update({ auction_bid: updatedBid }).eq('id', latestRoom.id)
-      if (!error) {
-        // Update local state immediately so resolve-on-fold fires without waiting for subscription
-        applyRoomUpdate({ ...latestRoom, auction_bid: updatedBid })
+      const { error, data: written } = await sb.from('h2h_rooms')
+        .update({ auction_bid: updatedBid })
+        .eq('id', latestRoom.id)
+        .select('auction_bid')
+        .single()
+      if (!error && written) {
+        // Use the DB's returned state — guaranteed to be current, not our local merge
+        applyRoomUpdate({ ...latestRoom, auction_bid: written.auction_bid })
         break
       }
       await new Promise(r => setTimeout(r, 100 + attempt * 80))
@@ -1038,7 +1044,10 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
   if (room.status === 'done') return <DraftDone room={room} uid={uid} onDone={onDone} onInitSharedLeague={onInitSharedLeague} onSharedLeague={onSharedLeague} />
 
   const snakeMyTurn  = isSnake && room.current_turn === uid
-  const allPickedSet = new Set([...myTeam, ...oppTeam].map(p => p.name))
+  const allPickedSet = new Set([
+    ...(roomRef.current.host_team  ?? []),
+    ...(roomRef.current.guest_team ?? []),
+  ].map(p => p.name))
   const snakePlayers = currentEntry
     ? getEligiblePlayers(
         currentEntry.players
