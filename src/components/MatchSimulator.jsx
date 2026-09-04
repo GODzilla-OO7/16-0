@@ -1958,7 +1958,7 @@ function MatchCard({ result, isLatest, expanded, onToggle, animDelay = 0 }) {
     const label = eventResult.success ? '⚡ QTE' : '✗ QTE'
     const color = eventResult.success ? '#f59e0b' : '#ef4444'
     return (
-      <span style={{ display:'inline-flex', alignItems:'center', gap:'0.2rem', padding:'0.1rem 0.4rem', borderRadius:'999px', background: color + '18', border:`1px solid ${color}44`, fontSize:'0.52rem', fontWeight:800, color, marginLeft:'0.4rem' }}>
+      <span style={{ display:'inline-flex', alignItems:'center', gap:'0.2rem', padding:'0.1rem 0.4rem', borderRadius:'999px', background: color + '18', border:`1px solid ${color}44`, fontSize:'0.68rem', fontWeight:800, color, marginLeft:'0.4rem' }}>
         {icon} {label}
       </span>
     )
@@ -1969,7 +1969,7 @@ function MatchCard({ result, isLatest, expanded, onToggle, animDelay = 0 }) {
 
       {/* Header row */}
       <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', padding:'0.65rem 1rem' }}>
-        <div style={{ width:26, height:26, borderRadius:'50%', background:'var(--border2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:800, color:'#64748b', flexShrink:0 }}>{matchNum}</div>
+        <div style={{ width:26, height:26, borderRadius:'50%', background:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:800, color:'#94a3b8', flexShrink:0 }}>{matchNum}</div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:'0.55rem', color:stageClr, textTransform:'uppercase', letterSpacing:'0.07em', fontWeight:700 }}>{stage}</div>
           <div style={{ fontSize:'0.82rem', fontWeight:700, color:'var(--text)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
@@ -1978,7 +1978,7 @@ function MatchCard({ result, isLatest, expanded, onToggle, animDelay = 0 }) {
           </div>
         </div>
         <div style={{ textAlign:'right', flexShrink:0 }}>
-          <div style={{ fontSize:'0.68rem', color: won ? '#a50d24' : '#dc2626', fontWeight:700 }}>
+          <div style={{ fontSize:'0.68rem', color: won ? '#22c55e' : '#dc2626', fontWeight:700 }}>
             {summary}
             {superOver && (
               <span style={{ display:'inline-block', marginLeft:'0.35rem', padding:'0.05rem 0.35rem', background:'#a855f720', border:'1px solid #a855f744', borderRadius:'999px', fontSize:'0.5rem', color:'#a855f7', fontWeight:800, verticalAlign:'middle', letterSpacing:'0.05em' }}>⚡ SO</span>
@@ -1989,7 +1989,7 @@ function MatchCard({ result, isLatest, expanded, onToggle, animDelay = 0 }) {
             {superOver && <span style={{ color:'#a855f7', marginLeft:'0.3rem' }}>SO: {superOver.myRuns}–{superOver.oppRuns}</span>}
           </div>
         </div>
-        <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, background: won ? '#C8102E22' : '#ef444422', border:`1px solid ${won ? '#C8102E66' : '#ef444466'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:900, color: won ? '#C8102E' : '#ef4444' }}>
+        <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, background: won ? '#22c55e22' : '#ef444422', border:`1px solid ${won ? '#22c55e66' : '#ef444466'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:900, color: won ? '#22c55e' : '#ef4444' }}>
           {won ? 'W' : 'L'}
         </div>
       </div>
@@ -1999,7 +1999,7 @@ function MatchCard({ result, isLatest, expanded, onToggle, animDelay = 0 }) {
         <div style={{ borderTop: divBorder, display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
           {/* My team column */}
           <div style={{ padding:'0.45rem 0.75rem', borderRight: divBorder }}>
-            <div style={{ fontSize:'0.48rem', color:'#C8102E', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.3rem' }}>Your XI</div>
+            <div style={{ fontSize:'0.65rem', color:'#C8102E', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.3rem' }}>Your XI</div>
             {myScorer && (
               <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', marginBottom:'0.2rem' }}>
                 <span style={{ fontSize:'0.7rem' }}>🏏</span>
@@ -2021,7 +2021,7 @@ function MatchCard({ result, isLatest, expanded, onToggle, animDelay = 0 }) {
           </div>
           {/* Opponent column */}
           <div style={{ padding:'0.45rem 0.75rem' }}>
-            <div style={{ fontSize:'0.48rem', color:'#ef4444', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.3rem' }}>{opponent}</div>
+            <div style={{ fontSize:'0.65rem', color:'#ef4444', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:'0.3rem' }}>{opponent}</div>
             {oppScorer && (
               <div style={{ display:'flex', alignItems:'center', gap:'0.3rem', marginBottom:'0.2rem' }}>
                 <span style={{ fontSize:'0.7rem' }}>🏏</span>
@@ -2089,7 +2089,7 @@ function MatchCard({ result, isLatest, expanded, onToggle, animDelay = 0 }) {
             <div style={{ display:'flex', gap:'0.6rem', alignItems:'flex-start', padding:'0.4rem 0.5rem', background: eventResult.success ? '#f59e0b10' : '#ef444410', borderRadius:'0.4rem' }}>
               <div style={{ fontSize:'1rem' }}>{event.type === 'hat-trick' ? '🎳' : event.type === 'catch' ? '🧤' : event.type === 'run-out' ? '💨' : event.type === 'drs' ? '📺' : '🏏'}</div>
               <div>
-                <div style={{ fontSize:'0.55rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.07em' }}>QTE — {event.type.replace(/-/g,' ')}</div>
+                <div style={{ fontSize:'0.7rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.07em' }}>QTE — {event.type.replace(/-/g,' ')}</div>
                 <div style={{ fontSize:'0.82rem', fontWeight:800, color:'var(--text)' }}>{event.playerName}</div>
                 <div style={{ fontSize:'0.7rem', fontWeight:700, color: eventResult.success ? '#f59e0b' : '#ef4444' }}>
                   {eventResult.success ? '✓ Success!' : `✗ Failed · ${eventResult.choiceLabel}`}

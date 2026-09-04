@@ -842,7 +842,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const buildShareText = (url) => {
     const seasonLabel = seasonNumber > 1 ? ` — Season ${seasonNumber}` : ''
     const scorerLine  = topScorers[0]      ? `\n\u{1F3C5} Top bat: ${topScorers[0].name} — ${topScorers[0].runs} runs`           : ''
-    const wktrLine    = topWicketTakers[0] ? `\n⚡ Top bowl: ${topWicketTakers[0].name} — ${topWicketTakers[0].wickets} wkts` : ''
+    const wktrLine    = topWicketTakers[0] ? `\n\u26A1 Top bowl: ${topWicketTakers[0].name} \u2014 ${topWicketTakers[0].wickets} wkts` : ''
     let prevLine = ''
     if (prevSeasons.length > 0) {
       const summaries = prevSeasons.slice(0, 3).map((h, i) => {
@@ -1096,7 +1096,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                 onClick={() => setExpandedMatch(expandedMatch === i ? null : i)}
                 style={{
                   width: 26, height: 26, borderRadius: 4,
-                  background: r.won ? '#a50d24' : '#3a3a4a',
+                  background: r.won ? '#16a34a' : '#dc2626',
                   cursor: 'pointer',
                   outline: expandedMatch === i ? '2px solid #f59e0b' : 'none',
                   outlineOffset: 2,
