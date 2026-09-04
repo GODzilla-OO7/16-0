@@ -312,6 +312,17 @@ button {
   .super-over-scores {
     gap: 1rem !important;
   }
+
+  /* ── H2H Multiplayer draft — stack to single column ── */
+  .h2h-main-grid {
+    grid-template-columns: 1fr !important;
+    padding: 0.75rem !important;
+  }
+  .h2h-xi-panel {
+    position: static !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
 }
 
 /* ── Landscape phones — keep 2-column but compact header/padding ── */

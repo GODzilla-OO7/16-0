@@ -41,7 +41,11 @@ export default function MusicPlayer() {
       if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false)
     }
     document.addEventListener('mousedown', onOutside)
-    return () => document.removeEventListener('mousedown', onOutside)
+    document.addEventListener('touchstart', onOutside, { passive: true })
+    return () => {
+      document.removeEventListener('mousedown', onOutside)
+      document.removeEventListener('touchstart', onOutside)
+    }
   }, [open])
 
   function toggleMute() {

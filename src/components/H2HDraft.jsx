@@ -231,7 +231,9 @@ function XIPanel({ name, team, isMe, comp, budget, ratingType = 'overall' }) {
       border: `1px solid ${isMe ? '#C8102E44' : 'var(--card-border)'}`,
       borderRadius: '0.75rem', overflow: 'hidden',
       position: 'sticky', top: '4.5rem',
-    }}>
+    }}
+      className="h2h-xi-panel"
+    >
       {/* Header */}
       <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1070,7 +1072,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
         )}
       </div>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '1rem', width: '100%', display: 'grid', gridTemplateColumns: '220px 1fr 220px', gap: '1rem', alignItems: 'start' }}>
+      <div className="h2h-main-grid" style={{ maxWidth: 1200, margin: '0 auto', padding: '1rem', width: '100%', display: 'grid', gridTemplateColumns: '220px 1fr 220px', gap: '1rem', alignItems: 'start' }}>
 
         {/* ── Left XI Panel (me) ──────────────────────────────────────────── */}
         <XIPanel name={`${myName} (You)`} team={myTeam} isMe comp={myComp} budget={!isSnake ? myBudget : undefined} ratingType={ratingType} />
