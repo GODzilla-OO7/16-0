@@ -1065,7 +1065,7 @@ export default function H2HDraft({ room: initialRoom, uid, onDone, onBack, onIni
         <button
           onClick={onBack}
           title="Back to home"
-          style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '0.375rem', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '0.3rem 0.6rem', flexShrink: 0, transition: 'border-color 0.15s, color 0.15s' }}
+          style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '0.375rem', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '0.6rem 1rem', flexShrink: 0, transition: 'border-color 0.15s, color 0.15s', minHeight: 44 }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = '#64748b' }}
         >
