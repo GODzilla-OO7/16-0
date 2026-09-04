@@ -895,11 +895,11 @@ function PlayerRow({ player, hardMode, ratingType, mode, teamColor, isLast, isNe
 // ─── Bidding War ──────────────────────────────────────────────────────────────
 
 const RIVAL_FRANCHISES = [
-  { name: 'Mumbai Indians',        color: '#004C97', icon: '🔵' },
-  { name: 'Chennai Super Kings',   color: '#f5a623', icon: '🟡' },
-  { name: 'Royal Challengers',     color: '#c8102e', icon: '🔴' },
-  { name: 'Kolkata Knight Riders', color: '#3a225d', icon: '🟣' },
-  { name: 'Delhi Capitals',        color: '#004c97', icon: '🔷' },
+  { name: 'Mumbai Indians',        color: '#004C97', textColor: '#4d8fd4', icon: '🔵' },
+  { name: 'Chennai Super Kings',   color: '#f5a623', textColor: '#f5a623', icon: '🟡' },
+  { name: 'Royal Challengers',     color: '#c8102e', textColor: '#e84060', icon: '🔴' },
+  { name: 'Kolkata Knight Riders', color: '#3a225d', textColor: '#9b6fd4', icon: '🟣' },
+  { name: 'Delhi Capitals',        color: '#004c97', textColor: '#4d8fd4', icon: '🔷' },
   { name: 'Punjab Kings',          color: '#ed1b24', icon: '🟥' },
   { name: 'Rajasthan Royals',      color: '#ea1a8c', icon: '🌸' },
   { name: 'Sunrisers Hyderabad',   color: '#f7a721', icon: '🟠' },
@@ -1022,11 +1022,11 @@ export function BiddingWarOverlay({ player, basePrice, ratingType, mode = 'ipl',
 
         {/* Header + round indicator */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
             🔥 Bidding War
           </div>
           {phase === 'bidding' && (
-            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Round {round}{round === 3 ? ' (Final)' : ''}
             </div>
           )}
@@ -1036,10 +1036,10 @@ export function BiddingWarOverlay({ player, basePrice, ratingType, mode = 'ipl',
         {phase === 'bidding' && (
           <div style={{ marginBottom: '0.875rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-              <span style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Decide in</span>
-              <span style={{ fontSize: '0.72rem', fontWeight: 900, color: timerColor }}>{timeLeft}s</span>
+              <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Decide in</span>
+              <span style={{ fontSize: '0.8rem', fontWeight: 900, color: timerColor }}>{timeLeft}s</span>
             </div>
-            <div style={{ height: 4, background: 'var(--border2)', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ height: 4, background: 'rgba(255,255,255,0.12)', borderRadius: 2, overflow: 'hidden' }}>
               <div style={{
                 width: `${timerPct}%`, height: '100%',
                 background: timerColor,
@@ -1061,7 +1061,7 @@ export function BiddingWarOverlay({ player, basePrice, ratingType, mode = 'ipl',
           padding: '0.5rem 0.875rem', marginBottom: '1rem',
           background: `${rival.color}18`, border: `1px solid ${rival.color}44`,
           borderRadius: '0.625rem', fontSize: '0.78rem', fontWeight: 800,
-          color: rival.color,
+          color: rival.textColor ?? rival.color,
         }}>
           {phase === 'coinflip'
             ? (coinFlipping ? `${rival.icon} ${rival.name} — flipping coin…` : `${rival.icon} ${rival.name}`)
@@ -1071,7 +1071,7 @@ export function BiddingWarOverlay({ player, basePrice, ratingType, mode = 'ipl',
 
         {/* Rival's current bid */}
         <div style={{ marginBottom: '1.1rem' }}>
-          <div style={{ fontSize: '0.58rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.2rem' }}>
+          <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.2rem' }}>
             {phase === 'won' ? 'You signed at' : phase === 'lost' ? 'Final bid' : `${rival.name}'s bid`}
           </div>
           <div style={{
@@ -1081,7 +1081,7 @@ export function BiddingWarOverlay({ player, basePrice, ratingType, mode = 'ipl',
             {phase === 'won' ? fmtCr(finalBid) : fmtCr(rivalBid)}
           </div>
           {phase === 'bidding' && (
-            <div style={{ fontSize: '0.62rem', color: '#64748b', marginTop: '0.2rem' }}>
+            <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.2rem' }}>
               Base price: {fmtCr(basePrice)}
             </div>
           )}
