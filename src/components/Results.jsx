@@ -1106,7 +1106,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
               />
             ))}
           </div>
-          <div style={{ fontSize: '0.62rem', color: '#475569', marginBottom: '0.875rem' }}>
+          <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.875rem' }}>
             Tap a result to see match details
           </div>
 
