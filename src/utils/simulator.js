@@ -702,13 +702,15 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
     .filter(p => freePositions ? (p.runs >= 10 || p.wickets >= 1) : (p.runs >= 25 || p.wickets >= 2))
     .sort((a, b) => b.impact - a.impact)
 
-  // Tournament Best XI — up to maxUserSlots (max 8) from user, rest from opposition
+  // Tournament Best XI — up to maxUserSlots (max 8) from user, rest from opposition.
+  // Always collect at least 10 opp players so Results.jsx has a full pool to draw from
+  // after applying its own per-outcome user cap (which may reduce user count below maxUserSlots).
   const userXI = myPlayerPool.slice(0, maxUserSlots)
-  const remainingSlots = 11 - userXI.length
+  const OPP_POOL_SIZE = 10
   const usedNames = new Set(userXI.map(p => p.name))
-  let oppFill = oppPlayers.filter(p => !usedNames.has(p.name)).slice(0, remainingSlots)
+  let oppFill = oppPlayers.filter(p => !usedNames.has(p.name)).slice(0, OPP_POOL_SIZE)
   // Fallback 1: pull any remaining opp player with any impact
-  if (oppFill.length < remainingSlots) {
+  if (oppFill.length < OPP_POOL_SIZE) {
     const usedHere = new Set([...usedNames, ...oppFill.map(p => p.name)])
     const allOppFallback = [...allOppNames]
       .map(name => ({
@@ -718,11 +720,11 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
       }))
       .filter(p => !usedHere.has(p.name) && p.impact > 0)
       .sort((a, b) => b.impact - a.impact)
-      .slice(0, remainingSlots - oppFill.length)
+      .slice(0, OPP_POOL_SIZE - oppFill.length)
     oppFill = [...oppFill, ...allOppFallback]
   }
-  // Fallback 2: last resort — pull any opp player regardless of impact to guarantee 11
-  if (oppFill.length < remainingSlots) {
+  // Fallback 2: last resort — pull any opp player regardless of impact
+  if (oppFill.length < OPP_POOL_SIZE) {
     const usedHere = new Set([...usedNames, ...oppFill.map(p => p.name)])
     const lastResort = [...allOppNames]
       .filter(name => !usedHere.has(name))
@@ -730,7 +732,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
         name, role: oppRoleMap[name] || 'top-order', team: oppTeamMap[name] || 'Opposition',
         runs: 0, wickets: 0, impact: 0, isUser: false,
       }))
-      .slice(0, remainingSlots - oppFill.length)
+      .slice(0, OPP_POOL_SIZE - oppFill.length)
     oppFill = [...oppFill, ...lastResort]
   }
   const tournamentBestXI = [...userXI, ...oppFill].sort((a, b) => b.impact - a.impact)

@@ -904,7 +904,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
       const filtered = chosen
         ? tournamentBestXIRaw.filter(p => !p.isUser || p.name === chosen)
         : (() => { let hit = false; return tournamentBestXIRaw.filter(p => { if (!p.isUser) return true; if (!hit) { hit = true; return true } return false }) })()
-      return filtered
+      return filtered.slice(0, 11)
     }
 
     // For cap >= 2: always include priority names first, then fill remaining slots by impact
@@ -931,7 +931,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
         usedNames.add(p.name)
       }
     }
-    return result.sort((a, b) => b.impact - a.impact)
+    return result.sort((a, b) => b.impact - a.impact).slice(0, 11)
   })()
   const playoffMatches = (matchResults ?? []).filter(r => r.stage != null && r.stage !== 'League' && r.stage !== 'Group Stage')
   const madePlayoffs   = isIPLMode && !didntQualify && playoffMatches.length > 0
@@ -995,8 +995,23 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     }
   }
 
-  const buildShareText = (url) => {
+  const buildShareText = (url, plain = false) => {
     const seasonLabel = seasonNumber > 1 ? ` — Season ${seasonNumber}` : ''
+    if (plain) {
+      // Desktop: no emojis — WhatsApp Web may render them poorly
+      const scorerLine = topScorers[0]      ? `\nTop bat: ${topScorers[0].name} — ${topScorers[0].runs} runs`          : ''
+      const wktrLine   = topWicketTakers[0] ? `\nTop bowl: ${topWicketTakers[0].name} — ${topWicketTakers[0].wickets} wkts` : ''
+      let prevLine = ''
+      if (prevSeasons.length > 0) {
+        const summaries = prevSeasons.slice(0, 3).map((h, i) => {
+          const sNum = seasonNumber - 1 - i
+          return `S${sNum}: ${h.wins}W–${h.losses}L`
+        })
+        prevLine = `\nPrev: ${summaries.join(' · ')}`
+      }
+      return `Cricket 16-0${seasonLabel}\n\n${rating.label} | ${dispWins}W – ${dispLosses}L${scorerLine}${wktrLine}${prevLine}\n\nBeat my XI: ${url}`
+    }
+    // Mobile: full emoji version
     const scorerLine  = topScorers[0]      ? `\n\u{1F3C5} Top bat: ${topScorers[0].name} — ${topScorers[0].runs} runs`           : ''
     const wktrLine    = topWicketTakers[0] ? `\n\u26A1 Top bowl: ${topWicketTakers[0].name} \u2014 ${topWicketTakers[0].wickets} wkts` : ''
     let prevLine = ''
@@ -1112,7 +1127,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     try {
       const long = buildShareUrl()
       const url  = await createShortUrl(long)
-      const text = buildShareText(url)
+      const text = buildShareText(url, !isMobile)  // plain (no emojis) on desktop
 
       // ── Mobile: use Web Share API so user can pick WhatsApp from the sheet ──
       if (isMobile && navigator.share) {
@@ -1907,7 +1922,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
             {/* Save progress CTA — shown only when not logged in */}
             {!user && !resultJustSaved && (
               <div style={{
-                margin: '0 0 1rem',
+                margin: '1.25rem 0 1rem',
                 background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
                 border: '1px solid #334155',
                 borderRadius: '1rem',
@@ -2372,8 +2387,8 @@ function OverviewTab({ tournamentBestXI, bestXI, team }) {
                   padding: '0.55rem 0.875rem',
                   borderBottom: i < xiEntries.length - 2 ? '1px solid var(--border2)' : 'none',
                   borderRight: i % 2 === 0 ? '1px solid var(--border2)' : 'none',
-                  background: isUser ? '#C8102E0d' : '#C8102E0d',
-                  borderLeft: `3px solid ${isUser ? '#C8102E44' : '#C8102E44'}`,
+                  background: isUser ? '#C8102E0d' : 'transparent',
+                  borderLeft: `3px solid ${isUser ? '#C8102E66' : '#33415530'}`,
                 }}>
                   <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#64748b', width: 16, textAlign: 'center', flexShrink: 0 }}>{i+1}</div>
                   <div style={{ padding: '0.1rem 0.3rem', borderRadius: '0.2rem', flexShrink: 0, background: roleClr + '22', border: `1px solid ${roleClr}44`, fontSize: '0.45rem', fontWeight: 900, color: roleClr, minWidth: 30, textAlign: 'center' }}>
@@ -2458,8 +2473,8 @@ function TournamentXITab({ tournamentBestXI }) {
                   padding: '0.65rem 1rem',
                   borderBottom: i < entries.length - 2 ? '1px solid var(--border2)' : 'none',
                   borderRight: i % 2 === 0 ? '1px solid var(--border2)' : 'none',
-                  background: isUser ? '#C8102E0d' : '#C8102E0d',
-                  borderLeft: `3px solid ${isUser ? '#C8102E44' : '#C8102E44'}`,
+                  background: isUser ? '#C8102E0d' : 'transparent',
+                  borderLeft: `3px solid ${isUser ? '#C8102E66' : '#33415530'}`,
                 }}>
                   {/* Number */}
                   <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', width: 18, textAlign: 'center', flexShrink: 0 }}>
