@@ -109,7 +109,7 @@ function OverseasTracker({ team }) {
 
 // ─── Main Panel ──────────────────────────────────────────────────────────────
 
-export default function TeamStrengthPanel({ team, manager, mode, ratingType = 'season', showPenalty = false, onStart }) {
+export default function TeamStrengthPanel({ team, manager, mode, ratingType = 'season', showPenalty = false, onStart, hideStartButton = false }) {
   if (!team || team.length === 0) return null
 
   const rawStr = calcTeamStrength(team, manager, mode, ratingType === 'prime' ? 'prime' : 'overall')
@@ -246,8 +246,8 @@ export default function TeamStrengthPanel({ team, manager, mode, ratingType = 's
         </>
       ) : null}
 
-      {/* Start Season button — shown once coach is confirmed */}
-      {onStart && manager && (
+      {/* Start Season button — shown once coach is confirmed (hidden when parent renders it separately) */}
+      {!hideStartButton && onStart && manager && (
         <button
           onClick={onStart}
           style={{

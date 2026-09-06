@@ -120,17 +120,48 @@ export default function App() {
   }, [])
   const { user, signOut } = useAuth()
 
+  // Track whether we've already saved this game result to Supabase (to avoid double-save)
+  const resultSavedRef = useRef(false)
+
   // When user signs in: pull their awards from Supabase and merge into local profile.
+  // Also deferred-save the game result if they signed in from the results screen.
   useEffect(() => {
     if (user && !prevUserRef.current) {
       fetchProfile(user.id).then(({ profile: sbProfile }) => {
         const supabaseAwards = sbProfile?.awards ?? []
-        // Merge Supabase awards into local sessionStorage so the cabinet shows correctly
         if (supabaseAwards.length > 0) mergeSessionAwardsOnSignIn(supabaseAwards)
       })
+
+      // Check for a result persisted before Google OAuth redirect
+      try {
+        const raw = localStorage.getItem('pending_game_result')
+        if (raw) {
+          localStorage.removeItem('pending_game_result')
+          const data = JSON.parse(raw)
+          saveGameResult(user.id, data)
+          if (data.awardIds?.length) saveAwards(user.id, data.awardIds)
+          resultSavedRef.current = true
+        }
+      } catch {}
+
+      // Deferred save: user signed in via email/password while still on the results screen
+      if (phase === 'results' && summary && !resultSavedRef.current) {
+        resultSavedRef.current = true
+        saveGameResult(user.id, {
+          mode,
+          wins:         summary.wins,
+          losses:       summary.losses,
+          total:        summary.total,
+          stageReached: summary.stageReached,
+          iplOutcome:   summary.iplOutcome,
+          iplPosition:  summary.iplPosition,
+          perfect:      summary.perfect,
+        })
+        if (sessionAwardIdsRef.current.length) saveAwards(user.id, sessionAwardIdsRef.current)
+      }
     }
     prevUserRef.current = user
-  }, [user])
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [mode, setMode]             = useState(null)
   const [phase, setPhase]           = useState('menu')
@@ -172,6 +203,12 @@ export default function App() {
   const [h2hSimContext, setH2hSimContext] = useState(null)   // { roomId, opponentName, opponentTeam, myUserId } during sim
   const [h2hResultCtx, setH2hResultCtx] = useState(null)   // same data preserved for results screen
   const [activeChallenge, setActiveChallenge] = useState(null) // daily challenge in progress
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 640)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   function handleModeSelect(m) {
     setMode(m)
@@ -277,8 +314,10 @@ export default function App() {
     setStreak(newStreak)
     setStreakBonus(getStreakData().bonusPending)
 
-    // Save to Supabase if signed in
+    // Save to Supabase if signed in; mark as saved so deferred-save doesn't double-fire
+    resultSavedRef.current = false  // reset for this new game
     if (user) {
+      resultSavedRef.current = true
       saveGameResult(user.id, {
         mode,
         wins:         sum.wins,
@@ -675,11 +714,11 @@ export default function App() {
           position: 'sticky', top: activeChallenge ? 36 : 0, background: 'var(--card)',
           backdropFilter: 'blur(8px)', zIndex: 10,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <button onClick={handleDraftBack} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button onClick={handleDraftBack} style={{ background: 'rgba(200,16,46,0.12)', color: '#C8102E', border: '1px solid rgba(200,16,46,0.35)', borderRadius: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 700, padding: '0.3rem 0.65rem', letterSpacing: '0.02em' }}>
               ← Back
             </button>
-            <button onClick={handleDraftHome} style={{ background: 'none', color: 'var(--text-muted)', border: 'none', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>
+            <button onClick={handleDraftHome} style={{ background: 'rgba(200,16,46,0.12)', color: '#C8102E', border: '1px solid rgba(200,16,46,0.35)', borderRadius: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 700, padding: '0.3rem 0.65rem', letterSpacing: '0.02em' }}>
               🏠 Home
             </button>
           </div>
@@ -698,8 +737,8 @@ export default function App() {
 
         <div className="draft-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '1.25rem', maxWidth: 1200, margin: '0 auto', padding: '1.25rem', alignItems: 'start' }}>
 
-          {/* Left column — wheel or done banner */}
-          <div>
+          {/* Left column — wheel or done banner + (desktop) team strength, manager, start */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
             <div style={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: '1rem', overflow: 'hidden' }}>
               {!isDone ? (
                 <WheelSpin
@@ -736,20 +775,49 @@ export default function App() {
               )}
             </div>
 
-            {/* Team strength panel */}
-            {team.length > 0 && (
+            {/* Team strength — desktop: always here. Mobile: only before coach confirmed */}
+            {team.length > 0 && (!isMobile || !confirmedManager) && (
               <TeamStrengthPanel
                 team={team}
                 manager={isDone ? (confirmedManager || previewManager) : null}
                 mode={mode}
                 ratingType={settings?.ratingType ?? 'season'}
                 showPenalty={isDone}
-                onStart={isDone && confirmedManager ? () => handleManagerSelect(confirmedManager) : undefined}
+                hideStartButton={true}
+                onStart={undefined}
               />
+            )}
+
+            {/* Desktop only: ManagerSelect + Start Season button in left column */}
+            {!isMobile && isDone && (
+              <>
+                <ManagerSelect
+                  inline
+                  mode={mode}
+                  team={team}
+                  onLand={mgr => setPreviewManager(mgr)}
+                  onSelect={mgr => { setConfirmedManager(mgr); setPreviewManager(mgr) }}
+                />
+                {confirmedManager && (
+                  <button
+                    onClick={() => handleManagerSelect(confirmedManager)}
+                    style={{
+                      width: '100%', padding: '0.875rem',
+                      background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                      color: 'var(--bg)', border: 'none', borderRadius: '0.625rem',
+                      fontSize: '1rem', fontWeight: 800,
+                      cursor: 'pointer', letterSpacing: '0.03em',
+                      animation: 'pulse-glow 2s ease infinite',
+                    }}
+                  >
+                    🏏 Start Season →
+                  </button>
+                )}
+              </>
             )}
           </div>
 
-          {/* Right column — TeamSheet scrolls in its own space; ManagerSelect pinned below */}
+          {/* Right column — TeamSheet + (mobile) manager + (mobile, post-confirm) team strength */}
           <div className="draft-right-col" style={{
             position: 'sticky', top: activeChallenge ? 'calc(36px + 4.5rem)' : '4.5rem',
             height: activeChallenge ? 'calc(100vh - 5.5rem - 36px)' : 'calc(100vh - 5.5rem)',
@@ -767,8 +835,8 @@ export default function App() {
               />
             </div>
 
-            {/* ManagerSelect: fixed at bottom, never compresses TeamSheet */}
-            {isDone && (
+            {/* Mobile only: ManagerSelect pinned below XI */}
+            {isMobile && isDone && (
               <div style={{ flexShrink: 0 }}>
                 <ManagerSelect
                   inline
@@ -776,6 +844,21 @@ export default function App() {
                   team={team}
                   onLand={mgr => setPreviewManager(mgr)}
                   onSelect={mgr => { setConfirmedManager(mgr); setPreviewManager(mgr) }}
+                />
+              </div>
+            )}
+
+            {/* Mobile only: team strength + start season below coach, only after confirmed */}
+            {isMobile && confirmedManager && (
+              <div style={{ flexShrink: 0 }}>
+                <TeamStrengthPanel
+                  team={team}
+                  manager={confirmedManager}
+                  mode={mode}
+                  ratingType={settings?.ratingType ?? 'season'}
+                  showPenalty={true}
+                  hideStartButton={false}
+                  onStart={() => handleManagerSelect(confirmedManager)}
                 />
               </div>
             )}
@@ -850,6 +933,8 @@ export default function App() {
         challengerResult={challengerResult}
         h2hContext={h2hResultCtx}
         user={user}
+        onGoogleSignIn={signInWithGoogle}
+        onShowAuth={() => setShowAuth(true)}
       />
       {profileBtn}
       {globalOverlays}
@@ -976,7 +1061,7 @@ function SharedResultView({ data, onPlay }) {
         {/* CTA */}
         <button
           onClick={onPlay}
-          style={{ width: '100%', padding: '1rem', background: '#C8102E', color: '#fff', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 20px rgba(200,16,46,0.35)', letterSpacing: '0.02em' }}
+          style={{ width: '100%', padding: '1rem', background: '#C8102E', color: '#fff', border: 'none', borderRadius: '0.875rem', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(200,16,46,0.35)', letterSpacing: '0.02em' }}
         >
           Can you go unbeaten? Play Cricket 16-0 →
         </button>

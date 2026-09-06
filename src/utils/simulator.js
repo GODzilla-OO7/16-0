@@ -184,8 +184,9 @@ function buildResult(myScore, oppScore, won) {
 
 // ─── Opponent per-match stats (for MatchCard display) ──────────────────────
 
-function generateOppMatchStats(oppName, oppStrength, format) {
-  const stars = getOppStars(oppName)
+function generateOppMatchStats(oppName, oppStrength, format, myTeamNames = new Set()) {
+  const allStars = getOppStars(oppName)
+  const stars = allStars.filter(s => !myTeamNames.has(s.name))
   const str   = oppStrength ?? 65
 
   // Pick a batter star
@@ -242,8 +243,9 @@ export function simulateMatch(myStrength, opponent, format, matchNum, team) {
   }
 
   const result   = buildResult(myScore, oppScore, won)
+  const myTeamNames = team ? new Set(team.map(p => p.name)) : new Set()
   const stats    = team ? generateMatchStats(team, won, format, myScore.runs) : null
-  const oppStats = generateOppMatchStats(opponent.name, opponent.strength, format)
+  const oppStats = generateOppMatchStats(opponent.name, opponent.strength, format, myTeamNames)
 
   const runMargin = Math.abs(myScore.runs - oppScore.runs)
   return { matchNum, opponent: opponent.name, won, myBatsFirst, ...result, stats, oppStats, runMargin }
@@ -274,8 +276,8 @@ function makeOpponents(mode, count, options = {}) {
   const opponents = []
   for (let i = 0; i < count; i++) {
     const name = pool[i % pool.length]
-    const baseStrength = 55 + (i / Math.max(count, 1)) * 22
-    opponents.push({ name, strength: clamp(baseStrength + rng(-8, 8), 50, 87) })
+    const baseStrength = 53 + (i / Math.max(count, 1)) * 24
+    opponents.push({ name, strength: clamp(baseStrength + rng(-8, 8), 48, 90) })
   }
   return opponents
 }
@@ -418,7 +420,7 @@ export function generateMatchEvent(team, matchIndex, eventIndices) {
 // 6 balls, 2 wickets — a fresh mini-game independent of the main match result
 export function simulateSuperOver(myStr, oppStr) {
   const myRuns  = Math.max(0, Math.round(8 + (myStr  / 100) * 18 + (Math.random() - 0.5) * 10))
-  const oppRuns = Math.max(0, Math.round(8 + (oppStr / 100) * 16 + (Math.random() - 0.5) * 10))
+  const oppRuns = Math.max(0, Math.round(8 + (oppStr / 100) * 18 + (Math.random() - 0.5) * 10))
   const won     = myRuns !== oppRuns ? myRuns > oppRuns : Math.random() < 0.5  // boundary count tiebreak
   return { won, myRuns, oppRuns }
 }
@@ -498,7 +500,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   // ── ODI WC: 9 group matches → qualify if wins ≥ 5 → Semi → Final ─────────
   else if (mode === 'odi-wc') {
     const groupOpps = options.groupOppNames
-      ? options.groupOppNames.map((name, i, arr) => ({ name, strength: clamp(55 + (i / arr.length) * 22 + rng(-8, 8), 50, 87) }))
+      ? options.groupOppNames.map((name, i, arr) => ({ name, strength: clamp(53 + (i / arr.length) * 24 + rng(-8, 8), 48, 90) }))
       : makeOpponents(mode, 9)
     let groupWins = 0
     groupOpps.forEach((opp, i) => {
@@ -513,12 +515,12 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
     } else {
       stageReached = 'Semi-Final'
       const semiOpp = makeOpponents(mode, 1)[0]
-      const semi = playMatch('Semi-Final', 10, { name: semiOpp.name, strength: clamp(68 + rng(0, 12), 60, 85) })
+      const semi = playMatch('Semi-Final', 10, { name: semiOpp.name, strength: clamp(74 + rng(0, 12), 66, 90) })
       if (semi.won) {
         stageReached = 'Final'
         // Final opponent must be different from Semi opponent
         const finalOpp = makeOpponents(mode, 1, { excludeName: semiOpp.name })[0]
-        const final = playMatch('Final', 11, { name: finalOpp.name, strength: clamp(73 + rng(0, 12), 65, 90) })
+        const final = playMatch('Final', 11, { name: finalOpp.name, strength: clamp(80 + rng(0, 12), 72, 95) })
         stageReached = final.won ? 'Champion' : 'Runner-up'
         actualWinner = final.won ? null : finalOpp.name
       } else {
@@ -531,7 +533,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   // ── T20 WC: 4 group → qualify if wins ≥ 2 → 3 Super 8 → qualify if wins ≥ 2 → Semi → Final ─
   else if (mode === 't20-wc') {
     const groupOpps = options.groupOppNames
-      ? options.groupOppNames.map((name, i, arr) => ({ name, strength: clamp(55 + (i / arr.length) * 22 + rng(-8, 8), 50, 87) }))
+      ? options.groupOppNames.map((name, i, arr) => ({ name, strength: clamp(53 + (i / arr.length) * 24 + rng(-8, 8), 48, 90) }))
       : makeOpponents(mode, 4)
     let groupWins = 0
     groupOpps.forEach((opp, i) => {
@@ -556,12 +558,12 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
       } else {
         stageReached = 'Semi-Final'
         const semiOpp = makeOpponents(mode, 1)[0]
-        const semi = playMatch('Semi-Final', 8, { name: semiOpp.name, strength: clamp(70 + rng(0, 12), 62, 88) })
+        const semi = playMatch('Semi-Final', 8, { name: semiOpp.name, strength: clamp(74 + rng(0, 12), 66, 90) })
         if (semi.won) {
           stageReached = 'Final'
           // Final opponent must be different from Semi opponent
           const finalOpp = makeOpponents(mode, 1, { excludeName: semiOpp.name })[0]
-          const final = playMatch('Final', 9, { name: finalOpp.name, strength: clamp(75 + rng(0, 12), 68, 92) })
+          const final = playMatch('Final', 9, { name: finalOpp.name, strength: clamp(80 + rng(0, 12), 72, 95) })
           stageReached = final.won ? 'Champion' : 'Runner-up'
           actualWinner = final.won ? null : finalOpp.name
         } else {
@@ -705,7 +707,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   const remainingSlots = 11 - userXI.length
   const usedNames = new Set(userXI.map(p => p.name))
   let oppFill = oppPlayers.filter(p => !usedNames.has(p.name)).slice(0, remainingSlots)
-  // Fallback: if quality filter leaves us short, pull any remaining opp player with any impact
+  // Fallback 1: pull any remaining opp player with any impact
   if (oppFill.length < remainingSlots) {
     const usedHere = new Set([...usedNames, ...oppFill.map(p => p.name)])
     const allOppFallback = [...allOppNames]
@@ -718,6 +720,18 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
       .sort((a, b) => b.impact - a.impact)
       .slice(0, remainingSlots - oppFill.length)
     oppFill = [...oppFill, ...allOppFallback]
+  }
+  // Fallback 2: last resort — pull any opp player regardless of impact to guarantee 11
+  if (oppFill.length < remainingSlots) {
+    const usedHere = new Set([...usedNames, ...oppFill.map(p => p.name)])
+    const lastResort = [...allOppNames]
+      .filter(name => !usedHere.has(name))
+      .map(name => ({
+        name, role: oppRoleMap[name] || 'top-order', team: oppTeamMap[name] || 'Opposition',
+        runs: 0, wickets: 0, impact: 0, isUser: false,
+      }))
+      .slice(0, remainingSlots - oppFill.length)
+    oppFill = [...oppFill, ...lastResort]
   }
   const tournamentBestXI = [...userXI, ...oppFill].sort((a, b) => b.impact - a.impact)
 
@@ -792,7 +806,7 @@ export function simulateIPLPlayoffs(team, manager, position, tableTeams = []) {
     // Qualifier 1: 1st vs 2nd
     const q1OppIdx = position === 1 ? 1 : 0
     const q1OppName = tn(q1OppIdx, position === 1 ? '2nd place side' : '1st place side')
-    const q1 = simulateMatch(myStr, opp(q1OppName, 68), 't20', matchNum++, team)
+    const q1 = simulateMatch(myStr, opp(q1OppName, 79), 't20', matchNum++, team)
     q1.stage = 'Qualifier 1'
     results.push(q1)
 
@@ -803,7 +817,7 @@ export function simulateIPLPlayoffs(team, manager, position, tableTeams = []) {
     } else {
       // Qualifier 2: us vs Eliminator winner (3rd or 4th)
       const elimWinnerIdx = Math.random() < 0.5 ? 2 : 3
-      const q2 = simulateMatch(myStr, opp(tn(elimWinnerIdx, 'Eliminator winner'), 65), 't20', matchNum++, team)
+      const q2 = simulateMatch(myStr, opp(tn(elimWinnerIdx, 'Eliminator winner'), 74), 't20', matchNum++, team)
       q2.stage = 'Qualifier 2'
       results.push(q2)
       if (!q2.won) return { results, outcome: 'eliminated' }
@@ -814,14 +828,14 @@ export function simulateIPLPlayoffs(team, manager, position, tableTeams = []) {
     // Eliminator: 3rd vs 4th
     const elimOppIdx = position === 3 ? 3 : 2
     const elimOppName = tn(elimOppIdx, position === 3 ? '4th place side' : '3rd place side')
-    const elim = simulateMatch(myStr, opp(elimOppName, 63), 't20', matchNum++, team)
+    const elim = simulateMatch(myStr, opp(elimOppName, 73), 't20', matchNum++, team)
     elim.stage = 'Eliminator'
     results.push(elim)
     if (!elim.won) return { results, outcome: 'eliminated' }
 
     // Qualifier 2: us vs Q1 loser (one of the top-2 teams)
     const q1LoserIdx = Math.random() < 0.5 ? 0 : 1
-    const q2 = simulateMatch(myStr, opp(tn(q1LoserIdx, 'Q1 loser'), 66), 't20', matchNum++, team)
+    const q2 = simulateMatch(myStr, opp(tn(q1LoserIdx, 'Q1 loser'), 75), 't20', matchNum++, team)
     q2.stage = 'Qualifier 2'
     results.push(q2)
     if (!q2.won) return { results, outcome: 'eliminated' }
@@ -832,7 +846,7 @@ export function simulateIPLPlayoffs(team, manager, position, tableTeams = []) {
   }
 
   // Final
-  const final = simulateMatch(myStr, opp(finalOppName, 71), 't20', matchNum++, team)
+  const final = simulateMatch(myStr, opp(finalOppName, 85), 't20', matchNum++, team)
   final.stage = 'Final'
   results.push(final)
 

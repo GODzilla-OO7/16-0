@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { MODE_CONFIG } from '../data/players.js'
 import { loadProfile } from '../hooks/useProfile.js'
 import { createShortUrl } from '../lib/shortUrl.js'
+import AuthModal from './AuthModal.jsx'
 
 // ─── Best-finish helpers ──────────────────────────────────────────────────────
 
@@ -49,9 +50,9 @@ function getHookLine(currentLabel, bestLabel, isNewBest) {
 
 // ─── Share card generator (Canvas) — 38-0.app style ──────────────────────────
 
-function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, modeLabel, matchResults, potm, topScorer, topScorerRuns, topWicketTaker, topWicketTakerWkts, bestWinStreak, stageReached, iplOutcome, team, myStr, iconPlayer, awards = [] }) {
+function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, modeLabel, matchResults, potm, topScorer, topScorerRuns, topWicketTaker, topWicketTakerWkts, bestWinStreak, stageReached, iplOutcome, team, myStr, iconPlayer, awards = [], pastSeasons = [], impactSubPlayer = null }) {
   const MEDAL_ROWS = awards.length > 0 ? Math.ceil(awards.length / 3) : 0
-  const MEDALS_H   = awards.length > 0 ? (MEDAL_ROWS * 28 + 30) : 0
+  const MEDALS_H   = awards.length > 0 ? (MEDAL_ROWS * 28 + 30) : 86  // 86 = 2-row placeholder height, prevents footer overlap when no medals
   const W = 630
   // Pre-compute layout to set canvas height dynamically (no fixed empty space)
   const _players  = (team || []).slice(0, 11)
@@ -61,8 +62,12 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   if (topScorer)      _capY += 54
   if (topWicketTaker) _capY += 54
   const _MY       = awards.length > 0 ? _capY + 16 : _capY
-  const _footY    = (awards.length > 0 ? _MY + MEDALS_H : _capY) + 28
-  const H         = Math.max(_footY + 74, 700)
+  const _footY    = _MY + MEDALS_H + 28
+  // Past seasons section height
+  const _psSeasons   = pastSeasons.length > 0 ? [...pastSeasons].sort((a, b) => (a.seasonNumber ?? 0) - (b.seasonNumber ?? 0)) : []
+  const _psRowCount  = _psSeasons.length === 0 ? 0 : _psSeasons.length <= 3 ? 1 : 2
+  const PAST_H       = _psSeasons.length > 0 ? (42 + _psRowCount * 90) : 0
+  const H            = Math.max(_footY + PAST_H + 74, 700)
   const DPR = window.devicePixelRatio || 2
   const canvas = document.createElement('canvas')
   canvas.width  = W * DPR
@@ -289,6 +294,59 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   leftCol.forEach((p, i)  => drawPlayer(p, 0, i))
   rightCol.forEach((p, i) => drawPlayer(p, 1, i))
 
+  // ── IMPACT SUB row (right col, row 5) ────────────────────────────────────
+  if (impactSubPlayer) {
+    const subRow = leftCol.length - 1  // sits at same row as last left col player
+    const x   = DIV_X + 6
+    const y   = GRID_Y + 5 + subRow * ROW_H
+    const [tag, tagClr] = ROLE_TAGS[impactSubPlayer.role] || ['BAT', '#C8102E']
+    const rating = scaleDisp(impactSubPlayer.overall)
+
+    if (subRow % 2 === 0) {
+      ctx.fillStyle = 'rgba(200,16,46,0.04)'
+      ctx.fillRect(DIV_X, y - 2, COL_W, ROW_H)
+    }
+
+    // Role tag
+    const tagW = 38
+    ctx.fillStyle = 'rgba(200,16,46,0.22)'
+    roundRect(ctx, x, y + 7, tagW, 19, 4)
+    ctx.fill()
+    ctx.strokeStyle = 'rgba(200,16,46,0.35)'
+    ctx.lineWidth = 0.5
+    ctx.stroke()
+    ctx.font = '700 8.5px system-ui, sans-serif'
+    ctx.fillStyle = tagClr
+    ctx.textAlign = 'center'
+    ctx.fillText(tag.slice(0, 4), x + tagW / 2, y + 19)
+
+    // Name + (Impact Sub) — abbreviated to fit
+    ctx.textAlign = 'left'
+    ctx.font = '600 11px system-ui, sans-serif'
+    ctx.fillStyle = '#f1f5f9'
+    const parts = impactSubPlayer.name.trim().split(/\s+/)
+    let displayName = parts.length > 1
+      ? parts.slice(0, -1).map(n => n[0] + '.').join(' ') + ' ' + parts[parts.length - 1]
+      : impactSubPlayer.name
+    const ratingX2 = W - PAD_X - 7
+    const subLabel = ' (Sub)'
+    const maxNameW = COL_W - tagW - 10 - 28 - ctx.measureText(subLabel).width - 4
+    while (ctx.measureText(displayName).width > maxNameW && displayName.length > 4) {
+      displayName = displayName.slice(0, -2) + '…'
+    }
+    ctx.fillText(displayName, x + tagW + 7, y + 20)
+    ctx.font = '500 9.5px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(148,163,184,0.6)'
+    ctx.fillText(subLabel, x + tagW + 7 + ctx.measureText(displayName).width + 2, y + 20)
+
+    // Rating
+    ctx.textAlign = 'right'
+    ctx.font = '800 13px system-ui, sans-serif'
+    ctx.fillStyle = rating >= 88 ? '#60a5fa' : rating >= 78 ? '#ffffff' : 'rgba(255,255,255,0.55)'
+    ctx.fillText(String(rating), ratingX2, y + 20)
+    ctx.textAlign = 'left'
+  }
+
   // ── SEASON AWARDS: Orange Cap + Purple Cap rows ───────────────────────────
   const STATS_Y = GRID_Y + 5 + maxRows * ROW_H + 18
 
@@ -366,9 +424,9 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     ctx.textAlign = 'left'
   }
 
-  // ── MEDALS SECTION (extra height added above footer) ─────────────────────
-  if (awards.length > 0) {
-    const MY = capY + 16  // dynamic: starts right after last cap row / streak
+  // ── MEDALS SECTION ────────────────────────────────────────────────────────
+  {
+    const MY = capY + 16
 
     ctx.strokeStyle = 'rgba(245,158,11,0.15)'
     ctx.lineWidth = 1
@@ -381,61 +439,150 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     ctx.fillText('🏅 MEDALS', 28, MY + 13)
     ctx.letterSpacing = '0px'
 
-    const CHIP_W = 181, CHIP_H = 20
-    awards.slice(0, 9).forEach((award, i) => {
-      const col = i % 3
-      const row = Math.floor(i / 3)
-      const cx = 28 + col * (CHIP_W + 8)
-      const cy = MY + 20 + row * (CHIP_H + 8)
-
-      ctx.fillStyle = 'rgba(245,158,11,0.1)'
-      roundRect(ctx, cx, cy, CHIP_W, CHIP_H, 5)
+    if (awards.length === 0) {
+      // Placeholder chip so layout remains consistent
+      const CHIP_W = 181, CHIP_H = 20
+      ctx.fillStyle = 'rgba(255,255,255,0.04)'
+      roundRect(ctx, 28, MY + 20, CHIP_W, CHIP_H, 5)
       ctx.fill()
-      ctx.strokeStyle = 'rgba(245,158,11,0.28)'
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)'
       ctx.lineWidth = 1
       ctx.stroke()
-
-      ctx.font = '11px system-ui, sans-serif'
-      ctx.fillStyle = '#f59e0b'
-      ctx.textAlign = 'left'
-      ctx.fillText(award.icon, cx + 5, cy + 14)
-
       ctx.font = '700 9px system-ui, sans-serif'
-      ctx.fillStyle = '#fde68a'
-      let name = award.name
-      while (ctx.measureText(name).width > CHIP_W - 30 && name.length > 2) {
-        name = name.slice(0, -1) + '…'
-      }
-      ctx.fillText(name, cx + 23, cy + 14)
-    })
+      ctx.fillStyle = 'rgba(148,163,184,0.4)'
+      ctx.textAlign = 'left'
+      ctx.fillText('No medals won', 28 + 8, MY + 20 + 14)
+    } else {
+      const CHIP_W = 181, CHIP_H = 20
+      awards.slice(0, 9).forEach((award, i) => {
+        const col = i % 3
+        const row = Math.floor(i / 3)
+        const cx = 28 + col * (CHIP_W + 8)
+        const cy = MY + 20 + row * (CHIP_H + 8)
+
+        ctx.fillStyle = 'rgba(245,158,11,0.1)'
+        roundRect(ctx, cx, cy, CHIP_W, CHIP_H, 5)
+        ctx.fill()
+        ctx.strokeStyle = 'rgba(245,158,11,0.28)'
+        ctx.lineWidth = 1
+        ctx.stroke()
+
+        ctx.font = '11px system-ui, sans-serif'
+        ctx.fillStyle = '#f59e0b'
+        ctx.textAlign = 'left'
+        ctx.fillText(award.icon, cx + 5, cy + 14)
+
+        ctx.font = '700 9px system-ui, sans-serif'
+        ctx.fillStyle = '#fde68a'
+        let name = award.name
+        while (ctx.measureText(name).width > CHIP_W - 30 && name.length > 2) {
+          name = name.slice(0, -1) + '…'
+        }
+        ctx.fillText(name, cx + 23, cy + 14)
+      })
+    }
   }
 
-  // ── ICON IN TEAM badge (only if a legend appeared via Impact Sub) ─────────
-  if (iconPlayer) {
-    const ICON_Y = H - 110  // just above the footer
-    // Gold pill background
-    ctx.fillStyle = 'rgba(245,158,11,0.12)'
-    const rx = PAD_X, ry = ICON_Y, rw = W - PAD_X * 2, rh = 28
-    ctx.beginPath()
-    ctx.roundRect(rx, ry, rw, rh, 6)
-    ctx.fill()
-    ctx.strokeStyle = 'rgba(245,158,11,0.4)'
+  // ── PAST SEASONS ──────────────────────────────────────────────────────────
+  if (_psSeasons.length > 0) {
+    const PS_Y  = H - 74 - PAST_H
+    const CW2   = W - PAD_X * 2
+    const SLOT_H = 90
+
+    // Divider + label
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)'
     ctx.lineWidth = 1
-    ctx.beginPath()
-    ctx.roundRect(rx, ry, rw, rh, 6)
-    ctx.stroke()
-    // Label
+    ctx.beginPath(); ctx.moveTo(PAD_X, PS_Y); ctx.lineTo(W - PAD_X, PS_Y); ctx.stroke()
+
     ctx.textAlign = 'left'
-    ctx.font = '800 10px system-ui, sans-serif'
-    ctx.fillStyle = '#f59e0b'
-    ctx.letterSpacing = '1px'
-    ctx.fillText('⭐ ICON IN TEAM', rx + 10, ICON_Y + 18)
+    ctx.font = '700 9px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(148,163,184,0.4)'
+    ctx.letterSpacing = '1.5px'
+    ctx.fillText('PAST SEASONS', PAD_X, PS_Y + 16)
     ctx.letterSpacing = '0px'
-    // Name
-    ctx.font = '700 11px system-ui, sans-serif'
-    ctx.fillStyle = '#fde68a'
-    ctx.textAlign = 'right'
-    ctx.fillText(iconPlayer.name, rx + rw - 10, ICON_Y + 18)
+
+    // Container
+    const contY   = PS_Y + 26
+    const row1Ps  = _psSeasons.slice(0, 3)
+    const row2Ps  = _psSeasons.slice(3, 6)
+    const psRows  = row2Ps.length > 0 ? [row1Ps, row2Ps] : [row1Ps]
+    const contH   = psRows.length * SLOT_H
+
+    ctx.fillStyle = 'rgba(255,255,255,0.018)'
+    roundRect(ctx, PAD_X, contY, CW2, contH, 10)
+    ctx.fill()
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)'
+    ctx.lineWidth = 1
+    roundRect(ctx, PAD_X, contY, CW2, contH, 10)
+    ctx.stroke()
+
+    psRows.forEach((row, rowIdx) => {
+      const rowY   = contY + rowIdx * SLOT_H
+      const slotW  = CW2 / row.length
+
+      // Horizontal divider between rows
+      if (rowIdx > 0) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.07)'
+        ctx.lineWidth = 1
+        ctx.beginPath(); ctx.moveTo(PAD_X, rowY); ctx.lineTo(PAD_X + CW2, rowY); ctx.stroke()
+      }
+
+      row.forEach((h, si) => {
+        const slotX = PAD_X + si * slotW
+        const cx2   = slotX + slotW / 2
+
+        // Vertical divider
+        if (si > 0) {
+          ctx.strokeStyle = 'rgba(255,255,255,0.07)'
+          ctx.lineWidth = 1
+          ctx.beginPath(); ctx.moveTo(slotX, rowY + 10); ctx.lineTo(slotX, rowY + SLOT_H - 10); ctx.stroke()
+        }
+
+        const sNum    = h.seasonNumber ?? (si + 1)
+        const outcome = h.iplOutcome
+        const stage   = h.stageReached
+
+        let emoji = '\u{1F4CB}', outLabel = 'Played', outColor = 'rgba(148,163,184,0.6)'
+        if (outcome === 'champion' || stage === 'Champions') {
+          emoji = '\u{1F3C6}'; outLabel = 'Champions'; outColor = '#f59e0b'
+        } else if (outcome === 'runner-up' || stage === 'Runner-up') {
+          emoji = '\u{1F948}'; outLabel = 'Runners-Up'; outColor = '#94a3b8'
+        } else if (outcome === 'eliminated') {
+          emoji = '⚡'; outLabel = 'Playoff Run'; outColor = '#ef4444'
+        } else if (outcome === 'not_qualified') {
+          const pct = h.wins / (h.total || 1)
+          outLabel = pct >= 0.55 ? 'Solid Season' : 'Tough Season'
+          outColor = '#64748b'
+          emoji = '\u{1F4CB}'
+        }
+
+        ctx.textAlign = 'center'
+
+        // Season label
+        ctx.font = '600 9px system-ui, sans-serif'
+        ctx.fillStyle = 'rgba(148,163,184,0.35)'
+        ctx.letterSpacing = '0.5px'
+        ctx.fillText(`SEASON ${sNum}`, cx2, rowY + 16)
+        ctx.letterSpacing = '0px'
+
+        // Emoji
+        ctx.font = '22px system-ui, sans-serif'
+        ctx.fillStyle = '#ffffff'
+        ctx.fillText(emoji, cx2, rowY + 44)
+
+        // Outcome
+        ctx.font = '800 13px system-ui, sans-serif'
+        ctx.fillStyle = outColor
+        ctx.fillText(outLabel, cx2, rowY + 64)
+
+        // Record
+        ctx.font = '600 10px system-ui, sans-serif'
+        ctx.fillStyle = 'rgba(148,163,184,0.35)'
+        ctx.fillText(`${h.wins}-${h.losses}`, cx2, rowY + 79)
+
+        ctx.textAlign = 'left'
+      })
+    })
   }
 
   // ── FOOTER ────────────────────────────────────────────────────────────────
@@ -616,29 +763,38 @@ const ROLE_COLOR = {
 }
 
 function getRating(wins, losses, total, perfect, targetWins, iplOutcome) {
-  if (!total) return { label: 'COMPLETE', color: '#94a3b8', emoji: '🏏', desc: 'Season complete.' }
-  if (iplOutcome === 'champion')     return { label: 'IPL CHAMPIONS', color: '#f59e0b', emoji: '🏆', desc: 'You lifted the trophy. An all-time great team.' }
-  if (iplOutcome === 'runner-up')    return { label: 'RUNNERS-UP',    color: '#94a3b8', emoji: '🥈', desc: 'So close — you made the Final and pushed hard.' }
-  if (iplOutcome === 'eliminated')   return { label: 'PLAYOFF RUN',   color: '#C8102E', emoji: '⚡', desc: 'You made the playoffs but fell short of the Final.' }
+  if (!total) return { label: 'COMPLETE', color: '#94a3b8', emoji: '\u{1F3CF}', desc: 'Season complete.' }
+  if (iplOutcome === 'champion')     return { label: 'IPL CHAMPIONS', color: '#f59e0b', emoji: '\u{1F3C6}', desc: 'You lifted the trophy. An all-time great team.' }
+  if (iplOutcome === 'runner-up')    return { label: 'RUNNERS-UP',    color: '#94a3b8', emoji: '\u{1F948}', desc: 'So close — you made the Final and pushed hard.' }
+  if (iplOutcome === 'eliminated')   return { label: 'PLAYOFF RUN',   color: '#C8102E', emoji: '⚡',    desc: 'You made the playoffs but fell short of the Final.' }
   if (iplOutcome === 'not_qualified') {
     const pct = wins / total
-    if (pct >= 0.55) return { label: 'SOLID SEASON',  color: '#94a3b8', emoji: '📋', desc: 'Good league form but just missed the top 4.' }
-    return { label: 'TOUGH SEASON', color: '#ef4444', emoji: '😬', desc: 'A difficult campaign — couldn\'t break into playoffs.' }
+    if (pct >= 0.55) return { label: 'SOLID SEASON',  color: '#94a3b8', emoji: '\u{1F4CB}', desc: 'Good league form but just missed the top 4.' }
+    return { label: 'TOUGH SEASON', color: '#ef4444', emoji: '\u{1F62C}', desc: 'A difficult campaign — couldn\'t break into playoffs.' }
   }
-  if (perfect) return { label: 'LEGENDARY', color: '#f59e0b', emoji: '🏆', desc: `You achieved the impossible — ${targetWins}-0!` }
-  if (losses === 0) return { label: 'DOMINANT', color: '#C8102E', emoji: '👑', desc: 'Unbeaten all season — extraordinary.' }
+  if (perfect) return { label: 'LEGENDARY', color: '#f59e0b', emoji: '\u{1F3C6}', desc: `You achieved the impossible — ${targetWins}-0!` }
+  if (losses === 0) return { label: 'DOMINANT', color: '#C8102E', emoji: '\u{1F451}', desc: 'Unbeaten all season — extraordinary.' }
   const pct = wins / total
-  if (pct >= 0.85) return { label: 'ELITE', color: '#C8102E', emoji: '⭐', desc: 'One of the all-time great sides.' }
-  if (pct >= 0.70) return { label: 'QUALITY', color: '#C8102E', emoji: '🔵', desc: 'A strong side that fell just short.' }
-  if (pct >= 0.55) return { label: 'DECENT', color: '#94a3b8', emoji: '⚪', desc: 'Competitive but not quite elite.' }
-  return { label: 'TOUGH RUN', color: '#ef4444', emoji: '😬', desc: 'Even legends have bad seasons.' }
+  if (pct >= 0.85) return { label: 'ELITE', color: '#C8102E', emoji: '⭐',    desc: 'One of the all-time great sides.' }
+  if (pct >= 0.70) return { label: 'QUALITY', color: '#C8102E', emoji: '\u{1F535}', desc: 'A strong side that fell just short.' }
+  if (pct >= 0.55) return { label: 'DECENT', color: '#94a3b8', emoji: '⚪',    desc: 'Competitive but not quite elite.' }
+  return { label: 'TOUGH RUN', color: '#ef4444', emoji: '\u{1F62C}', desc: 'Even legends have bad seasons.' }
 }
 
-export default function Results({ team, mode, manager, summary, matchResults, onPlayAgain, onNextSeason, seasonNumber = 1, newAwards = [], prevSeasons = [], challengerResult = null, h2hContext = null, user = null }) {
+export default function Results({ team, mode, manager, summary, matchResults, onPlayAgain, onNextSeason, seasonNumber = 1, newAwards = [], prevSeasons = [], challengerResult = null, h2hContext = null, user = null, onGoogleSignIn, onShowAuth }) {
   const [tab, setTab] = useState('overview') // overview | playerstats | matches
   const [h2hOppStats, setH2hOppStats] = useState(null) // { wins, losses, oppName }
   const [waSharing2, setWaSharing2]   = useState(false)
   const h2hResultWritten = useRef(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [resultJustSaved, setResultJustSaved] = useState(false)
+
+  // Show "saved" confirmation when user logs in while on results screen
+  const prevUserRef2 = useRef(user)
+  useEffect(() => {
+    if (user && !prevUserRef2.current) setResultJustSaved(true)
+    prevUserRef2.current = user
+  }, [user])
 
   // Fetch H2H opponent's results from Supabase when in H2H mode
   useEffect(() => {
@@ -908,7 +1064,9 @@ export default function Results({ team, mode, manager, summary, matchResults, on
       team:       team       ?? [],
       myStr:      myStr      ?? 0,
       iconPlayer: iconPlayer ?? null,
-      awards:     newAwards  ?? [],
+      awards:          newAwards  ?? [],
+      pastSeasons:     prevSeasons ?? [],
+      impactSubPlayer: impactSubLog?.in ?? null,
     }
   }
 
@@ -935,42 +1093,62 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   const [waSharing,     setWaSharing]     = useState(false)
   const [waTeamSharing, setWaTeamSharing] = useState(false)
   const [expandedMatch, setExpandedMatch] = useState(null)
+
+  // Pre-generate share card blob on mount so it's ready instantly when user taps share.
+  // This avoids user-gesture token expiry caused by async canvas rendering inside the handler.
+  const shareBlobRef = useRef(null)
+  useEffect(() => {
+    generateShareCard(cardParams()).then(blob => { shareBlobRef.current = blob }).catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const shareWhatsApp = async () => {
     setWaSharing(true)
-    // Always pre-open a blank window inside the user gesture so popup blocker never fires.
-    // We close it if the Web Share API handles things, or redirect it to wa.me as fallback.
-    const win = window.open('', '_blank')
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1
+
+    // Open a blank window synchronously while still in the user gesture so popup
+    // blockers don't intervene — we'll navigate it to wa.me after the async work.
+    const desktopWin = !isMobile ? window.open('', '_blank') : null
+
     try {
       const long = buildShareUrl()
       const url  = await createShortUrl(long)
       const text = buildShareText(url)
 
-      if (navigator.canShare) {
+      // ── Mobile: use Web Share API so user can pick WhatsApp from the sheet ──
+      if (isMobile && navigator.share) {
+        // Use pre-generated blob if available; otherwise generate now
+        const blob = shareBlobRef.current ?? await generateShareCard(cardParams())
+        shareBlobRef.current = blob
+
         // Try with image first
         try {
-          const blob = await generateShareCard(cardParams())
           const file = new File([blob], 'cricket16-0.png', { type: 'image/png' })
-          if (navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file], text })
-            win?.close()
-            return
-          }
-        } catch { /* image share failed or cancelled — try text-only */ }
-
-        // Try text-only via Web Share API (works on Mac share sheet)
-        try {
-          await navigator.share({ text })
-          win?.close()
+          await navigator.share({ title: 'Cricket 16-0', files: [file], text })
           return
-        } catch { /* cancelled or unsupported — fall through to wa.me */ }
+        } catch (e) {
+          if (e?.name === 'AbortError') return  // user cancelled — don't fall through
+          // image share not supported — fall through to text-only
+        }
+
+        // Text-only share fallback
+        try {
+          await navigator.share({ title: 'Cricket 16-0', text })
+          return
+        } catch (e) {
+          if (e?.name === 'AbortError') return
+          // fall through to wa.me
+        }
       }
 
-      // Final fallback: redirect pre-opened window to WhatsApp web
+      // ── Desktop: navigate the pre-opened blank window to WhatsApp Web ─────
       const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`
-      if (win) win.location.href = waUrl
-      else window.open(waUrl, '_blank')
+      if (desktopWin) {
+        desktopWin.location.href = waUrl
+      } else {
+        window.open(waUrl, '_blank')
+      }
     } catch {
-      win?.close()
+      desktopWin?.close()  // close the blank tab if something went wrong
     } finally {
       setWaSharing(false)
     }
@@ -986,6 +1164,7 @@ export default function Results({ team, mode, manager, summary, matchResults, on
   })()
 
   return (
+    <>
     <div style={{
       minHeight: '100vh',
       background: 'var(--bg)',
@@ -1718,11 +1897,101 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
         {/* Tab content */}
         {tab === 'overview' && (
-          <OverviewTab
-            tournamentBestXI={tournamentBestXI}
-            bestXI={bestXI}
-            team={team}
-          />
+          <>
+            <OverviewTab
+              tournamentBestXI={tournamentBestXI}
+              bestXI={bestXI}
+              team={team}
+            />
+
+            {/* Save progress CTA — shown only when not logged in */}
+            {!user && !resultJustSaved && (
+              <div style={{
+                margin: '0 0 1rem',
+                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                border: '1px solid #334155',
+                borderRadius: '1rem',
+                padding: '1.25rem 1.25rem 1.1rem',
+                textAlign: 'center',
+              }}>
+                <div style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>🔒</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#f1f5f9', marginBottom: '0.2rem' }}>
+                  Your result isn't saved yet
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '1rem', lineHeight: 1.5 }}>
+                  Sign in to save this result to your profile, track your stats over time, and compete on the leaderboards.
+                </div>
+                <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  {/* Google */}
+                  <button
+                    onClick={() => {
+                      // Persist result to localStorage so it survives the OAuth page redirect
+                      try {
+                        localStorage.setItem('pending_game_result', JSON.stringify({
+                          mode,
+                          wins:         summary?.wins         ?? 0,
+                          losses:       summary?.losses       ?? 0,
+                          total:        summary?.total        ?? 0,
+                          stageReached: summary?.stageReached ?? null,
+                          iplOutcome:   summary?.iplOutcome   ?? null,
+                          iplPosition:  summary?.iplPosition  ?? null,
+                          perfect:      summary?.perfect      ?? false,
+                          awardIds:     (newAwards ?? []).map(a => a.id).filter(Boolean),
+                        }))
+                      } catch {}
+                      onGoogleSignIn?.()
+                    }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.6rem 1rem',
+                      background: '#fff', border: 'none',
+                      borderRadius: '0.5rem', cursor: 'pointer',
+                      fontSize: '0.78rem', fontWeight: 700, color: '#1e293b',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 18 18">
+                      <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                      <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+                      <path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/>
+                      <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"/>
+                    </svg>
+                    Continue with Google
+                  </button>
+                  {/* Email */}
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.6rem 1rem',
+                      background: '#C8102E', border: 'none',
+                      borderRadius: '0.5rem', cursor: 'pointer',
+                      fontSize: '0.78rem', fontWeight: 700, color: '#fff',
+                      flexShrink: 0,
+                    }}
+                  >
+                    ✉️ Sign in / Sign up with email
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Saved confirmation */}
+            {(user || resultJustSaved) && resultJustSaved && (
+              <div style={{
+                margin: '0 0 1rem',
+                background: '#052e16',
+                border: '1px solid #166534',
+                borderRadius: '1rem',
+                padding: '0.9rem 1.25rem',
+                textAlign: 'center',
+                fontSize: '0.8rem', fontWeight: 700, color: '#4ade80',
+              }}>
+                ✓ Result saved to your profile
+              </div>
+            )}
+          </>
         )}
         {tab === 'playerstats' && (
           <PlayerStatsTab playerStats={playerStats} team={team} />
@@ -1733,6 +2002,15 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
       </div>
     </div>
+
+    {/* Inline auth modal triggered from save CTA */}
+    {showAuthModal && (
+      <AuthModal
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => { setShowAuthModal(false); setResultJustSaved(true) }}
+      />
+    )}
+    </>
   )
 }
 
@@ -1982,7 +2260,7 @@ function SeasonHighlights({ topScorers, topWicketTakers, potm, iplPosition, pred
 // ─── Awards tab ────────────────────────────────────────────────────────────
 
 function SeasonHistoryCard({ seasonNumber, prevSeasons, currentWins, currentLosses, currentIplOutcome, currentStageReached }) {
-  const windowStart = 2 * Math.floor((seasonNumber - 1) / 2) + 1
+  const windowStart = Math.max(1, seasonNumber - 2)
   const slots = [windowStart, windowStart + 1, windowStart + 2]
 
   function getSeasonData(slot) {

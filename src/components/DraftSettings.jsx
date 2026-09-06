@@ -306,9 +306,9 @@ export default function DraftSettings({ mode, onStart, onBack }) {
       {/* Back button — top-left above card */}
       <div style={{ width: '100%', maxWidth: 720, marginBottom: '0.4rem' }}>
         <button onClick={onBack} style={{
-          background: 'none', border: 'none',
-          color: 'var(--text-muted)', fontSize: '0.85rem',
-          cursor: 'pointer', fontWeight: 600, padding: 0,
+          background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.35)',
+          color: '#C8102E', borderRadius: '0.4rem', fontSize: '0.8rem',
+          cursor: 'pointer', fontWeight: 700, padding: '0.3rem 0.65rem', letterSpacing: '0.02em',
         }}>← Back</button>
       </div>
 

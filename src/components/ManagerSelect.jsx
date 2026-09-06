@@ -345,7 +345,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
       <div style={{ width: '100%', maxWidth: 480 }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.85rem', cursor: 'pointer', marginBottom: '1.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <button onClick={onBack} style={{ background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.35)', color: '#C8102E', borderRadius: '0.4rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700, padding: '0.3rem 0.65rem', letterSpacing: '0.02em', marginBottom: '1.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
           ← Back
         </button>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>

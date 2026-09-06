@@ -16,6 +16,13 @@ export default function ModeSelect({
   newAwards = [], streak = 0, streakBonus = 0,
 }) {
   const [totalPlays, setTotalPlays] = useState(null)
+  const [showHowToPlay, setShowHowToPlay] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 640)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   useEffect(() => {
     fetchTotalPlays().then(n => { if (n != null) setTotalPlays(n) })
@@ -57,17 +64,33 @@ export default function ModeSelect({
       <nav style={{
         position: 'sticky', top: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 2rem',
+        padding: isMobile ? '0 0.75rem' : '0 2rem',
         height: 58,
         background: 'rgba(0,0,0,0.6)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
       }}>
-        {/* Left: logo + name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        {/* Left: logo + name + how to play */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <img src="/logo.png" alt="16-0" style={{ height: 32, width: 32, objectFit: 'contain' }} />
           <span style={{ fontSize: '1.05rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>16-0</span>
+          <button
+            onClick={() => setShowHowToPlay(true)}
+            style={{
+              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)',
+              borderRadius: '999px', color: 'rgba(255,255,255,0.75)',
+              fontSize: isMobile ? '0.8rem' : '0.72rem', fontWeight: 700,
+              letterSpacing: isMobile ? 0 : '0.08em',
+              textTransform: 'uppercase',
+              padding: isMobile ? '0.25rem 0.6rem' : '0.25rem 0.7rem',
+              cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.16)'; e.currentTarget.style.color = '#fff' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.75)' }}
+          >
+            {isMobile ? '?' : 'How to Play'}
+          </button>
         </div>
 
         {/* Right: nav links */}
@@ -209,8 +232,8 @@ export default function ModeSelect({
         {/* ── 3 Mode cards ──────────────────────────────────────────────── */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '1.25rem',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+          gap: isMobile ? '0.75rem' : '1.25rem',
           width: '100%', maxWidth: 960,
           marginBottom: '1.25rem',
         }}>
@@ -221,11 +244,13 @@ export default function ModeSelect({
               background: 'rgba(8,8,14,0.78)',
               border: '1.5px solid rgba(255,255,255,0.18)',
               borderRadius: '1rem',
-              padding: '2rem 1.25rem 1.5rem',
+              padding: isMobile ? '1rem 1.25rem' : '2rem 1.25rem 1.5rem',
               backdropFilter: 'blur(14px)',
               WebkitBackdropFilter: 'blur(14px)',
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '0.625rem',
+              display: 'flex',
+              flexDirection: isMobile ? 'row' : 'column',
+              alignItems: 'center',
+              gap: isMobile ? '1rem' : '0.625rem',
               transition: 'border-color 0.2s, box-shadow 0.2s',
               cursor: 'default',
             }}
@@ -238,24 +263,29 @@ export default function ModeSelect({
               e.currentTarget.style.boxShadow = 'none'
             }}
           >
-            <span style={{ fontSize: '3.25rem', lineHeight: 1, marginBottom: '0.25rem' }}>🏆</span>
-            <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: 'center' }}>IPL</div>
-            <div style={{
-              fontSize: '0.8rem', color: 'rgba(255,255,255,0.58)',
-              textAlign: 'center', lineHeight: 1.55, flex: 1,
-            }}>
-              Draft with full player stats visible — make informed picks across all IPL eras.
+            <span style={{ fontSize: isMobile ? '2.25rem' : '3.25rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.25rem', flexShrink: 0 }}>🏆</span>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'center', gap: '0.3rem' }}>
+              <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>IPL</div>
+              <div style={{
+                fontSize: '0.8rem', color: 'rgba(255,255,255,0.58)',
+                textAlign: isMobile ? 'left' : 'center', lineHeight: 1.55,
+              }}>
+                Draft with full player stats visible — make informed picks across all IPL eras.
+              </div>
             </div>
             <button
               onClick={() => onSelect('ipl')}
               style={{
-                marginTop: '0.75rem', width: '100%',
-                padding: '0.7rem 0',
+                marginTop: isMobile ? 0 : '0.75rem',
+                width: isMobile ? 'auto' : '100%',
+                flexShrink: 0,
+                padding: isMobile ? '0.6rem 1.1rem' : '0.7rem 0',
                 background: RED, border: 'none',
                 borderRadius: '999px',
                 color: '#fff', fontSize: '0.85rem', fontWeight: 800,
                 cursor: 'pointer', letterSpacing: '0.05em',
                 transition: 'background 0.15s, transform 0.1s',
+                whiteSpace: 'nowrap',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = RED_HOV; e.currentTarget.style.transform = 'translateY(-1px)' }}
               onMouseLeave={e => { e.currentTarget.style.background = RED; e.currentTarget.style.transform = 'translateY(0)' }}
@@ -269,28 +299,29 @@ export default function ModeSelect({
             background: 'rgba(8,8,14,0.55)',
             border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: '1rem',
-            padding: '2rem 1.25rem 1.5rem',
+            padding: isMobile ? '1rem 1.25rem' : '2rem 1.25rem 1.5rem',
             backdropFilter: 'blur(14px)',
             WebkitBackdropFilter: 'blur(14px)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            gap: '0.625rem',
+            display: 'flex', flexDirection: isMobile ? 'row' : 'column',
+            alignItems: 'center',
+            gap: isMobile ? '1rem' : '0.625rem',
             opacity: 0.6,
           }}>
-            <span style={{ fontSize: '3.25rem', lineHeight: 1, marginBottom: '0.25rem' }}>🌍</span>
-            <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: 'center' }}>ODI WC</div>
-            <div style={{
-              fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)',
-              textAlign: 'center', lineHeight: 1.55, flex: 1,
-            }}>
-              Build the greatest ODI World Cup XI of all time.
+            <span style={{ fontSize: isMobile ? '2.25rem' : '3.25rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.25rem', flexShrink: 0 }}>🌍</span>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'center', gap: '0.3rem' }}>
+              <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>ODI WC</div>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', textAlign: isMobile ? 'left' : 'center', lineHeight: 1.55 }}>
+                Build the greatest ODI World Cup XI of all time.
+              </div>
             </div>
             <div style={{
-              marginTop: '0.75rem',
+              flexShrink: 0,
               fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)',
               letterSpacing: '0.08em', textTransform: 'uppercase',
-              padding: '0.55rem 1.75rem',
+              padding: '0.55rem 1.1rem',
               border: '1px solid rgba(255,255,255,0.14)',
               borderRadius: '999px',
+              whiteSpace: 'nowrap',
             }}>
               Coming Soon
             </div>
@@ -301,28 +332,29 @@ export default function ModeSelect({
             background: 'rgba(8,8,14,0.55)',
             border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: '1rem',
-            padding: '2rem 1.25rem 1.5rem',
+            padding: isMobile ? '1rem 1.25rem' : '2rem 1.25rem 1.5rem',
             backdropFilter: 'blur(14px)',
             WebkitBackdropFilter: 'blur(14px)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            gap: '0.625rem',
+            display: 'flex', flexDirection: isMobile ? 'row' : 'column',
+            alignItems: 'center',
+            gap: isMobile ? '1rem' : '0.625rem',
             opacity: 0.6,
           }}>
-            <span style={{ fontSize: '3.25rem', lineHeight: 1, marginBottom: '0.25rem' }}>⚡</span>
-            <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: 'center' }}>T20 WC</div>
-            <div style={{
-              fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)',
-              textAlign: 'center', lineHeight: 1.55, flex: 1,
-            }}>
-              Pick your nation's finest T20 internationals across every edition.
+            <span style={{ fontSize: isMobile ? '2.25rem' : '3.25rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.25rem', flexShrink: 0 }}>⚡</span>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'center', gap: '0.3rem' }}>
+              <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>T20 WC</div>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', textAlign: isMobile ? 'left' : 'center', lineHeight: 1.55 }}>
+                Pick your nation's finest T20 internationals across every edition.
+              </div>
             </div>
             <div style={{
-              marginTop: '0.75rem',
+              flexShrink: 0,
               fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)',
               letterSpacing: '0.08em', textTransform: 'uppercase',
-              padding: '0.55rem 1.75rem',
+              padding: '0.55rem 1.1rem',
               border: '1px solid rgba(255,255,255,0.14)',
               borderRadius: '999px',
+              whiteSpace: 'nowrap',
             }}>
               Coming Soon
             </div>
@@ -372,6 +404,107 @@ export default function ModeSelect({
           Unofficial fan game · Not affiliated with any cricket board or league
         </p>
       </main>
+
+      {/* ── How to Play Modal ────────────────────────────────────────────── */}
+      {showHowToPlay && (
+        <div
+          onClick={() => setShowHowToPlay(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 999,
+            background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '1.25rem',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#0e1118', border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '1rem', padding: '2rem',
+              maxWidth: 480, width: '100%',
+              maxHeight: '85vh', overflowY: 'auto',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.7)',
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '1.4rem' }}>🏏</span>
+                <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.01em' }}>How to Play</span>
+              </div>
+              <button
+                onClick={() => setShowHowToPlay(false)}
+                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '1.25rem', cursor: 'pointer', lineHeight: 1 }}
+              >✕</button>
+            </div>
+
+            {/* Steps */}
+            {[
+              {
+                n: '1', icon: '🎯', title: 'Pick your tournament',
+                body: 'IPL, ODI World Cup, or T20 World Cup. Each has a different number of matches to win.',
+              },
+              {
+                n: '2', icon: '⚙️', title: 'Set your XI\'s shape',
+                body: 'Choose how many batters, bowlers, and all-rounders you want. Pick a preset or drag the sliders yourself.',
+              },
+              {
+                n: '3', icon: '🎰', title: 'Spin the wheel',
+                body: 'Draft your 11 players one by one. Each spin is random — use re-rolls carefully.',
+              },
+              {
+                n: '4', icon: '🤝', title: 'Pick a manager',
+                body: 'Your coach shapes the team\'s identity and gives a predicted finish.',
+              },
+              {
+                n: '5', icon: '▶️', title: 'Play the matches',
+                body: 'Matches simulate automatically, but Quick Time Events let you make key decisions mid-game.',
+              },
+              {
+                n: '6', icon: '🏆', title: 'Go unbeaten',
+                body: 'Win every match, collect medals, and share your season card.',
+              },
+            ].map(step => (
+              <div key={step.n} style={{
+                display: 'flex', gap: '1rem', marginBottom: '1.25rem',
+                paddingBottom: '1.25rem',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+              }}>
+                <div style={{
+                  flexShrink: 0, width: 32, height: 32,
+                  borderRadius: '50%', background: 'rgba(200,16,46,0.18)',
+                  border: '1px solid rgba(200,16,46,0.35)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.75rem', fontWeight: 900, color: '#C8102E',
+                }}>
+                  {step.n}
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#fff', marginBottom: '0.3rem' }}>
+                    {step.icon} {step.title}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.55 }}>
+                    {step.body}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <button
+              onClick={() => setShowHowToPlay(false)}
+              style={{
+                width: '100%', marginTop: '0.25rem',
+                padding: '0.75rem', background: '#C8102E', color: '#fff',
+                border: 'none', borderRadius: '0.625rem',
+                fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
+                letterSpacing: '0.02em',
+              }}
+            >
+              Got it — let's play!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

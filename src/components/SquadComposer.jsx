@@ -186,7 +186,7 @@ function RoleSlider({ def, value, onDrag, isMobile }) {
 function CompositionBar({ comp }) {
   return (
     <div>
-      <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
+      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
         Composition
       </div>
       <div style={{ display: 'flex', height: 22, borderRadius: 5, overflow: 'hidden', border: '1px solid var(--border)' }}>
@@ -367,11 +367,11 @@ export default function SquadComposer({ onDone, onBack, onHome }) {
     <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem' }}>
       {isMobile && (
         <button onClick={handleBack} style={{
-          padding: '0.75rem 1.1rem',
-          background: 'transparent',
-          border: '1px solid var(--border)', borderRadius: '0.5rem',
-          color: '#64748b', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
-          whiteSpace: 'nowrap', touchAction: 'manipulation',
+          padding: '0.3rem 0.65rem',
+          background: 'rgba(200,16,46,0.12)',
+          border: '1px solid rgba(200,16,46,0.35)', borderRadius: '0.4rem',
+          color: '#C8102E', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
+          whiteSpace: 'nowrap', touchAction: 'manipulation', letterSpacing: '0.02em',
         }}>← Back</button>
       )}
       <button
@@ -414,9 +414,9 @@ export default function SquadComposer({ onDone, onBack, onHome }) {
         {/* Back button — top left */}
         <button onClick={handleBack} style={{
           position: 'absolute', top: '1rem', left: '1rem', zIndex: 10,
-          background: 'none', border: 'none',
-          color: 'var(--text-muted)', fontSize: '0.85rem',
-          cursor: 'pointer', fontWeight: 600, padding: 0,
+          background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.35)',
+          color: '#C8102E', borderRadius: '0.4rem', fontSize: '0.8rem',
+          cursor: 'pointer', fontWeight: 700, padding: '0.3rem 0.65rem', letterSpacing: '0.02em',
         }}>← Back</button>
         {showConfirm && (
           <ConfirmLeaveModal
@@ -544,9 +544,9 @@ export default function SquadComposer({ onDone, onBack, onHome }) {
       {/* Back button — top left absolute */}
       <button onClick={handleBack} style={{
         position: 'absolute', top: '1.25rem', left: '1.5rem', zIndex: 10,
-        background: 'none', border: 'none',
-        color: 'var(--text-muted)', fontSize: '0.85rem',
-        cursor: 'pointer', fontWeight: 600, padding: 0,
+        background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.35)',
+        color: '#C8102E', borderRadius: '0.4rem', fontSize: '0.85rem',
+        cursor: 'pointer', fontWeight: 700, padding: '0.3rem 0.65rem', letterSpacing: '0.02em',
       }}>← Back</button>
 
       {showConfirm && (
@@ -593,7 +593,7 @@ export default function SquadComposer({ onDone, onBack, onHome }) {
               display: 'flex', flexDirection: 'column', gap: '0.45rem',
               justifyContent: 'center',
             }}>
-              <div style={{ fontSize: '0.52rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.15rem', textAlign: 'center' }}>Presets</div>
+              <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.15rem', textAlign: 'center' }}>Presets</div>
               {PRESETS.map((p, i) => (
                 <button key={p.label} onClick={() => applyPreset(p, i)} style={{
                   padding: '0.4rem 0.4rem',
@@ -601,7 +601,7 @@ export default function SquadComposer({ onDone, onBack, onHome }) {
                   border: `1.5px solid ${activePreset === i ? p.color : 'rgba(200,16,46,0.3)'}`,
                   borderRadius: '0.75rem',
                   color: activePreset === i ? p.color : '#64748b',
-                  fontSize: '0.62rem', fontWeight: 700, cursor: 'pointer',
+                  fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
                   width: '100%', transition: 'all 0.15s',
                   lineHeight: 1.2,
