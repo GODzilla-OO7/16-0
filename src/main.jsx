@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { inject } from '@vercel/analytics'
 import './App.css'
 import App from './App.jsx'
 import { initSupabase, getSupabase } from './lib/supabase.js'
@@ -7,6 +8,9 @@ import { playBtnClick } from './utils/audioEngine.js'
 
 // Boot Supabase early so it can pick up email verification / OAuth tokens in the URL
 initSupabase()
+
+// Vercel Analytics
+inject()
 
 // ── OAuth popup callback detection ───────────────────────────────────────────
 // When Google OAuth completes it redirects to our origin with ?oauth_popup=1&code=...

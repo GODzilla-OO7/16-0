@@ -336,8 +336,8 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     }
     ctx.fillText(displayName, x + tagW + 7, y + 20)
     ctx.font = '500 9.5px system-ui, sans-serif'
-    ctx.fillStyle = 'rgba(148,163,184,0.6)'
-    ctx.fillText(subLabel, x + tagW + 7 + ctx.measureText(displayName).width + 2, y + 20)
+    ctx.fillStyle = 'rgba(148,163,184,1.0)'
+    ctx.fillText(subLabel, x + tagW + 7 + ctx.measureText(displayName).width + 4, y + 20)
 
     // Rating
     ctx.textAlign = 'right'
