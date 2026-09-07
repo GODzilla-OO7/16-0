@@ -156,7 +156,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
     const h2hOpp = oppTeamForSim
       ? { name: h2hContext.opponentName, strength: calcTeamStrength(oppTeamForSim, null, mode) }
       : null
-    const season = simulateFullSeason(ratingType === 'prime' ? applyPrimeRatings(team, mode) : team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp, freePositions })
+    const season = simulateFullSeason(ratingType === 'prime' ? applyPrimeRatings(team, mode) : team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp, freePositions, ratingType })
     setLeagueSeason(season)
     if (isIPL) setLiveIPLTable(generateIPLTable(season.wins))
 

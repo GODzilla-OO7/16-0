@@ -775,6 +775,7 @@ export function recordSeason(data, isLoggedIn = false) {
       mode:         data.mode,
       wins:         data.wins,
       losses:       data.losses,
+      total:        data.total,
       stageReached: data.stageReached,
       iplOutcome:   data.iplOutcome,
       difficulty:   data.difficulty,

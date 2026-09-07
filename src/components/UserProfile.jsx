@@ -174,6 +174,148 @@ function ResultRow({ result }) {
   )
 }
 
+// ─── Cabinet card generator (Canvas) ─────────────────────────────────────────
+
+function canvasRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+  ctx.lineTo(x + r, y + h)
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+  ctx.lineTo(x, y + r)
+  ctx.quadraticCurveTo(x, y, x + r, y)
+  ctx.closePath()
+}
+
+function generateCabinetCard({ displayName, iplTitles, earnedAwards = [], totalSeasons, totalWins, bestSeasonWins, titlesTotal }) {
+  const W = 630, PAD = 28
+  const DPR = window.devicePixelRatio || 2
+  const INNER_W = W - PAD * 2
+  const TILE_GAP = 8
+  const COL_W = (INNER_W - TILE_GAP) / 2
+  const TILE_H = 52
+  const CAREER_TILE_H = 60
+  const SECTION_LABEL_H = 28
+
+  const shown = earnedAwards.slice(0, 10)
+  const earnedRows = Math.max(Math.ceil(shown.length / 2), 1)
+  const MEDALS_H = earnedRows * (TILE_H + TILE_GAP)
+
+  const HEADER_Y   = 0,   HEADER_H = 56
+  const NAME_Y     = HEADER_H + 10
+  const DIV1_Y     = NAME_Y + 56
+  const MLABEL_Y   = DIV1_Y + 14
+  const MEDALS_Y   = MLABEL_Y + SECTION_LABEL_H
+  const DIV2_Y     = MEDALS_Y + MEDALS_H + 10
+  const CLABEL_Y   = DIV2_Y + 14
+  const CTILES_Y   = CLABEL_Y + SECTION_LABEL_H
+  const FOOT_Y     = CTILES_Y + CAREER_TILE_H + 16
+  const H          = FOOT_Y + 44
+
+  const canvas = document.createElement('canvas')
+  canvas.width = W * DPR; canvas.height = H * DPR
+  const ctx = canvas.getContext('2d')
+  ctx.scale(DPR, DPR)
+
+  // Background
+  ctx.fillStyle = '#0f172a'
+  ctx.fillRect(0, 0, W, H)
+  const glow = ctx.createRadialGradient(W / 2, 0, 0, W / 2, 0, 320)
+  glow.addColorStop(0, 'rgba(200,16,46,0.08)'); glow.addColorStop(1, 'transparent')
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H)
+
+  // Header
+  ctx.fillStyle = '#C8102E'
+  ctx.beginPath(); ctx.arc(PAD + 5, HEADER_H / 2, 5, 0, Math.PI * 2); ctx.fill()
+  ctx.font = '700 12px system-ui,sans-serif'; ctx.fillStyle = '#475569'; ctx.textAlign = 'left'
+  ctx.fillText('16ZERO.IN', PAD + 18, HEADER_H / 2 + 5)
+  ctx.textAlign = 'right'; ctx.font = '500 11px system-ui,sans-serif'; ctx.fillStyle = '#334155'
+  ctx.fillText('Cricket Manager', W - PAD, HEADER_H / 2 + 5); ctx.textAlign = 'left'
+
+  // Name + IPL titles box
+  ctx.font = '600 10px system-ui,sans-serif'; ctx.fillStyle = '#64748b'
+  ctx.fillText('HEAD COACH', PAD, NAME_Y + 8)
+  ctx.font = '800 22px system-ui,sans-serif'; ctx.fillStyle = '#f1f5f9'
+  ctx.fillText(displayName || 'Coach', PAD, NAME_Y + 34)
+
+  const BW = 82, BH = 46, BX = W - PAD - BW, BY = NAME_Y
+  ctx.fillStyle = '#1e293b'; canvasRoundRect(ctx, BX, BY, BW, BH, 8); ctx.fill()
+  ctx.font = '800 20px system-ui,sans-serif'; ctx.fillStyle = '#f59e0b'; ctx.textAlign = 'center'
+  ctx.fillText(String(iplTitles), BX + BW / 2, BY + 26)
+  ctx.font = '500 9px system-ui,sans-serif'; ctx.fillStyle = '#64748b'
+  ctx.fillText('IPL titles', BX + BW / 2, BY + 40); ctx.textAlign = 'left'
+
+  // Divider 1
+  ctx.fillStyle = '#1e293b'; ctx.fillRect(PAD, DIV1_Y, INNER_W, 1)
+
+  // Medals Won label
+  ctx.font = '700 9px system-ui,sans-serif'; ctx.fillStyle = '#475569'; ctx.letterSpacing = '1px'
+  ctx.fillText('MEDALS WON', PAD, MLABEL_Y + 14); ctx.letterSpacing = '0px'
+  ctx.textAlign = 'right'; ctx.fillStyle = '#64748b'
+  ctx.fillText(`${shown.length} earned`, W - PAD, MLABEL_Y + 14); ctx.textAlign = 'left'
+
+  // Medal tiles
+  shown.forEach((award, i) => {
+    const col = i % 2, row = Math.floor(i / 2)
+    const tx = PAD + col * (COL_W + TILE_GAP)
+    const ty = MEDALS_Y + row * (TILE_H + TILE_GAP)
+    ctx.fillStyle = '#1e293b'; canvasRoundRect(ctx, tx, ty, COL_W, TILE_H, 8); ctx.fill()
+    ctx.font = '18px system-ui,sans-serif'; ctx.textAlign = 'left'
+    ctx.fillText(award.icon, tx + 12, ty + TILE_H / 2 + 7)
+    ctx.font = '700 12px system-ui,sans-serif'; ctx.fillStyle = '#f1f5f9'
+    const maxW = COL_W - 52
+    let name = award.name
+    while (ctx.measureText(name).width > maxW && name.length > 3) name = name.slice(0, -1)
+    if (name !== award.name) name = name.slice(0, -1) + '…'
+    ctx.fillText(name, tx + 42, ty + TILE_H / 2 + 1)
+    if (award.desc) {
+      ctx.font = '500 9px system-ui,sans-serif'; ctx.fillStyle = '#64748b'
+      let desc = award.desc
+      while (ctx.measureText(desc).width > maxW && desc.length > 3) desc = desc.slice(0, -1)
+      if (desc !== award.desc) desc = desc.slice(0, -1) + '…'
+      ctx.fillText(desc, tx + 42, ty + TILE_H / 2 + 16)
+    }
+  })
+
+  // Divider 2
+  ctx.fillStyle = '#1e293b'; ctx.fillRect(PAD, DIV2_Y, INNER_W, 1)
+
+  // Career Overview
+  ctx.font = '700 9px system-ui,sans-serif'; ctx.fillStyle = '#475569'; ctx.letterSpacing = '1px'
+  ctx.fillText('CAREER OVERVIEW', PAD, CLABEL_Y + 14); ctx.letterSpacing = '0px'
+
+  const stats = [
+    { value: String(totalSeasons), label: 'seasons', color: '#f1f5f9' },
+    { value: String(totalWins),    label: 'wins',    color: '#f1f5f9' },
+    { value: `${bestSeasonWins}W`, label: 'best run', color: '#C8102E' },
+    { value: String(titlesTotal),  label: 'titles',  color: '#f59e0b' },
+  ]
+  const SW = (INNER_W - 3 * TILE_GAP) / 4
+  stats.forEach((s, i) => {
+    const sx = PAD + i * (SW + TILE_GAP)
+    ctx.fillStyle = '#1e293b'; canvasRoundRect(ctx, sx, CTILES_Y, SW, CAREER_TILE_H, 8); ctx.fill()
+    ctx.font = '800 18px system-ui,sans-serif'; ctx.fillStyle = s.color; ctx.textAlign = 'center'
+    ctx.fillText(s.value, sx + SW / 2, CTILES_Y + 34)
+    ctx.font = '500 9px system-ui,sans-serif'; ctx.fillStyle = '#64748b'
+    ctx.fillText(s.label, sx + SW / 2, CTILES_Y + 50)
+    ctx.textAlign = 'left'
+  })
+
+  // Footer
+  ctx.fillStyle = 'rgba(200,16,46,0.08)'; ctx.fillRect(0, FOOT_Y, W, H - FOOT_Y)
+  ctx.strokeStyle = 'rgba(200,16,46,0.2)'; ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(0, FOOT_Y); ctx.lineTo(W, FOOT_Y); ctx.stroke()
+  ctx.font = '600 12px system-ui,sans-serif'; ctx.fillStyle = 'rgba(148,163,184,0.7)'; ctx.textAlign = 'left'
+  ctx.fillText('Can you beat my tally?', PAD, FOOT_Y + 28)
+  ctx.font = '700 12px system-ui,sans-serif'; ctx.fillStyle = '#C8102E'; ctx.textAlign = 'right'
+  ctx.fillText('16zero.in', W - PAD, FOOT_Y + 28); ctx.textAlign = 'left'
+
+  return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/png'))
+}
+
 function TrophyCard({ award, earned }) {
   return (
     <div style={{
@@ -208,16 +350,26 @@ export default function UserProfile({ user, onClose, onSignOut }) {
   const [editingName, setEditingName] = useState(false)
   const [nameInput,   setNameInput]   = useState('')
   const [rivals,      setRivals]      = useState([])
-  const [cabinetShared, setCabinetShared] = useState(false)
+  const [sharingWa,   setSharingWa]   = useState(false)
+  const [savingImg,   setSavingImg]   = useState(false)
 
   useEffect(() => {
     if (!user) return
+    // Initial fetch
     fetchProfile(user.id).then(({ profile, results }) => {
       setProfile(profile)
       setResults(results)
       setNameInput(profile?.display_name ?? '')
       setLoading(false)
     })
+    // Refetch after 3 s to pick up any deferred save that raced with this fetch
+    const t = setTimeout(() => {
+      fetchProfile(user.id).then(({ profile, results }) => {
+        setProfile(profile)
+        setResults(results)
+      })
+    }, 3000)
+    return () => clearTimeout(t)
   }, [user])
 
   useEffect(() => {
@@ -250,6 +402,68 @@ export default function UserProfile({ user, onClose, onSignOut }) {
     await sb?.from('profiles').update({ display_name: nameInput }).eq('id', user.id)
     setProfile(p => ({ ...p, display_name: nameInput }))
     setEditingName(false)
+  }
+
+  function cabinetCardParams() {
+    return {
+      displayName: profile?.display_name || user?.email?.split('@')[0] || 'Coach',
+      iplTitles,
+      earnedAwards,
+      totalSeasons,
+      totalWins,
+      bestSeasonWins,
+      titlesTotal,
+    }
+  }
+
+  async function shareOnWhatsApp() {
+    setSharingWa(true)
+    try {
+      const waText = 'Can you beat my medals? 👉 16zero.in'
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1
+      if (isMobile) {
+        // Open blank window synchronously to hold user gesture token
+        const win = window.open('', '_blank')
+        try {
+          const blob = await generateCabinetCard(cabinetCardParams())
+          const file = new File([blob], 'my-medals-16zero.png', { type: 'image/png' })
+          if (navigator.canShare?.({ files: [file] })) {
+            win?.close()
+            await navigator.share({ files: [file], text: waText })
+          } else {
+            win.location.href = `https://wa.me/?text=${encodeURIComponent(waText)}`
+          }
+        } catch { win?.close() }
+      } else {
+        window.open(`https://wa.me/?text=${encodeURIComponent(waText)}`, '_blank')
+      }
+    } finally {
+      setSharingWa(false)
+    }
+  }
+
+  async function saveImage() {
+    setSavingImg(true)
+    try {
+      const blob = await generateCabinetCard(cabinetCardParams())
+      if (!blob) return
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1
+      if (isMobile && navigator.share) {
+        try {
+          const file = new File([blob], 'my-medals-16zero.png', { type: 'image/png' })
+          if (navigator.canShare?.({ files: [file] })) {
+            await navigator.share({ files: [file] })
+            return
+          }
+        } catch { /* fall through to download */ }
+      }
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'my-medals-16zero.png'; a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setSavingImg(false)
+    }
   }
 
   // ── Derived stats ────────────────────────────────────────────────────────
@@ -290,6 +504,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
 
   const initial = (profile?.display_name || user?.email || '?')[0].toUpperCase()
   const titlesTotal = iplTitles + wcTitles
+  const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1
 
   return (
     <div style={{
@@ -472,35 +687,45 @@ export default function UserProfile({ user, onClose, onSignOut }) {
               </div>
             )}
 
-            {/* ── Trophy Cabinet ───────────────────────────────────────────── */}
+            {/* ── Medals Won ───────────────────────────────────────────────── */}
             <div style={{ marginBottom: '1.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', marginTop: '0.25rem' }}>
-                <span style={{ fontSize: '0.9rem' }}>🏆</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.9rem' }}>🏅</span>
                 <div style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  Trophy Cabinet · {earnedAwards.length} / {AWARDS.length}
+                  Medals Won · {earnedAwards.length} / {AWARDS.length}
                 </div>
                 <div style={{ flex: 1, height: 1, background: 'var(--border)', marginLeft: '0.25rem' }} />
                 {earnedAwards.length > 0 && (
-                  <button
-                    onClick={() => {
-                      const text = `🏆 My Cricket 38-0 Cabinet: ${earnedAwards.map(a => `${a.icon} ${a.name}`).join(' · ')}\n16zero.in`
-                      if (navigator.share) {
-                        navigator.share({ text }).catch(() => {})
-                      } else {
-                        navigator.clipboard.writeText(text).then(() => { setCabinetShared(true); setTimeout(() => setCabinetShared(false), 2000) })
-                      }
-                    }}
-                    style={{
-                      background: 'none', border: '1px solid var(--border)',
-                      borderRadius: '0.4rem', color: cabinetShared ? '#22c55e' : 'var(--muted)',
-                      fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
-                      padding: '0.2rem 0.5rem', flexShrink: 0,
-                      transition: 'color 0.15s, border-color 0.15s',
-                      borderColor: cabinetShared ? '#22c55e55' : undefined,
-                    }}
-                  >
-                    {cabinetShared ? '✅ Copied!' : '↗ Share'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                    {isMobileDevice && (
+                      <button
+                        onClick={shareOnWhatsApp}
+                        disabled={sharingWa}
+                        style={{
+                          background: 'none', border: '1px solid var(--border)',
+                          borderRadius: '0.4rem', color: 'var(--muted)',
+                          fontSize: '0.65rem', fontWeight: 700, cursor: sharingWa ? 'default' : 'pointer',
+                          padding: '0.2rem 0.5rem', opacity: sharingWa ? 0.6 : 1,
+                          transition: 'color 0.15s, border-color 0.15s',
+                        }}
+                      >
+                        {sharingWa ? '⏳' : '↗'} WhatsApp
+                      </button>
+                    )}
+                    <button
+                      onClick={saveImage}
+                      disabled={savingImg}
+                      style={{
+                        background: 'none', border: '1px solid var(--border)',
+                        borderRadius: '0.4rem', color: 'var(--muted)',
+                        fontSize: '0.65rem', fontWeight: 700, cursor: savingImg ? 'default' : 'pointer',
+                        padding: '0.2rem 0.5rem', opacity: savingImg ? 0.6 : 1,
+                        transition: 'color 0.15s, border-color 0.15s',
+                      }}
+                    >
+                      {savingImg ? '⏳' : '⬇'} Save image
+                    </button>
+                  </div>
                 )}
               </div>
               {earnedAwards.length === 0 ? (
@@ -510,7 +735,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
                   border: '1px solid var(--card-border)',
                   color: 'var(--muted)', fontSize: '0.82rem',
                 }}>
-                  No trophies yet — win your first IPL or World Cup to start collecting.
+                  No medals yet — play seasons to start earning them.
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
@@ -520,7 +745,7 @@ export default function UserProfile({ user, onClose, onSignOut }) {
               {lockedAwards.length > 0 && earnedAwards.length > 0 && (
                 <details style={{ marginTop: '0.625rem' }}>
                   <summary style={{ fontSize: '0.65rem', color: 'var(--muted)', cursor: 'pointer', fontWeight: 600, padding: '0.25rem 0', userSelect: 'none' }}>
-                    +{lockedAwards.length} locked {lockedAwards.length === 1 ? 'trophy' : 'trophies'} to discover
+                    +{lockedAwards.length} locked {lockedAwards.length === 1 ? 'medal' : 'medals'} to discover
                   </summary>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginTop: '0.4rem' }}>
                     {lockedAwards.map(a => <TrophyCard key={a.id} award={a} earned={false} />)}

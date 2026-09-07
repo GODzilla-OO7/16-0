@@ -213,7 +213,7 @@ function generateOppMatchStats(oppName, oppStrength, format, myTeamNames = new S
 
 export function simulateMatch(myStrength, opponent, format, matchNum, team) {
   const diff = myStrength - opponent.strength
-  const winProb = clamp(1 / (1 + Math.exp(-diff / 12)) + rng(-0.05, 0.05), 0.05, 0.95)
+  const winProb = clamp(1 / (1 + Math.exp(-diff / 8)) + rng(-0.05, 0.05), 0.05, 0.95)
   const won = Math.random() < winProb
 
   const scoreFn = format === 'odi' ? odiScore : t20Score
@@ -273,11 +273,14 @@ function makeOpponents(mode, count, options = {}) {
     const filtered = pool.filter(n => n !== excludeName)
     if (filtered.length > 0) pool = filtered
   }
+  const isPrime = options.isPrime ?? false
   const opponents = []
   for (let i = 0; i < count; i++) {
     const name = pool[i % pool.length]
-    const baseStrength = 53 + (i / Math.max(count, 1)) * 24
-    opponents.push({ name, strength: clamp(baseStrength + rng(-8, 8), 48, 90) })
+    const baseStrength = isPrime
+      ? 66 + (i / Math.max(count, 1)) * 18   // Prime: 66–84
+      : 62 + (i / Math.max(count, 1)) * 18   // Normal: 62–80
+    opponents.push({ name, strength: clamp(baseStrength + rng(-8, 8), 55, 92) })
   }
   return opponents
 }
@@ -428,7 +431,9 @@ export function simulateSuperOver(myStr, oppStr) {
 export function simulateFullSeason(team, mode, manager, options = {}) {
   const freePositions = options.freePositions ?? false
   const config      = MODE_CONFIG[mode]
-  const myStr       = calcTeamStrength(team, manager, mode)
+  const ratingType  = options.ratingType ?? 'overall'
+  const isPrime     = ratingType === 'prime'
+  const myStr       = calcTeamStrength(team, manager, mode, ratingType)
   const format      = config.format
   const totalTarget = config.totalMatches
 
@@ -485,7 +490,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
 
   // ── IPL: 14-match league (no elimination during league) ───────────────────
   if (mode === 'ipl') {
-    const leagueOpps = makeOpponents(mode, 14)
+    const leagueOpps = makeOpponents(mode, 14, { isPrime })
     // H2H: inject opponent team as match 7 (midway through season)
     if (options.h2hOpponent) {
       leagueOpps[6] = { ...options.h2hOpponent, isH2H: true }
@@ -501,7 +506,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   else if (mode === 'odi-wc') {
     const groupOpps = options.groupOppNames
       ? options.groupOppNames.map((name, i, arr) => ({ name, strength: clamp(53 + (i / arr.length) * 24 + rng(-8, 8), 48, 90) }))
-      : makeOpponents(mode, 9)
+      : makeOpponents(mode, 9, { isPrime })
     let groupWins = 0
     groupOpps.forEach((opp, i) => {
       const r = playMatch('Group Stage', i + 1, opp)
@@ -511,15 +516,15 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
     // Qualification: need 5+ wins out of 9 to be in top 4
     if (groupWins < 5) {
       stageReached = 'Group Stage'
-      actualWinner = makeOpponents(mode, 1)[0].name
+      actualWinner = makeOpponents(mode, 1, { isPrime })[0].name
     } else {
       stageReached = 'Semi-Final'
-      const semiOpp = makeOpponents(mode, 1)[0]
+      const semiOpp = makeOpponents(mode, 1, { isPrime })[0]
       const semi = playMatch('Semi-Final', 10, { name: semiOpp.name, strength: clamp(74 + rng(0, 12), 66, 90) })
       if (semi.won) {
         stageReached = 'Final'
         // Final opponent must be different from Semi opponent
-        const finalOpp = makeOpponents(mode, 1, { excludeName: semiOpp.name })[0]
+        const finalOpp = makeOpponents(mode, 1, { excludeName: semiOpp.name, isPrime })[0]
         const final = playMatch('Final', 11, { name: finalOpp.name, strength: clamp(80 + rng(0, 12), 72, 95) })
         stageReached = final.won ? 'Champion' : 'Runner-up'
         actualWinner = final.won ? null : finalOpp.name
@@ -534,7 +539,7 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
   else if (mode === 't20-wc') {
     const groupOpps = options.groupOppNames
       ? options.groupOppNames.map((name, i, arr) => ({ name, strength: clamp(53 + (i / arr.length) * 24 + rng(-8, 8), 48, 90) }))
-      : makeOpponents(mode, 4)
+      : makeOpponents(mode, 4, { isPrime })
     let groupWins = 0
     groupOpps.forEach((opp, i) => {
       const r = playMatch('Group Stage', i + 1, opp)
@@ -543,9 +548,9 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
 
     if (groupWins < 2) {
       stageReached = 'Group Stage'
-      actualWinner = makeOpponents(mode, 1)[0].name
+      actualWinner = makeOpponents(mode, 1, { isPrime })[0].name
     } else {
-      const super8Opps = makeOpponents(mode, 3)
+      const super8Opps = makeOpponents(mode, 3, { isPrime })
       let super8Wins = 0
       super8Opps.forEach((opp, i) => {
         const r = playMatch('Super 8', i + 5, { ...opp, strength: clamp(opp.strength + 5, 55, 88) })
@@ -554,15 +559,15 @@ export function simulateFullSeason(team, mode, manager, options = {}) {
 
       if (super8Wins < 2) {
         stageReached = 'Super 8'
-        actualWinner = makeOpponents(mode, 1)[0].name
+        actualWinner = makeOpponents(mode, 1, { isPrime })[0].name
       } else {
         stageReached = 'Semi-Final'
-        const semiOpp = makeOpponents(mode, 1)[0]
+        const semiOpp = makeOpponents(mode, 1, { isPrime })[0]
         const semi = playMatch('Semi-Final', 8, { name: semiOpp.name, strength: clamp(74 + rng(0, 12), 66, 90) })
         if (semi.won) {
           stageReached = 'Final'
           // Final opponent must be different from Semi opponent
-          const finalOpp = makeOpponents(mode, 1, { excludeName: semiOpp.name })[0]
+          const finalOpp = makeOpponents(mode, 1, { excludeName: semiOpp.name, isPrime })[0]
           const final = playMatch('Final', 9, { name: finalOpp.name, strength: clamp(80 + rng(0, 12), 72, 95) })
           stageReached = final.won ? 'Champion' : 'Runner-up'
           actualWinner = final.won ? null : finalOpp.name

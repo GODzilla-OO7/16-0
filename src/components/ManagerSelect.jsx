@@ -59,17 +59,19 @@ function getStoryPrediction(team, manager, mode, str) {
 }
 
 function getSubtitle(mode) {
-  if (mode === 'ipl')    return <>Spin the wheel to get a coach. IPL-winning coaches give an extra <span style={{ color: '#f59e0b', fontWeight: 700 }}>🏆 +2 strength</span> bonus.</>
-  if (mode === 'odi-wc') return <>Spin the wheel to get a coach. ODI World Cup-winning coaches give an extra <span style={{ color: '#f59e0b', fontWeight: 700 }}>🏆 +2 strength</span> bonus.</>
-  if (mode === 't20-wc') return <>Spin the wheel to get a coach. T20 World Cup-winning coaches give an extra <span style={{ color: '#f59e0b', fontWeight: 700 }}>🏆 +2 strength</span> bonus.</>
+  if (mode === 'ipl')    return <>Spin the wheel to get a coach. IPL-winning coaches give an extra <span style={{ color: '#f59e0b', fontWeight: 700 }}>🏆 +3 or +4 strength</span> bonus.</>
+  if (mode === 'odi-wc') return <>Spin the wheel to get a coach. ODI World Cup-winning coaches give an extra <span style={{ color: '#f59e0b', fontWeight: 700 }}>🏆 +4 or +5 strength</span> bonus.</>
+  if (mode === 't20-wc') return <>Spin the wheel to get a coach. T20 World Cup-winning coaches give an extra <span style={{ color: '#f59e0b', fontWeight: 700 }}>🏆 +3 or +4 strength</span> bonus.</>
   return 'Spin the wheel to get a coach.'
 }
 
-function getWCChipLabel(mode) {
-  if (mode === 'ipl')    return '🏆 +2 IPL title bonus'
-  if (mode === 'odi-wc') return '🏆 +2 ODI WC bonus'
-  if (mode === 't20-wc') return '🏆 +2 T20 WC bonus'
-  return '🏆 +2 WC bonus'
+function getWCChipLabel(mode, manager) {
+  const n = manager?.bonus?.strength ?? ''
+  const bonus = n ? `+${n}` : ''
+  if (mode === 'ipl')    return `🏆 ${bonus} IPL title bonus`
+  if (mode === 'odi-wc') return `🏆 ${bonus} ODI WC bonus`
+  if (mode === 't20-wc') return `🏆 ${bonus} T20 WC bonus`
+  return `🏆 ${bonus} WC bonus`
 }
 
 function getSpinChipLabel(mode) {
@@ -176,7 +178,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
               </div>
               {isWCWinner && (
                 <div style={{ display: 'inline-block', padding: '0.25rem 0.7rem', background: '#f59e0b22', color: '#f59e0b', border: '1px solid #f59e0b44', borderRadius: '999px', fontSize: '0.68rem', fontWeight: 800 }}>
-                  {getWCChipLabel(mode)}
+                  {getWCChipLabel(mode, landed)}
                 </div>
               )}
             </div>
@@ -309,7 +311,7 @@ export default function ManagerSelect({ mode, team, onSelect, onBack, inline = f
         {phase === 'landed' && landed && (
           <div style={{ fontSize: '0.67rem', color: '#94a3b8', lineHeight: 1.45, marginBottom: '0.625rem', animation: 'fade-in 0.3s ease both' }}>
             {landed.description?.split(/[.!]/).filter(Boolean)[0]}.
-            {isWCWinner && <span style={{ color: '#f59e0b', fontWeight: 700 }}> {getWCChipLabel(mode)}.</span>}
+            {isWCWinner && <span style={{ color: '#f59e0b', fontWeight: 700 }}> {getWCChipLabel(mode, landed)}.</span>}
           </div>
         )}
 

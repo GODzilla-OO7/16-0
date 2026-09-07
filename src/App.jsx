@@ -122,6 +122,7 @@ export default function App() {
 
   // Track whether we've already saved this game result to Supabase (to avoid double-save)
   const resultSavedRef = useRef(false)
+  const [restoredAfterAuth, setRestoredAfterAuth] = useState(false)
 
   // When user signs in: pull their awards from Supabase and merge into local profile.
   // Also deferred-save the game result if they signed in from the results screen.
@@ -141,6 +142,26 @@ export default function App() {
           saveGameResult(user.id, data)
           if (data.awardIds?.length) saveAwards(user.id, data.awardIds)
           resultSavedRef.current = true
+        }
+      } catch {}
+
+      // Safari OAuth redirect: restore the full results screen state so the user
+      // lands back on the results screen rather than the homepage
+      try {
+        const raw2 = localStorage.getItem('pending_results_state')
+        if (raw2) {
+          localStorage.removeItem('pending_results_state')
+          const s = JSON.parse(raw2)
+          setMode(s.mode ?? null)
+          setSummary(s.summary ?? null)
+          setMatchResults(s.matchResults ?? [])
+          setTeam(s.team ?? [])
+          setManager(s.manager ?? null)
+          setNewAwards(s.newAwards ?? [])
+          setPrevSeasons(s.prevSeasons ?? [])
+          setSeasonNumber(s.seasonNumber ?? 1)
+          setRestoredAfterAuth(true)
+          setPhase('results')
         }
       } catch {}
 
@@ -935,6 +956,7 @@ export default function App() {
         user={user}
         onGoogleSignIn={signInWithGoogle}
         onShowAuth={() => setShowAuth(true)}
+        restoredAfterAuth={restoredAfterAuth}
       />
       {profileBtn}
       {globalOverlays}

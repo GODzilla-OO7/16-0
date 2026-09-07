@@ -325,7 +325,7 @@ export default function WheelSpin({
     const basePrice  = calcPrice(displayRating(player, 'season').overall)
     const isMarquee  = displayOvr >= MARQUEE_THRESHOLD && !player._budgetBlocked
     const canBid     = budget != null && biddingWarsUsed < 4
-    if (isMarquee && canBid && Math.random() < 0.5) {
+    if (isMarquee && canBid && Math.random() < 0.6) {
       setActiveBiddingPlayer({ player, basePrice })
       onBiddingWar?.()
       return

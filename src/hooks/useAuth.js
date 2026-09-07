@@ -33,17 +33,25 @@ export async function saveGameResult(userId, { mode, wins, losses, total, stageR
   const sb = await getSupabase()
   if (!sb) return
 
-  await sb.from('game_results').insert({
-    user_id:       userId,
-    mode,
-    wins,
-    losses,
-    total_matches: total,
-    stage_reached: stageReached ?? null,
-    ipl_outcome:   iplOutcome   ?? null,
-    ipl_position:  iplPosition  ?? null,
-    perfect:       perfect      ?? false,
-  })
+  try {
+    await sb.from('game_results').insert({
+      user_id:       userId,
+      mode,
+      wins,
+      losses,
+      total_matches: total,
+      stage_reached: stageReached ?? null,
+      ipl_outcome:   iplOutcome   ?? null,
+      ipl_position:  iplPosition  ?? null,
+      perfect:       perfect      ?? false,
+    })
+  } catch (e) {
+    console.error('saveGameResult: insert failed', e)
+    return
+  }
+
+  // Upsert profile row (creates it if it doesn't exist yet) then update aggregate stats
+  await sb.from('profiles').upsert({ id: userId }, { onConflict: 'id', ignoreDuplicates: true })
 
   const { data: profile } = await sb.from('profiles').select('total_games,total_wins,total_losses,best_streak').eq('id', userId).single()
   if (profile) {
@@ -109,12 +117,52 @@ export function subscribeToPlays(onUpdate) {
 }
 
 export async function signInWithGoogle() {
+  // Safari (macOS + all iOS browsers) blocks popups reliably — detect and use
+  // full-page redirect instead. All other browsers use the popup approach.
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ||
+    /iPad|iPhone|iPod/.test(navigator.userAgent)
+
+  if (isSafari) {
+    const sb = await getSupabase()
+    if (!sb) return
+    const { data, error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
+    if (!error && data?.url) window.location.href = data.url
+    return
+  }
+
+  // ── Non-Safari: open popup synchronously while still inside the user gesture
+  // window.open() must be called before any await, otherwise the browser's
+  // user-gesture token expires and the popup is blocked.
+  const w = 500, h = 620
+  const left = Math.round(window.screenX + (window.outerWidth  - w) / 2)
+  const top  = Math.round(window.screenY + (window.outerHeight - h) / 2)
+  const popup = window.open('', 'google-oauth',
+    `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no`)
+
   const sb = await getSupabase()
-  if (!sb) return
-  await sb.auth.signInWithOAuth({
+  if (!sb) { popup?.close(); return }
+
+  // Get the OAuth URL (skipBrowserRedirect = don't navigate the main window)
+  const { data, error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin },
+    options: {
+      redirectTo: window.location.origin + '?oauth_popup=1',
+      skipBrowserRedirect: true,
+    },
   })
+
+  if (error || !data?.url) { popup?.close(); return }
+
+  if (popup && !popup.closed) {
+    // Navigate the already-open popup to the Google auth page
+    popup.location.href = data.url
+  } else {
+    // Popup was blocked — fall back to redirect so auth still works
+    window.location.href = data.url
+  }
 }
 
 export async function fetchProfile(userId) {

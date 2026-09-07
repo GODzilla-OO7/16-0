@@ -355,8 +355,8 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
   ctx.beginPath(); ctx.moveTo(PAD_X, STATS_Y); ctx.lineTo(W - PAD_X, STATS_Y); ctx.stroke()
 
   // Section label
-  ctx.font = '700 9px system-ui, sans-serif'
-  ctx.fillStyle = isChampionTheme ? 'rgba(245,158,11,0.5)' : 'rgba(147,197,253,0.5)'
+  ctx.font = '700 11px system-ui, sans-serif'
+  ctx.fillStyle = isChampionTheme ? 'rgba(245,158,11,0.7)' : 'rgba(147,197,253,0.7)'
   ctx.textAlign = 'left'
   ctx.letterSpacing = '1.5px'
   ctx.fillText('SEASON AWARDS', PAD_X, STATS_Y + 14)
@@ -433,8 +433,8 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     ctx.beginPath(); ctx.moveTo(28, MY); ctx.lineTo(W - 28, MY); ctx.stroke()
 
     ctx.textAlign = 'left'
-    ctx.font = '600 8px system-ui, sans-serif'
-    ctx.fillStyle = 'rgba(245,158,11,0.6)'
+    ctx.font = '700 10px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(245,158,11,0.8)'
     ctx.letterSpacing = '1.5px'
     ctx.fillText('🏅 MEDALS', 28, MY + 13)
     ctx.letterSpacing = '0px'
@@ -495,8 +495,8 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
     ctx.beginPath(); ctx.moveTo(PAD_X, PS_Y); ctx.lineTo(W - PAD_X, PS_Y); ctx.stroke()
 
     ctx.textAlign = 'left'
-    ctx.font = '700 9px system-ui, sans-serif'
-    ctx.fillStyle = 'rgba(148,163,184,0.4)'
+    ctx.font = '700 11px system-ui, sans-serif'
+    ctx.fillStyle = 'rgba(148,163,184,0.65)'
     ctx.letterSpacing = '1.5px'
     ctx.fillText('PAST SEASONS', PAD_X, PS_Y + 16)
     ctx.letterSpacing = '0px'
@@ -551,7 +551,7 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
           emoji = '⚡'; outLabel = 'Playoff Run'; outColor = '#ef4444'
         } else if (outcome === 'not_qualified') {
           const pct = h.wins / (h.total || 1)
-          outLabel = pct >= 0.55 ? 'Solid Season' : 'Tough Season'
+          outLabel = pct >= 0.60 ? 'Solid Season' : 'Tough Season'
           outColor = '#64748b'
           emoji = '\u{1F4CB}'
         }
@@ -559,8 +559,8 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
         ctx.textAlign = 'center'
 
         // Season label
-        ctx.font = '600 9px system-ui, sans-serif'
-        ctx.fillStyle = 'rgba(148,163,184,0.35)'
+        ctx.font = '700 11px system-ui, sans-serif'
+        ctx.fillStyle = 'rgba(148,163,184,0.6)'
         ctx.letterSpacing = '0.5px'
         ctx.fillText(`SEASON ${sNum}`, cx2, rowY + 16)
         ctx.letterSpacing = '0px'
@@ -571,13 +571,13 @@ function generateShareCard({ wins, losses, total, ratingLabel, ratingColor, mode
         ctx.fillText(emoji, cx2, rowY + 44)
 
         // Outcome
-        ctx.font = '800 13px system-ui, sans-serif'
+        ctx.font = '800 14px system-ui, sans-serif'
         ctx.fillStyle = outColor
         ctx.fillText(outLabel, cx2, rowY + 64)
 
         // Record
-        ctx.font = '600 10px system-ui, sans-serif'
-        ctx.fillStyle = 'rgba(148,163,184,0.35)'
+        ctx.font = '600 12px system-ui, sans-serif'
+        ctx.fillStyle = 'rgba(148,163,184,0.6)'
         ctx.fillText(`${h.wins}-${h.losses}`, cx2, rowY + 79)
 
         ctx.textAlign = 'left'
@@ -769,7 +769,7 @@ function getRating(wins, losses, total, perfect, targetWins, iplOutcome) {
   if (iplOutcome === 'eliminated')   return { label: 'PLAYOFF RUN',   color: '#C8102E', emoji: '⚡',    desc: 'You made the playoffs but fell short of the Final.' }
   if (iplOutcome === 'not_qualified') {
     const pct = wins / total
-    if (pct >= 0.55) return { label: 'SOLID SEASON',  color: '#94a3b8', emoji: '\u{1F4CB}', desc: 'Good league form but just missed the top 4.' }
+    if (pct >= 0.60) return { label: 'SOLID SEASON',  color: '#94a3b8', emoji: '\u{1F4CB}', desc: 'Good league form but just missed the top 4.' }
     return { label: 'TOUGH SEASON', color: '#ef4444', emoji: '\u{1F62C}', desc: 'A difficult campaign — couldn\'t break into playoffs.' }
   }
   if (perfect) return { label: 'LEGENDARY', color: '#f59e0b', emoji: '\u{1F3C6}', desc: `You achieved the impossible — ${targetWins}-0!` }
@@ -781,7 +781,7 @@ function getRating(wins, losses, total, perfect, targetWins, iplOutcome) {
   return { label: 'TOUGH RUN', color: '#ef4444', emoji: '\u{1F62C}', desc: 'Even legends have bad seasons.' }
 }
 
-export default function Results({ team, mode, manager, summary, matchResults, onPlayAgain, onNextSeason, seasonNumber = 1, newAwards = [], prevSeasons = [], challengerResult = null, h2hContext = null, user = null, onGoogleSignIn, onShowAuth }) {
+export default function Results({ team, mode, manager, summary, matchResults, onPlayAgain, onNextSeason, seasonNumber = 1, newAwards = [], prevSeasons = [], challengerResult = null, h2hContext = null, user = null, onGoogleSignIn, onShowAuth, restoredAfterAuth = false }) {
   const [tab, setTab] = useState('overview') // overview | playerstats | matches
   const [h2hOppStats, setH2hOppStats] = useState(null) // { wins, losses, oppName }
   const [waSharing2, setWaSharing2]   = useState(false)
@@ -795,6 +795,11 @@ export default function Results({ team, mode, manager, summary, matchResults, on
     if (user && !prevUserRef2.current) setResultJustSaved(true)
     prevUserRef2.current = user
   }, [user])
+
+  // Also show "saved" when restored after Safari OAuth redirect
+  useEffect(() => {
+    if (restoredAfterAuth) setResultJustSaved(true)
+  }, [restoredAfterAuth])
 
   // Fetch H2H opponent's results from Supabase when in H2H mode
   useEffect(() => {
@@ -1087,6 +1092,16 @@ export default function Results({ team, mode, manager, summary, matchResults, on
 
   const downloadCard = async () => {
     const blob = await generateShareCard(cardParams())
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1
+    if (isMobile && navigator.share) {
+      try {
+        const file = new File([blob], `cricket16-0-${dispWins}w-${dispLosses}l.png`, { type: 'image/png' })
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file] })
+          return
+        }
+      } catch { /* fall through to download */ }
+    }
     const url  = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href     = url
@@ -1953,6 +1968,12 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                           perfect:      summary?.perfect      ?? false,
                           awardIds:     (newAwards ?? []).map(a => a.id).filter(Boolean),
                         }))
+                        // Also persist full results screen state for Safari redirect recovery
+                        localStorage.setItem('pending_results_state', JSON.stringify({
+                          mode, summary, matchResults, team, manager,
+                          newAwards: (newAwards ?? []).map(a => ({ id: a.id, icon: a.icon, name: a.name })),
+                          prevSeasons, seasonNumber,
+                        }))
                       } catch {}
                       onGoogleSignIn?.()
                     }}
@@ -1976,7 +1997,24 @@ export default function Results({ team, mode, manager, summary, matchResults, on
                   </button>
                   {/* Email */}
                   <button
-                    onClick={() => setShowAuthModal(true)}
+                    onClick={() => {
+                      // Persist result now — survives email confirmation redirect for sign-up,
+                      // and is also used as fallback for sign-in if the page somehow reloads.
+                      try {
+                        localStorage.setItem('pending_game_result', JSON.stringify({
+                          mode,
+                          wins:         summary?.wins         ?? 0,
+                          losses:       summary?.losses       ?? 0,
+                          total:        summary?.total        ?? 0,
+                          stageReached: summary?.stageReached ?? null,
+                          iplOutcome:   summary?.iplOutcome   ?? null,
+                          iplPosition:  summary?.iplPosition  ?? null,
+                          perfect:      summary?.perfect      ?? false,
+                          awardIds:     (newAwards ?? []).map(a => a.id).filter(Boolean),
+                        }))
+                      } catch {}
+                      setShowAuthModal(true)
+                    }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '0.5rem',
                       padding: '0.6rem 1rem',

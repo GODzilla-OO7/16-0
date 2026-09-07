@@ -18,6 +18,11 @@ export function getSupabase() {
               autoRefreshToken: true,
               // Explicitly use localStorage so sessions survive window close
               storage: window.localStorage,
+              // Implicit flow: tokens arrive in the URL hash (#access_token=...)
+              // so no code exchange or sessionStorage is needed — required for
+              // popup-based OAuth (PKCE stores its verifier in the opener's
+              // sessionStorage, which the popup window can't access)
+              flowType: 'implicit',
             },
           })
         }
