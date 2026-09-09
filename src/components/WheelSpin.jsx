@@ -149,6 +149,7 @@ export default function WheelSpin({
   draftedIds, releasedPlayerIds, team, rerollsLeft, onReroll, onResult,
   budget, onSpend, onRetryFromBeginning, onRetryBidding,
   biddingWarsUsed = 0, onBiddingWar,
+  biddingWarsEnabled = true,
 }) {
   const [phase, setPhase]             = useState('idle')
   const [landedEntry, setLandedEntry] = useState(null)
@@ -324,7 +325,7 @@ export default function WheelSpin({
     const displayOvr = displayRating(player, ratingType, mode).overall
     const basePrice  = calcPrice(displayRating(player, 'season').overall)
     const isMarquee  = displayOvr >= MARQUEE_THRESHOLD && !player._budgetBlocked
-    const canBid     = budget != null && biddingWarsUsed < 4
+    const canBid     = biddingWarsEnabled && budget != null && biddingWarsUsed < 4
     if (isMarquee && canBid && Math.random() < 0.6) {
       setActiveBiddingPlayer({ player, basePrice })
       onBiddingWar?.()

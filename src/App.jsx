@@ -780,6 +780,7 @@ export default function App() {
                   onRetryBidding={handleRetryBidding}
                   biddingWarsUsed={biddingWarsUsed}
                   onBiddingWar={() => setBiddingWarsUsed(n => n + 1)}
+                  biddingWarsEnabled={settings?.biddingWars ?? true}
                 />
               ) : (
                 <div style={{ padding: '1.75rem 1.5rem', textAlign: 'center', animation: 'fade-in-up 0.4s ease both' }}>
@@ -902,7 +903,7 @@ export default function App() {
   if (phase === 'simulate') return (
     <div style={{ minHeight: '100vh', paddingTop: activeChallenge ? BANNER_H : 0, position: 'relative' }}>
       <div className="page-overlay" />
-      <MatchSimulator team={team} mode={mode} manager={manager} ratingType={settings?.ratingType} freePositions={settings?.freePositions ?? false} onDone={(sum, results) => { if (h2hSimContext) setH2hResultCtx(h2hSimContext); setH2hSimContext(null); handleSimDone(sum, results) }} h2hContext={h2hSimContext} onHome={handlePlayAgain} />
+      <MatchSimulator team={team} mode={mode} manager={manager} ratingType={settings?.ratingType} freePositions={settings?.freePositions ?? false} enableQTEs={settings?.enableQTEs ?? true} onDone={(sum, results) => { if (h2hSimContext) setH2hResultCtx(h2hSimContext); setH2hSimContext(null); handleSimDone(sum, results) }} h2hContext={h2hSimContext} onHome={handlePlayAgain} />
       {profileBtn}
       {globalOverlays}
     </div>

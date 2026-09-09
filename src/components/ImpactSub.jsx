@@ -260,8 +260,8 @@ export default function ImpactSub({ team, mode, ratingType = 'season', onComplet
       }
     }
 
-    // Fallback: relax rating filter but keep role + overseas rules
-    if (!fullPool.length && !eventEntry.legendsPool) {
+    // Fallback: only for events with NO rating constraint — keeps event description accurate
+    if (!fullPool.length && !eventEntry.legendsPool && minR === null && maxR === null) {
       const seen2 = new Set()
       for (const entry of WHEEL_ENTRIES) {
         if (!entry.competition?.includes(mode)) continue

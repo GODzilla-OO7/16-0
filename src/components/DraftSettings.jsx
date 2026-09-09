@@ -225,6 +225,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
   const [wcRange, setWcRange]           = useState([0, allYears.length - 1])
 
   // Toggles
+  const [enableQTEs,    setEnableQTEs]    = useState(true)
   const [biddingWars,   setBiddingWars]   = useState(true)
   const [overseasLimit, setOverseasLimit] = useState(true)
   const [freePositions, setFreePositions] = useState(false)
@@ -268,6 +269,7 @@ export default function DraftSettings({ mode, onStart, onBack }) {
       freePositions,
       overseasLimit,
       biddingWars,
+      enableQTEs,
       budget:          draftBudget,
     })
   }
@@ -433,6 +435,12 @@ export default function DraftSettings({ mode, onStart, onBack }) {
           <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Mode Options</div>
         </div>
 
+        <ToggleRow
+          icon="🎯" label="Quick-Time Events"
+          desc="Pause mid-match for QTE moments — century balls, hat-trick chances, key fielding decisions."
+          value={enableQTEs}
+          onChange={setEnableQTEs}
+        />
         <ToggleRow
           icon="⚡" label="Bidding Wars"
           desc="Marquee players may trigger a bidding war — pay more or lose them to a rival."

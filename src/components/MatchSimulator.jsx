@@ -25,7 +25,7 @@ const COMMENTARY_ODI = [
   'The last ball of the Final is delivered…',
 ]
 
-export default function MatchSimulator({ team, mode, manager, ratingType, freePositions = false, onDone, h2hContext = null, onHome }) {
+export default function MatchSimulator({ team, mode, manager, ratingType, freePositions = false, enableQTEs = true, onDone, h2hContext = null, onHome }) {
   const [leagueSeason,    setLeagueSeason]    = useState(null)
   const [revealed,        setRevealed]        = useState([])
   const [liveRuns,        setLiveRuns]        = useState({})
@@ -224,7 +224,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
       }
 
       // If match has a QTE event, pause and show the overlay
-      if (match.event && !h2hContext) {
+      if (match.event && !h2hContext && enableQTEs) {
         setPendingEvent({
           event: match.event,
           opponent: match.opponent,
@@ -743,6 +743,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
             team={activeTeam}
             myStr={leagueSeason?.myStrength ?? 65}
             myChasing={!pendingFinal.myBatsFirst}
+            enableQTEs={enableQTEs}
             onQTE={(event, opp, done) => {
               setPendingEvent({
                 event,
@@ -1375,7 +1376,7 @@ function buildChasePoints(targetRuns, finalRuns, finalWickets, format) {
 
 // ─── FinalChase — live over-by-over chase scorecard ──────────────────────────
 
-function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete }) {
+function FinalChase({ result, format, team, myStr, myChasing, enableQTEs = true, onQTE, onComplete }) {
   const oppParsed = parseScoreStr(result.oppScore)
   const myParsed  = parseScoreStr(result.myScore)
   const firstInningsParsed = myChasing ? oppParsed : myParsed
@@ -1406,6 +1407,7 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
   const QTE_INDICES = new Set([1, 4])
 
   function tryQTE(next) {
+    if (!enableQTEs) return false
     if (!QTE_INDICES.has(next)) return false
     if (qtesFired.current.has(next)) return false
 
@@ -1422,7 +1424,7 @@ function FinalChase({ result, format, team, myStr, myChasing, onQTE, onComplete 
       const isDeath = next === 4
       if (isDeath) {
         const r = Math.random()
-        type = r < 0.4 ? 'free-hit' : r < 0.7 ? 'drs' : 'last-over'
+        type = r < 0.4 ? 'free-hit' : r < 0.7 ? 'drs' : 'last-ball-six'
       } else {
         // Powerplay end
         const r = Math.random()
