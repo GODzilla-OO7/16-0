@@ -17,6 +17,7 @@ import DailyChallenge from './components/DailyChallenge.jsx'
 import H2HLobby from './components/H2HLobby.jsx'
 import H2HDraft from './components/H2HDraft.jsx'
 import SharedLeague from './components/SharedLeague.jsx'
+import LiveCup from './components/LiveCup.jsx'
 import { STARTING_BUDGET } from './components/WheelSpin.jsx'
 import MusicPlayer from './components/MusicPlayer.jsx'
 import ConfirmLeaveModal from './components/ConfirmLeaveModal.jsx'
@@ -116,6 +117,8 @@ export default function App() {
     } else if (hash.startsWith('#h2h=')) {
       const roomId = hash.slice('#h2h='.length).trim().toUpperCase()
       if (roomId) { setH2hJoinId(roomId); setShowH2H(true) }
+    } else if (hash.startsWith('#livecup=')) {
+      setShowLiveCup(true)
     }
   }, [])
   const { user, signOut } = useAuth()
@@ -224,6 +227,9 @@ export default function App() {
   const [h2hSimContext, setH2hSimContext] = useState(null)   // { roomId, opponentName, opponentTeam, myUserId } during sim
   const [h2hResultCtx, setH2hResultCtx] = useState(null)   // same data preserved for results screen
   const [activeChallenge, setActiveChallenge] = useState(null) // daily challenge in progress
+  const [showLiveCup, setShowLiveCup]     = useState(false)
+  const [liveCupCtx, setLiveCupCtx]       = useState(null)   // set to { draftMode:true } during draft, full ctx during sim
+  const liveCupDraftDoneRef = useRef(null)                   // callback: (team, mgr, ratingType) → save + return to lobby
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640)
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth <= 640)
@@ -268,9 +274,20 @@ export default function App() {
     setPhase('manager')
   }
 
-  // Manager selected → start simulation
+  // Manager selected → start simulation (or save to live cup if in cup draft mode)
   function handleManagerSelect(mgr) {
     setManager(mgr)
+    if (liveCupCtx?.draftMode && liveCupDraftDoneRef.current) {
+      // Live cup: save team to Supabase via callback, then return to lobby
+      const cb = liveCupDraftDoneRef.current
+      liveCupDraftDoneRef.current = null
+      setLiveCupCtx(null)
+      setShowLiveCup(true)
+      setPhase('menu')
+      // Fire the save callback (async — LiveCup handles Supabase write)
+      cb(team, mgr, settings?.ratingType ?? 'overall')
+      return
+    }
     setPhase('simulate')
   }
 
@@ -503,6 +520,44 @@ export default function App() {
     />
   )
 
+  // Live Friends Cup full-page takeover
+  if (showLiveCup) {
+    return (
+      <LiveCup
+        user={user}
+        onHome={() => {
+          try { sessionStorage.removeItem('lcup_session') } catch {}
+          setShowLiveCup(false)
+          setLiveCupCtx(null)
+        }}
+        onStartDraft={(cupMode, onDraftDone) => {
+          // Kick off a normal draft in the chosen mode, but in live-cup context
+          liveCupDraftDoneRef.current = onDraftDone
+          setMode(cupMode || 'ipl')
+          setSettings({ ratingType: 'overall', difficulty: 'normal', rerolls: 3, freePositions: false })
+          setTeam([]); setDraftedIds(new Set())
+          setManager(null); setPreviewManager(null); setConfirmedManager(null)
+          setBudgetLeft(STARTING_BUDGET); setBiddingWarsUsed(0)
+          setComposition(null)
+          // Signal that draft completion should save to cup, not start season
+          setLiveCupCtx({ draftMode: true })
+          setShowLiveCup(false)
+          setPhase('compose')
+        }}
+        onStartSeason={(ctx, draftedTeam, draftedManager, ratingType) => {
+          // Host clicked Start — begin the actual season with pre-calculated fixtures
+          setLiveCupCtx(ctx)
+          setTeam(sortByBattingOrder(draftedTeam))
+          setMode(ctx.mode)
+          setManager(draftedManager ?? null)
+          setSettings(prev => ({ ...(prev ?? {}), ratingType: ratingType ?? 'overall', enableQTEs: true }))
+          setShowLiveCup(false)
+          setPhase('simulate')
+        }}
+      />
+    )
+  }
+
   // Shared League full-page takeover
   if (h2hLeagueRoom) {
     return (
@@ -679,6 +734,9 @@ export default function App() {
         onSelect={handleModeSelect}
         onH2H={() => setShowH2H(true)}
         onDailyChallenge={() => setShowDailyChallenge(true)}
+        onWeeklyCup={() => {}}
+        onFriendsCup={() => {}}
+        onLiveCup={() => setShowLiveCup(true)}
         user={user}
         onSignIn={() => setShowAuth(true)}
         onGoogleSignIn={signInWithGoogle}
@@ -903,7 +961,21 @@ export default function App() {
   if (phase === 'simulate') return (
     <div style={{ minHeight: '100vh', paddingTop: activeChallenge ? BANNER_H : 0, position: 'relative' }}>
       <div className="page-overlay" />
-      <MatchSimulator team={team} mode={mode} manager={manager} ratingType={settings?.ratingType} freePositions={settings?.freePositions ?? false} enableQTEs={settings?.enableQTEs ?? true} onDone={(sum, results) => { if (h2hSimContext) setH2hResultCtx(h2hSimContext); setH2hSimContext(null); handleSimDone(sum, results) }} h2hContext={h2hSimContext} onHome={handlePlayAgain} />
+      <MatchSimulator
+        team={team} mode={mode} manager={manager}
+        ratingType={settings?.ratingType}
+        freePositions={settings?.freePositions ?? false}
+        enableQTEs={settings?.enableQTEs ?? true}
+        onDone={(sum, results) => {
+          if (h2hSimContext) setH2hResultCtx(h2hSimContext)
+          setH2hSimContext(null)
+          setLiveCupCtx(null)
+          handleSimDone(sum, results)
+        }}
+        h2hContext={h2hSimContext}
+        liveCupContext={liveCupCtx?.draftMode ? null : (liveCupCtx ?? null)}
+        onHome={handlePlayAgain}
+      />
       {profileBtn}
       {globalOverlays}
     </div>

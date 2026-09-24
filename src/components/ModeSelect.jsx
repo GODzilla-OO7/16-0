@@ -294,71 +294,158 @@ export default function ModeSelect({
             </button>
           </div>
 
-          {/* ODI WC — Coming Soon */}
-          <div style={{
-            background: 'rgba(8,8,14,0.55)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '1rem',
-            padding: isMobile ? '1rem 1.25rem' : '2rem 1.25rem 1.5rem',
-            backdropFilter: 'blur(14px)',
-            WebkitBackdropFilter: 'blur(14px)',
-            display: 'flex', flexDirection: isMobile ? 'row' : 'column',
-            alignItems: 'center',
-            gap: isMobile ? '1rem' : '0.625rem',
-            opacity: 0.6,
-          }}>
+          {/* ODI WC — active */}
+          <div
+            style={{
+              background: 'rgba(8,8,14,0.78)',
+              border: '1.5px solid rgba(255,255,255,0.18)',
+              borderRadius: '1rem',
+              padding: isMobile ? '1rem 1.25rem' : '2rem 1.25rem 1.5rem',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              display: 'flex',
+              flexDirection: isMobile ? 'row' : 'column',
+              alignItems: 'center',
+              gap: isMobile ? '1rem' : '0.625rem',
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+              cursor: 'default',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = 'rgba(200,16,46,0.55)'
+              e.currentTarget.style.boxShadow = '0 0 32px rgba(200,16,46,0.12)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
             <span style={{ fontSize: isMobile ? '2.25rem' : '3.25rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.25rem', flexShrink: 0 }}>🌍</span>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'center', gap: '0.3rem' }}>
               <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>ODI WC</div>
-              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', textAlign: isMobile ? 'left' : 'center', lineHeight: 1.55 }}>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.58)', textAlign: isMobile ? 'left' : 'center', lineHeight: 1.55 }}>
                 Build the greatest ODI World Cup XI of all time.
               </div>
             </div>
-            <div style={{
-              flexShrink: 0,
-              fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)',
-              letterSpacing: '0.08em', textTransform: 'uppercase',
-              padding: '0.55rem 1.1rem',
-              border: '1px solid rgba(255,255,255,0.14)',
-              borderRadius: '999px',
-              whiteSpace: 'nowrap',
-            }}>
-              Coming Soon
-            </div>
+            <button
+              onClick={() => onSelect('odi-wc')}
+              style={{
+                marginTop: isMobile ? 0 : '0.75rem',
+                width: isMobile ? 'auto' : '100%',
+                flexShrink: 0,
+                padding: isMobile ? '0.6rem 1.1rem' : '0.7rem 0',
+                background: RED, border: 'none',
+                borderRadius: '999px',
+                color: '#fff', fontSize: '0.85rem', fontWeight: 800,
+                cursor: 'pointer', letterSpacing: '0.05em',
+                transition: 'background 0.15s, transform 0.1s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = RED_HOV; e.currentTarget.style.transform = 'translateY(-1px)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = RED; e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              PLAY ODI WC
+            </button>
           </div>
 
-          {/* T20 WC — Coming Soon */}
-          <div style={{
-            background: 'rgba(8,8,14,0.55)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '1rem',
-            padding: isMobile ? '1rem 1.25rem' : '2rem 1.25rem 1.5rem',
-            backdropFilter: 'blur(14px)',
-            WebkitBackdropFilter: 'blur(14px)',
-            display: 'flex', flexDirection: isMobile ? 'row' : 'column',
-            alignItems: 'center',
-            gap: isMobile ? '1rem' : '0.625rem',
-            opacity: 0.6,
-          }}>
+          {/* T20 WC — active */}
+          <div
+            style={{
+              background: 'rgba(8,8,14,0.78)',
+              border: '1.5px solid rgba(255,255,255,0.18)',
+              borderRadius: '1rem',
+              padding: isMobile ? '1rem 1.25rem' : '2rem 1.25rem 1.5rem',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              display: 'flex',
+              flexDirection: isMobile ? 'row' : 'column',
+              alignItems: 'center',
+              gap: isMobile ? '1rem' : '0.625rem',
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+              cursor: 'default',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = 'rgba(200,16,46,0.55)'
+              e.currentTarget.style.boxShadow = '0 0 32px rgba(200,16,46,0.12)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
             <span style={{ fontSize: isMobile ? '2.25rem' : '3.25rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.25rem', flexShrink: 0 }}>⚡</span>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'center', gap: '0.3rem' }}>
               <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>T20 WC</div>
-              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', textAlign: isMobile ? 'left' : 'center', lineHeight: 1.55 }}>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.58)', textAlign: isMobile ? 'left' : 'center', lineHeight: 1.55 }}>
                 Pick your nation's finest T20 internationals across every edition.
               </div>
             </div>
-            <div style={{
-              flexShrink: 0,
-              fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)',
-              letterSpacing: '0.08em', textTransform: 'uppercase',
-              padding: '0.55rem 1.1rem',
-              border: '1px solid rgba(255,255,255,0.14)',
-              borderRadius: '999px',
-              whiteSpace: 'nowrap',
-            }}>
-              Coming Soon
-            </div>
+            <button
+              onClick={() => onSelect('t20-wc')}
+              style={{
+                marginTop: isMobile ? 0 : '0.75rem',
+                width: isMobile ? 'auto' : '100%',
+                flexShrink: 0,
+                padding: isMobile ? '0.6rem 1.1rem' : '0.7rem 0',
+                background: RED, border: 'none',
+                borderRadius: '999px',
+                color: '#fff', fontSize: '0.85rem', fontWeight: 800,
+                cursor: 'pointer', letterSpacing: '0.05em',
+                transition: 'background 0.15s, transform 0.1s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = RED_HOV; e.currentTarget.style.transform = 'translateY(-1px)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = RED; e.currentTarget.style.transform = 'translateY(0)' }}
+            >
+              PLAY T20 WC
+            </button>
           </div>
+        </div>
+
+        {/* ── 4 secondary mode buttons ──────────────────────────────────── */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+          gap: isMobile ? '0.625rem' : '1.25rem',
+          width: '100%', maxWidth: 960,
+          marginBottom: '1.25rem',
+        }}>
+          {[
+            { icon: '📅', label: 'Daily Challenge', onClick: onDailyChallenge },
+            { icon: '🏅', label: 'Weekly Cup',       onClick: onWeeklyCup },
+            { icon: '👥', label: 'Friends Cup',      onClick: onFriendsCup },
+            { icon: '⚡', label: 'Live Friends Cup', onClick: onLiveCup },
+          ].map(({ icon, label, onClick }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              style={{
+                background: 'rgba(8,8,14,0.72)',
+                border: '1.5px solid rgba(255,255,255,0.13)',
+                borderRadius: '0.875rem',
+                padding: isMobile ? '0.875rem 0.5rem' : '1rem 0.75rem',
+                color: '#fff',
+                cursor: 'pointer',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                gap: '0.4rem',
+                backdropFilter: 'blur(14px)',
+                WebkitBackdropFilter: 'blur(14px)',
+                transition: 'border-color 0.15s, box-shadow 0.15s',
+                width: '100%',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = 'rgba(200,16,46,0.45)'
+                e.currentTarget.style.boxShadow = '0 0 24px rgba(200,16,46,0.1)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.13)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            >
+              <span style={{ fontSize: isMobile ? '1.5rem' : '1.6rem', lineHeight: 1 }}>{icon}</span>
+              <span style={{ fontSize: isMobile ? '0.72rem' : '0.78rem', fontWeight: 800, letterSpacing: '0.04em', textAlign: 'center', lineHeight: 1.3 }}>{label}</span>
+            </button>
+          ))}
         </div>
 
         {/* ── Multiplayer banner ─────────────────────────────────────────── */}

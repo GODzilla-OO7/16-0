@@ -25,7 +25,7 @@ const COMMENTARY_ODI = [
   'The last ball of the Final is delivered…',
 ]
 
-export default function MatchSimulator({ team, mode, manager, ratingType, freePositions = false, enableQTEs = true, onDone, h2hContext = null, onHome }) {
+export default function MatchSimulator({ team, mode, manager, ratingType, freePositions = false, enableQTEs = true, onDone, h2hContext = null, liveCupContext = null, onHome }) {
   const [leagueSeason,    setLeagueSeason]    = useState(null)
   const [revealed,        setRevealed]        = useState([])
   const [liveRuns,        setLiveRuns]        = useState({})
@@ -144,6 +144,25 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
     } catch { /* ignore */ }
   }
 
+  // ── Helper: publish live cup match result ────────────────────────────────
+  async function publishLiveCupResult(match, matchNum) {
+    if (!liveCupContext?.roomId) return
+    try {
+      const sb = await getSupabase()
+      if (!sb) return
+      await sb.from('live_cup_results').upsert({
+        room_id:       liveCupContext.roomId,
+        player_id:     liveCupContext.playerId,
+        match_num:     matchNum,
+        opponent_name: match.opponent,
+        won:           match.won,
+        my_score:      match.myScore ?? null,
+        opp_score:     match.oppScore ?? null,
+        stage:         match.stage === 'League' ? 'league' : 'playoff',
+      }, { onConflict: 'room_id,player_id,match_num' })
+    } catch { /* ignore */ }
+  }
+
   useEffect(() => {
     if (!tournamentStarted) return  // Wait for group draw → "Start Tournament" click
 
@@ -156,7 +175,36 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
     const h2hOpp = oppTeamForSim
       ? { name: h2hContext.opponentName, strength: calcTeamStrength(oppTeamForSim, null, mode) }
       : null
-    const season = simulateFullSeason(ratingType === 'prime' ? applyPrimeRatings(team, mode) : team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp, freePositions, ratingType })
+    const rawSeason = simulateFullSeason(ratingType === 'prime' ? applyPrimeRatings(team, mode) : team, mode, manager, { groupOppNames, h2hOpponent: h2hOpp, freePositions, ratingType })
+
+    // ── Live Cup: inject pre-calculated H2H results at specific match indices ──
+    let season = rawSeason
+    if (liveCupContext?.fixtures?.length > 0) {
+      const fixMap = {}
+      for (const fx of liveCupContext.fixtures) {
+        if (fx.won !== null && fx.won !== undefined) {  // only pre-determined H2H results
+          fixMap[fx.match_num] = fx
+        }
+      }
+      if (Object.keys(fixMap).length > 0) {
+        const overriddenResults = rawSeason.results.map((m, idx) => {
+          const fx = fixMap[idx + 1]
+          if (!fx) return m
+          return {
+            ...m,
+            won:       fx.won,
+            myScore:   fx.my_score   ?? m.myScore,
+            oppScore:  fx.opp_score  ?? m.oppScore,
+            opponent:  fx.opponent_name ?? m.opponent,
+            isLiveCupH2H: true,  // skip QTEs for this match
+          }
+        })
+        // Recount wins for table
+        const overriddenWins = overriddenResults.filter(m => m.stage === 'League' && m.won).length
+        season = { ...rawSeason, results: overriddenResults, wins: overriddenWins }
+      }
+    }
+
     setLeagueSeason(season)
     if (isIPL) setLiveIPLTable(generateIPLTable(season.wins))
 
@@ -224,7 +272,8 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
       }
 
       // If match has a QTE event, pause and show the overlay
-      if (match.event && !h2hContext && enableQTEs) {
+      // Skip QTEs for live cup H2H matches (score is pre-determined)
+      if (match.event && !h2hContext && !match.isLiveCupH2H && enableQTEs) {
         setPendingEvent({
           event: match.event,
           opponent: match.opponent,
@@ -285,6 +334,7 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
           setLiveRuns({ ...runsAcc })
           setLiveWkts({ ...wktsAcc })
           publishH2HResult(finalMatch, idx + 1)
+          publishLiveCupResult(finalMatch, idx + 1)
           scheduleNext(idx + 1)
         }
 
