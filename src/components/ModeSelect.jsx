@@ -11,7 +11,7 @@ function formatCount(n) {
 }
 
 export default function ModeSelect({
-  onSelect, onH2H, onDailyChallenge,
+  onSelect, onH2H, onDailyChallenge, onWeeklyCup, onFriendsCup, onLiveCup,
   user, onSignIn, onGoogleSignIn, onAccount, onMedals,
   newAwards = [], streak = 0, streakBonus = 0,
 }) {
