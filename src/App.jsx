@@ -480,7 +480,7 @@ export default function App() {
     else handleBackToComposition()
   }
 
-  // Back from draft → composition screen (S1) or retention screen (S2+)
+  // Back from draft → settings (S1) or retention screen (S2+)
   function handleBackToComposition() {
     if (seasonNumber > 1) {
       // In S2+, undo the season increment from handleRetentionDone so re-confirming works correctly
@@ -492,7 +492,7 @@ export default function App() {
       // retentionTeam snapshot still holds the full season-end XI for the retention screen
       setPhase('retention')
     } else {
-      setPhase('compose')
+      setPhase('settings')
       setTeam([]); setDraftedIds(new Set())
       setManager(null)
       setPreviewManager(null); setConfirmedManager(null)
@@ -605,7 +605,7 @@ export default function App() {
           // Signal that draft completion should save to cup, not start season
           setLiveCupCtx({ draftMode: true })
           setShowLiveCup(false)
-          setPhase('compose')
+          setPhase('settings')
         }}
         onStartSeason={(ctx, draftedTeam, draftedManager, ratingType) => {
           // Host clicked Start — begin the actual season with pre-calculated fixtures
@@ -636,7 +636,7 @@ export default function App() {
           setBudgetLeft(STARTING_BUDGET); setBiddingWarsUsed(0)
           setComposition(null)
           setShowFriendsCup(false)
-          setPhase('compose')
+          setPhase('settings')
         }}
       />
     )
@@ -657,7 +657,7 @@ export default function App() {
           setBudgetLeft(STARTING_BUDGET); setBiddingWarsUsed(0)
           setComposition(null)
           setShowWeeklyCup(false)
-          setPhase('compose')
+          setPhase('settings')
         }}
       />
     )
