@@ -18,6 +18,8 @@ import H2HLobby from './components/H2HLobby.jsx'
 import H2HDraft from './components/H2HDraft.jsx'
 import SharedLeague from './components/SharedLeague.jsx'
 import LiveCup from './components/LiveCup.jsx'
+import FriendsCup from './components/FriendsCup.jsx'
+import WeeklyCup from './components/WeeklyCup.jsx'
 import { STARTING_BUDGET } from './components/WheelSpin.jsx'
 import MusicPlayer from './components/MusicPlayer.jsx'
 import ConfirmLeaveModal from './components/ConfirmLeaveModal.jsx'
@@ -119,6 +121,10 @@ export default function App() {
       if (roomId) { setH2hJoinId(roomId); setShowH2H(true) }
     } else if (hash.startsWith('#livecup=')) {
       setShowLiveCup(true)
+    } else if (hash.startsWith('#fcup=')) {
+      setShowFriendsCup(true)
+    } else if (hash === '#wcup') {
+      setShowWeeklyCup(true)
     }
   }, [])
   const { user, signOut } = useAuth()
@@ -230,6 +236,10 @@ export default function App() {
   const [showLiveCup, setShowLiveCup]     = useState(false)
   const [liveCupCtx, setLiveCupCtx]       = useState(null)   // set to { draftMode:true } during draft, full ctx during sim
   const liveCupDraftDoneRef = useRef(null)                   // callback: (team, mgr, ratingType) → save + return to lobby
+  const [showFriendsCup, setShowFriendsCup] = useState(false)
+  const [friendsCupCtx, setFriendsCupCtx]   = useState(null)  // { roomId, playerId, displayName } during sim
+  const [showWeeklyCup, setShowWeeklyCup]   = useState(false)
+  const [weeklyCupCtx, setWeeklyCupCtx]     = useState(null)  // { playerId, displayName, weekKey } during sim
   const [comingSoonMsg, setComingSoonMsg] = useState(null)   // brief toast for unbuilt features
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640)
   useEffect(() => {
@@ -368,9 +378,54 @@ export default function App() {
         perfect:      sum.perfect,
       })
     }
+
+    // ── Friends Cup result submission ─────────────────────────────────────────
+    // Submit in background; keep ctx so results screen can show "Back to Cup" button.
+    const fCtx = friendsCupCtx
+    if (fCtx?.roomId) {
+      getSupabase().then(sb => {
+        if (!sb) return
+        sb.from('friends_cup_results').upsert({
+          room_id:      fCtx.roomId,
+          player_id:    fCtx.playerId,
+          display_name: fCtx.displayName,
+          wins:         sum.wins,
+          losses:       sum.losses,
+          stage_reached: sum.stageReached ?? null,
+          ipl_outcome:  sum.iplOutcome ?? null,
+          submitted_at: new Date().toISOString(),
+        }, { onConflict: 'room_id,player_id' })
+      })
+      // friendsCupCtx stays set so handlePlayAgain can re-open the lobby
+    }
+
+    // ── Weekly Cup result submission ──────────────────────────────────────────
+    const wCtx = weeklyCupCtx
+    if (wCtx?.weekKey) {
+      getSupabase().then(sb => {
+        if (!sb) return
+        sb.from('weekly_cup_entries').upsert({
+          week_key:     wCtx.weekKey,
+          player_id:    wCtx.playerId,
+          display_name: wCtx.displayName,
+          mode:         mode,
+          wins:         sum.wins,
+          losses:       sum.losses,
+          total:        sum.total ?? (sum.wins + sum.losses),
+          stage_reached: sum.stageReached ?? null,
+          ipl_outcome:  sum.iplOutcome ?? null,
+          submitted_at: new Date().toISOString(),
+        }, { onConflict: 'week_key,player_id' })
+      })
+      // weeklyCupCtx stays set so handlePlayAgain can re-open the leaderboard
+    }
   }
 
   function handlePlayAgain() {
+    // If coming from a cup, re-open the cup lobby instead of the main menu
+    const returnToFriendsCup = !!friendsCupCtx?.roomId
+    const returnToWeeklyCup  = !!weeklyCupCtx?.weekKey
+
     setMode(null); setPhase('menu')
     setTeam([]); setDraftedIds(new Set())
     setSettings(null); setManager(null)
@@ -388,6 +443,17 @@ export default function App() {
     setRetentionTeam([])
     setH2hResultCtx(null)
     window.__activeChallenge = null
+
+    if (returnToFriendsCup) {
+      setFriendsCupCtx(null)
+      setShowFriendsCup(true)
+    } else if (returnToWeeklyCup) {
+      setWeeklyCupCtx(null)
+      setShowWeeklyCup(true)
+    } else {
+      setFriendsCupCtx(null)
+      setWeeklyCupCtx(null)
+    }
   }
 
   function handleBackToSettings() {
@@ -554,6 +620,48 @@ export default function App() {
           setSettings(prev => ({ ...(prev ?? {}), ratingType: ratingType ?? 'overall', enableQTEs: true }))
           setShowLiveCup(false)
           setPhase('simulate')
+        }}
+      />
+    )
+  }
+
+  // Friends Cup full-page takeover
+  if (showFriendsCup) {
+    return (
+      <FriendsCup
+        user={user}
+        onHome={() => { setShowFriendsCup(false); setFriendsCupCtx(null) }}
+        onStartSeason={(ctx, cupMode) => {
+          setFriendsCupCtx(ctx)
+          setMode(cupMode || 'ipl')
+          setSettings({ ratingType: 'overall', difficulty: 'normal', rerolls: 3, freePositions: false, enableQTEs: true })
+          setTeam([]); setDraftedIds(new Set())
+          setManager(null); setPreviewManager(null); setConfirmedManager(null)
+          setBudgetLeft(STARTING_BUDGET); setBiddingWarsUsed(0)
+          setComposition(null)
+          setShowFriendsCup(false)
+          setPhase('compose')
+        }}
+      />
+    )
+  }
+
+  // Weekly Cup full-page takeover
+  if (showWeeklyCup) {
+    return (
+      <WeeklyCup
+        user={user}
+        onHome={() => { setShowWeeklyCup(false); setWeeklyCupCtx(null) }}
+        onStartSeason={(ctx, cupMode) => {
+          setWeeklyCupCtx(ctx)
+          setMode(cupMode || 'ipl')
+          setSettings({ ratingType: 'overall', difficulty: 'normal', rerolls: 3, freePositions: false, enableQTEs: true })
+          setTeam([]); setDraftedIds(new Set())
+          setManager(null); setPreviewManager(null); setConfirmedManager(null)
+          setBudgetLeft(STARTING_BUDGET); setBiddingWarsUsed(0)
+          setComposition(null)
+          setShowWeeklyCup(false)
+          setPhase('compose')
         }}
       />
     )
@@ -748,8 +856,8 @@ export default function App() {
         onSelect={handleModeSelect}
         onH2H={() => setShowH2H(true)}
         onDailyChallenge={() => setShowDailyChallenge(true)}
-        onWeeklyCup={() => { setComingSoonMsg('Weekly Cup — coming soon! 🏅'); setTimeout(() => setComingSoonMsg(null), 2800) }}
-        onFriendsCup={() => { setComingSoonMsg('Friends Cup — coming soon! 👥'); setTimeout(() => setComingSoonMsg(null), 2800) }}
+        onWeeklyCup={() => setShowWeeklyCup(true)}
+        onFriendsCup={() => setShowFriendsCup(true)}
         onLiveCup={() => setShowLiveCup(true)}
         user={user}
         onSignIn={() => setShowAuth(true)}
@@ -985,6 +1093,8 @@ export default function App() {
           setH2hSimContext(null)
           setLiveCupCtx(null)
           handleSimDone(sum, results)
+          // After sim, if returning from a cup we go back to results
+          // (handleSimDone already sets phase to 'results')
         }}
         h2hContext={h2hSimContext}
         liveCupContext={liveCupCtx?.draftMode ? null : (liveCupCtx ?? null)}
