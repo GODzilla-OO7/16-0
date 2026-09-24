@@ -206,7 +206,7 @@ export default function FriendsCup({ user, onStartSeason, onHome }) {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: isMobile ? '1.25rem 1rem' : '2rem 1.5rem' }}>
       <div style={{ width: '100%', maxWidth: 540 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          <button onClick={onHome} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem', cursor: 'pointer', fontWeight: 700 }}>← Home</button>
+          <button onClick={onHome} style={{ background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.35)', color: '#C8102E', fontSize: '0.8rem', borderRadius: '0.4rem', cursor: 'pointer', fontWeight: 700, padding: '0.3rem 0.65rem', letterSpacing: '0.02em' }}>← Home</button>
           <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>👥 Friends Cup</div>
         </div>
         {content}

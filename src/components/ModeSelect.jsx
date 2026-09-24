@@ -443,7 +443,7 @@ export default function ModeSelect({
               }}
             >
               <span style={{ fontSize: isMobile ? '2.1rem' : '2.25rem', lineHeight: 1 }}>{icon}</span>
-              <span style={{ fontSize: isMobile ? '0.8rem' : '1.1rem', fontWeight: 800, letterSpacing: '0.04em', textAlign: 'center', lineHeight: 1.3 }}>{label}</span>
+              <span style={{ fontSize: isMobile ? '0.68rem' : '0.72rem', fontWeight: 500, letterSpacing: '0.03em', textAlign: 'center', lineHeight: 1.3 }}>{label}</span>
             </button>
           ))}
         </div>

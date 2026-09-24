@@ -727,9 +727,9 @@ export default function MatchSimulator({ team, mode, manager, ratingType, freePo
             onClick={() => setShowSimConfirm(true)}
             style={{
               position: 'absolute', top: '1.5rem', left: '1rem', zIndex: 10,
-              background: 'none', border: 'none',
-              color: 'var(--text-muted)', fontSize: '0.85rem',
-              cursor: 'pointer', fontWeight: 600, padding: 0,
+              background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.35)',
+              color: '#C8102E', fontSize: '0.8rem', borderRadius: '0.4rem',
+              cursor: 'pointer', fontWeight: 700, padding: '0.3rem 0.65rem', letterSpacing: '0.02em',
             }}
           >
             ← Back

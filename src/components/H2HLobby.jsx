@@ -773,7 +773,7 @@ export default function H2HLobby({ onClose, onStartDraft, joinRoomId = null }) {
             >
               {loading ? 'Joining…' : '🚪 Join'}
             </button>
-            <button onClick={() => setScreen('home')} style={{ padding: '0.5rem', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem' }}>← Back</button>
+            <button onClick={() => setScreen('home')} style={{ background: 'rgba(200,16,46,0.12)', border: '1px solid rgba(200,16,46,0.35)', color: '#C8102E', fontSize: '0.8rem', borderRadius: '0.4rem', cursor: 'pointer', fontWeight: 700, padding: '0.3rem 0.65rem', letterSpacing: '0.02em' }}>← Back</button>
           </div>
         )}
 
