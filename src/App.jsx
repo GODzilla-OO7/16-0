@@ -253,7 +253,7 @@ export default function App() {
     setPhase('settings')
   }
 
-  // Settings → squad composition → draft
+  // Settings → draft (composition is now chosen inline in DraftSettings)
   function handleSettingsStart(s) {
     setSettings(s)
     setTeam([])
@@ -266,13 +266,9 @@ export default function App() {
     setBudgetLeft((s.budget ?? STARTING_BUDGET) + bonus)
     setStreakBonus(0)  // shown on banner — now consumed
     setBiddingWarsUsed(0)
-    // Free Positions: skip composition screen, go straight to draft
-    if (s.freePositions) {
-      setComposition(null)
-      setPhase('draft')
-    } else {
-      setPhase('compose')
-    }
+    // Composition is passed directly from DraftSettings (null when freePositions=true)
+    setComposition(s.composition ?? null)
+    setPhase('draft')
   }
 
   function handleCompositionDone(comp) {
