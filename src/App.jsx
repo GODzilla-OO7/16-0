@@ -230,6 +230,7 @@ export default function App() {
   const [showLiveCup, setShowLiveCup]     = useState(false)
   const [liveCupCtx, setLiveCupCtx]       = useState(null)   // set to { draftMode:true } during draft, full ctx during sim
   const liveCupDraftDoneRef = useRef(null)                   // callback: (team, mgr, ratingType) → save + return to lobby
+  const [comingSoonMsg, setComingSoonMsg] = useState(null)   // brief toast for unbuilt features
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640)
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth <= 640)
@@ -624,6 +625,19 @@ export default function App() {
 
   const globalOverlays = (
     <>
+      {comingSoonMsg && (
+        <div style={{
+          position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(8,8,14,0.92)', border: '1.5px solid rgba(255,255,255,0.15)',
+          borderRadius: '0.75rem', padding: '0.75rem 1.5rem',
+          color: '#fff', fontWeight: 700, fontSize: '0.9rem',
+          zIndex: 9999, whiteSpace: 'nowrap',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          animation: 'fade-in-up 0.3s ease both',
+        }}>
+          {comingSoonMsg}
+        </div>
+      )}
       {challengeBanner}
       {showProfile && (
         <ProfileModal onClose={() => setShowProfile(false)} newAwards={newAwards} />
@@ -734,8 +748,8 @@ export default function App() {
         onSelect={handleModeSelect}
         onH2H={() => setShowH2H(true)}
         onDailyChallenge={() => setShowDailyChallenge(true)}
-        onWeeklyCup={() => {}}
-        onFriendsCup={() => {}}
+        onWeeklyCup={() => { setComingSoonMsg('Weekly Cup — coming soon! 🏅'); setTimeout(() => setComingSoonMsg(null), 2800) }}
+        onFriendsCup={() => { setComingSoonMsg('Friends Cup — coming soon! 👥'); setTimeout(() => setComingSoonMsg(null), 2800) }}
         onLiveCup={() => setShowLiveCup(true)}
         user={user}
         onSignIn={() => setShowAuth(true)}

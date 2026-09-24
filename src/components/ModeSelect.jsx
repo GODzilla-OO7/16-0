@@ -244,13 +244,13 @@ export default function ModeSelect({
               background: 'rgba(8,8,14,0.78)',
               border: '1.5px solid rgba(255,255,255,0.18)',
               borderRadius: '1rem',
-              padding: isMobile ? '1rem 1.25rem' : '2rem 1.25rem 1.5rem',
+              padding: isMobile ? '0.75rem 1.25rem' : '1.6rem 1.25rem 1.2rem',
               backdropFilter: 'blur(14px)',
               WebkitBackdropFilter: 'blur(14px)',
               display: 'flex',
               flexDirection: isMobile ? 'row' : 'column',
               alignItems: 'center',
-              gap: isMobile ? '1rem' : '0.625rem',
+              gap: isMobile ? '0.75rem' : '0.5rem',
               transition: 'border-color 0.2s, box-shadow 0.2s',
               cursor: 'default',
             }}
@@ -263,11 +263,11 @@ export default function ModeSelect({
               e.currentTarget.style.boxShadow = 'none'
             }}
           >
-            <span style={{ fontSize: isMobile ? '2.25rem' : '3.25rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.25rem', flexShrink: 0 }}>🏆</span>
+            <span style={{ fontSize: isMobile ? '1.75rem' : '2.6rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.2rem', flexShrink: 0 }}>🏆</span>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'center', gap: '0.3rem' }}>
-              <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>IPL</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>IPL</div>
               <div style={{
-                fontSize: '0.8rem', color: 'rgba(255,255,255,0.58)',
+                fontSize: '0.65rem', color: 'rgba(255,255,255,0.58)',
                 textAlign: isMobile ? 'left' : 'center', lineHeight: 1.55,
               }}>
                 Draft with full player stats visible — make informed picks across all IPL eras.
@@ -276,13 +276,13 @@ export default function ModeSelect({
             <button
               onClick={() => onSelect('ipl')}
               style={{
-                marginTop: isMobile ? 0 : '0.75rem',
+                marginTop: isMobile ? 0 : '0.5rem',
                 width: isMobile ? 'auto' : '100%',
                 flexShrink: 0,
-                padding: isMobile ? '0.6rem 1.1rem' : '0.7rem 0',
+                padding: isMobile ? '0.5rem 0.9rem' : '0.55rem 0',
                 background: RED, border: 'none',
                 borderRadius: '999px',
-                color: '#fff', fontSize: '0.85rem', fontWeight: 800,
+                color: '#fff', fontSize: '0.78rem', fontWeight: 800,
                 cursor: 'pointer', letterSpacing: '0.05em',
                 transition: 'background 0.15s, transform 0.1s',
                 whiteSpace: 'nowrap',
@@ -300,13 +300,13 @@ export default function ModeSelect({
               background: 'rgba(8,8,14,0.78)',
               border: '1.5px solid rgba(255,255,255,0.18)',
               borderRadius: '1rem',
-              padding: isMobile ? '1rem 1.25rem' : '2rem 1.25rem 1.5rem',
+              padding: isMobile ? '0.75rem 1.25rem' : '1.6rem 1.25rem 1.2rem',
               backdropFilter: 'blur(14px)',
               WebkitBackdropFilter: 'blur(14px)',
               display: 'flex',
               flexDirection: isMobile ? 'row' : 'column',
               alignItems: 'center',
-              gap: isMobile ? '1rem' : '0.625rem',
+              gap: isMobile ? '0.75rem' : '0.5rem',
               transition: 'border-color 0.2s, box-shadow 0.2s',
               cursor: 'default',
             }}
@@ -319,9 +319,9 @@ export default function ModeSelect({
               e.currentTarget.style.boxShadow = 'none'
             }}
           >
-            <span style={{ fontSize: isMobile ? '2.25rem' : '3.25rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.25rem', flexShrink: 0 }}>🌍</span>
+            <span style={{ fontSize: isMobile ? '1.75rem' : '2.6rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.2rem', flexShrink: 0 }}>🌍</span>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'center', gap: '0.3rem' }}>
-              <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>ODI WC</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>ODI WC</div>
               <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.58)', textAlign: isMobile ? 'left' : 'center', lineHeight: 1.55 }}>
                 Build the greatest ODI World Cup XI of all time.
               </div>
@@ -329,13 +329,13 @@ export default function ModeSelect({
             <button
               onClick={() => onSelect('odi-wc')}
               style={{
-                marginTop: isMobile ? 0 : '0.75rem',
+                marginTop: isMobile ? 0 : '0.5rem',
                 width: isMobile ? 'auto' : '100%',
                 flexShrink: 0,
-                padding: isMobile ? '0.6rem 1.1rem' : '0.7rem 0',
+                padding: isMobile ? '0.5rem 0.9rem' : '0.55rem 0',
                 background: RED, border: 'none',
                 borderRadius: '999px',
-                color: '#fff', fontSize: '0.85rem', fontWeight: 800,
+                color: '#fff', fontSize: '0.78rem', fontWeight: 800,
                 cursor: 'pointer', letterSpacing: '0.05em',
                 transition: 'background 0.15s, transform 0.1s',
                 whiteSpace: 'nowrap',
@@ -353,13 +353,13 @@ export default function ModeSelect({
               background: 'rgba(8,8,14,0.78)',
               border: '1.5px solid rgba(255,255,255,0.18)',
               borderRadius: '1rem',
-              padding: isMobile ? '1rem 1.25rem' : '2rem 1.25rem 1.5rem',
+              padding: isMobile ? '0.75rem 1.25rem' : '1.6rem 1.25rem 1.2rem',
               backdropFilter: 'blur(14px)',
               WebkitBackdropFilter: 'blur(14px)',
               display: 'flex',
               flexDirection: isMobile ? 'row' : 'column',
               alignItems: 'center',
-              gap: isMobile ? '1rem' : '0.625rem',
+              gap: isMobile ? '0.75rem' : '0.5rem',
               transition: 'border-color 0.2s, box-shadow 0.2s',
               cursor: 'default',
             }}
@@ -372,9 +372,9 @@ export default function ModeSelect({
               e.currentTarget.style.boxShadow = 'none'
             }}
           >
-            <span style={{ fontSize: isMobile ? '2.25rem' : '3.25rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.25rem', flexShrink: 0 }}>⚡</span>
+            <span style={{ fontSize: isMobile ? '1.75rem' : '2.6rem', lineHeight: 1, marginBottom: isMobile ? 0 : '0.2rem', flexShrink: 0 }}>⚡</span>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'center', gap: '0.3rem' }}>
-              <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>T20 WC</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', textAlign: isMobile ? 'left' : 'center' }}>T20 WC</div>
               <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.58)', textAlign: isMobile ? 'left' : 'center', lineHeight: 1.55 }}>
                 Pick your nation's finest T20 internationals across every edition.
               </div>
@@ -382,13 +382,13 @@ export default function ModeSelect({
             <button
               onClick={() => onSelect('t20-wc')}
               style={{
-                marginTop: isMobile ? 0 : '0.75rem',
+                marginTop: isMobile ? 0 : '0.5rem',
                 width: isMobile ? 'auto' : '100%',
                 flexShrink: 0,
-                padding: isMobile ? '0.6rem 1.1rem' : '0.7rem 0',
+                padding: isMobile ? '0.5rem 0.9rem' : '0.55rem 0',
                 background: RED, border: 'none',
                 borderRadius: '999px',
-                color: '#fff', fontSize: '0.85rem', fontWeight: 800,
+                color: '#fff', fontSize: '0.78rem', fontWeight: 800,
                 cursor: 'pointer', letterSpacing: '0.05em',
                 transition: 'background 0.15s, transform 0.1s',
                 whiteSpace: 'nowrap',
@@ -422,12 +422,12 @@ export default function ModeSelect({
                 background: 'rgba(8,8,14,0.72)',
                 border: '1.5px solid rgba(255,255,255,0.13)',
                 borderRadius: '0.875rem',
-                padding: isMobile ? '0.875rem 0.5rem' : '1rem 0.75rem',
+                padding: isMobile ? '1.2rem 0.5rem' : '1.4rem 1rem',
                 color: '#fff',
                 cursor: 'pointer',
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center',
-                gap: '0.4rem',
+                gap: '0.55rem',
                 backdropFilter: 'blur(14px)',
                 WebkitBackdropFilter: 'blur(14px)',
                 transition: 'border-color 0.15s, box-shadow 0.15s',
@@ -442,8 +442,8 @@ export default function ModeSelect({
                 e.currentTarget.style.boxShadow = 'none'
               }}
             >
-              <span style={{ fontSize: isMobile ? '1.5rem' : '1.6rem', lineHeight: 1 }}>{icon}</span>
-              <span style={{ fontSize: isMobile ? '0.72rem' : '0.78rem', fontWeight: 800, letterSpacing: '0.04em', textAlign: 'center', lineHeight: 1.3 }}>{label}</span>
+              <span style={{ fontSize: isMobile ? '2.1rem' : '2.25rem', lineHeight: 1 }}>{icon}</span>
+              <span style={{ fontSize: isMobile ? '0.8rem' : '1.1rem', fontWeight: 800, letterSpacing: '0.04em', textAlign: 'center', lineHeight: 1.3 }}>{label}</span>
             </button>
           ))}
         </div>
