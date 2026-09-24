@@ -1,6 +1,24 @@
 import { useState, useEffect } from 'react'
 import { getSupabase } from '../lib/supabase'
 
+// ─── Local fallback pool (used when no DB entry for today) ─────────────────────
+const CHALLENGE_POOL = [
+  { challenge_type: 'only_imports',   constraint_label: '🌍 Overseas XI',      constraint_desc: 'Your entire squad must be non-Indian (overseas) players.' },
+  { challenge_type: 'no_allrounders', constraint_label: '🎯 Specialists Only', constraint_desc: 'No all-rounders allowed — pick pure batsmen and bowlers.' },
+  { challenge_type: 'all_pace',       constraint_label: '💨 Pace Attack',      constraint_desc: 'At least 4 pace bowlers, zero spinners.' },
+  { challenge_type: 'uncapped',       constraint_label: '🌱 Uncapped Heroes',  constraint_desc: 'Only players with an overall rating of 72 or below.' },
+  { challenge_type: 'big_hitters',    constraint_label: '💥 Batting Lineup',   constraint_desc: 'At least 5 openers or middle-order batsmen in your XI.' },
+  { challenge_type: 'all_spin',       constraint_label: '🌀 Spin Web',         constraint_desc: 'At least 3 spinners, zero pace bowlers.' },
+  { challenge_type: 'only_indians',   constraint_label: '🇮🇳 Desi XI',        constraint_desc: 'All 11 players must be Indian.' },
+]
+
+function getDailyFallback(dateStr) {
+  let hash = 0
+  for (const ch of dateStr) hash = (hash * 31 + ch.charCodeAt(0)) & 0xffff
+  const c = CHALLENGE_POOL[hash % CHALLENGE_POOL.length]
+  return { id: `local-${dateStr}`, date: dateStr, ...c }
+}
+
 // ─── Constraint checker ────────────────────────────────────────────────────
 
 // Pass challenge.challenge_type as the first argument
@@ -102,7 +120,12 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
         .eq('date', today)
         .maybeSingle()
 
-      if (!ch) { setError('No challenge today — check back soon!'); setLoading(false); return }
+      if (!ch) {
+        // Fall back to deterministic local challenge so there's always something to play
+        setChallenge(getDailyFallback(today))
+        setLoading(false)
+        return
+      }
       setChallenge(ch)
 
       // Get leaderboard (top 20, joined with profiles for display names)
@@ -197,7 +220,7 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
             {/* Play button */}
             {!alreadyPlayed && (
               <button
-                onClick={() => user ? onPlay(challenge) : onClose()}
+                onClick={() => onPlay(challenge)}
                 style={{
                   width: '100%', padding: '1rem',
                   background: '#C8102E',
@@ -207,7 +230,7 @@ export default function DailyChallenge({ user, onClose, onPlay }) {
                   boxShadow: '0 4px 20px rgba(200,16,46,0.35)',
                 }}
               >
-                {user ? 'Play Today\'s Challenge →' : 'Sign in to play →'}
+                Play Today's Challenge →
               </button>
             )}
 
